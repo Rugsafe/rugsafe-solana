@@ -1,0 +1,17 @@
+[package]
+name = "hello_world"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75.0"
+
+[dependencies]
+solana-program = "=2.0.2"
+spl-token = { version = "6.0.0", features = ["no-entrypoint"], default-features = false }
+
+[dev-dependencies]
+solana-program-test = "=2.0.2"
+solana-sdk = "=2.0.2"
+
+[lib]
+name = "hello_world"
+crate-type = ["cdylib", "lib"]
