@@ -5,6 +5,8 @@ import { PublicKey, Connection, Keypair } from '@solana/web3.js';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { createVault } from './transaction-utils'; 
 
+const LOCALHOST_URL = 'http://127.0.0.1:8899';
+
 // Generate Keypairs for testing
 const mintKeypair = Keypair.generate();
 const ownerKeypair = Keypair.generate();
@@ -20,7 +22,11 @@ const CreateVault = () => {
   const [ownerPubkey, setOwnerPubkey] = useState(ownerKeypair.publicKey.toBase58());
   
   const wallet = useWallet();
-  const { connection } = useConnection();
+
+
+  // const { connection } = useConnection();
+  const connection = new Connection(LOCALHOST_URL, 'confirmed');
+
   const programId = new PublicKey('AVFEXtCiwxuBHuMUsnFGoFB44ymVAbMn3QsN6f6pw5yA'); // Replace with your program ID
 
   const handleCreateVault = async () => {
@@ -56,7 +62,8 @@ const CreateVault = () => {
         onChange={(e) => setOwnerPubkey(e.target.value)}
         placeholder="Owner PublicKey"
       />
-      <button onClick={handleCreateVault} disabled={!wallet.connected}>Create Vault</button>
+      <br/>
+      <button className="btn" onClick={handleCreateVault} disabled={!wallet.connected}>Create Vault</button>
     </div>
   );
 };

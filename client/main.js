@@ -14,7 +14,7 @@ const connection = new solanaWeb3.Connection('http://127.0.0.1:8899', 'confirmed
 console.log(connection)
 
 // Program ID
-const programId = new solanaWeb3.PublicKey('CoNXM11qc8LmGhTLKb7i75HhSP4rgc3eNcyNHgYn377o');
+const programId = new solanaWeb3.PublicKey('AVFEXtCiwxuBHuMUsnFGoFB44ymVAbMn3QsN6f6pw5yA');
 console.log(programId)
 
 // Direct HTTP request to check connectivity
