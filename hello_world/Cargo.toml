@@ -11,6 +11,7 @@ spl-token = { version = "6.0.0", features = ["no-entrypoint"], default-features 
 [dev-dependencies]
 solana-program-test = "=2.0.2"
 solana-sdk = "=2.0.2"
+spl-token = { version = "6.0.0", features = ["no-entrypoint"], default-features = false }
 
 [lib]
 name = "hello_world"

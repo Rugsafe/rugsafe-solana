@@ -38,7 +38,7 @@ impl Processor {
 
     fn process_create_vault(_program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
         let account_info_iter = &mut accounts.iter();
-        let mint_account = next_account_info(account_info_iter)?;
+        let mint_account: &AccountInfo = next_account_info(account_info_iter)?;
         let owner_account = next_account_info(account_info_iter)?;
         let rent_account = next_account_info(account_info_iter)?;
 
