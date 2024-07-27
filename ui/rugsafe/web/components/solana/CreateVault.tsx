@@ -24,10 +24,12 @@ const CreateVault = () => {
   const wallet = useWallet();
 
 
-  // const { connection } = useConnection();
+//   const { connection } = useConnection();
   const connection = new Connection(LOCALHOST_URL, 'confirmed');
 
-  const programId = new PublicKey('AVFEXtCiwxuBHuMUsnFGoFB44ymVAbMn3QsN6f6pw5yA'); // Replace with your program ID
+
+    // const programId = new PublicKey('AVFEXtCiwxuBHuMUsnFGoFB44ymVAbMn3QsN6f6pw5yA'); // Replace with your program ID
+    const programId = new PublicKey('AVFEXtCiwxuBHuMUsnFGoFB44ymVAbMn3QsN6f6pw5yA'); // Replace with your program ID
 
   const handleCreateVault = async () => {
     try {
@@ -40,6 +42,7 @@ const CreateVault = () => {
 
     const mintKey = new PublicKey(mintPubkey);
     const ownerKey = new PublicKey(ownerPubkey);
+
     const txSignature = await createVault(ownerKeypair, ownerKeypair, programId, wallet, connection);
     console.log('Transaction successful with signature:', txSignature);
 

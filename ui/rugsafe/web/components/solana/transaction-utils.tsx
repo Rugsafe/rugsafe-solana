@@ -21,9 +21,17 @@ export async function createVault(
     const transaction = new Transaction().add(
       new TransactionInstruction({
         keys: [
+
+            // { pubkey: mintKeyPair.publicKey, isSigner: false, isWritable: true },
+            // { pubkey: wallet.publicKey as PublicKey, isSigner: true, isWritable: true },
+            // { pubkey: rentSysvarId, isSigner: false, isWritable: false },
+
+
             { pubkey: mintKeyPair.publicKey, isSigner: false, isWritable: true },
-            { pubkey: wallet.publicKey as PublicKey, isSigner: true, isWritable: true },
-            { pubkey: rentSysvarId, isSigner: false, isWritable: false },
+            { pubkey: ownerKeypair.publicKey, isSigner: true, isWritable: true },
+            { pubkey: new PublicKey('SysvarRent111111111111111111111111111111111'), isSigner: false, isWritable: false },
+            { pubkey: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'), isSigner: false, isWritable: false }
+
         ],
         programId: programId,
         data: Buffer.from([0]) // The instruction data
@@ -65,9 +73,10 @@ export async function createVault(
         // const signature = await wallet.sendTransaction(transaction, connection, { skipPreflight: true, preflightCommitment: 'singleGossip' });
         console.log(wallet)
         console.log(wallet.publicKey)
-        const signature = await wallet.sendTransaction(transaction, connection, {
-            signers:  [wallet.publicKey],
-        });
+        // const signature = await wallet.sendTransaction(transaction, connection, {
+        //     signers:  [wallet.publicKey],
+        // });
+        const signature = await wallet.sendTransaction(transaction, connection);
             
         console.log("signature:", signature)
         // const signature = await sendAndConfirmTransaction(
