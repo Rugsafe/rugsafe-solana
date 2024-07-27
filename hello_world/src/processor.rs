@@ -38,11 +38,13 @@ impl Processor {
 
     fn process_create_vault(_program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
         let account_info_iter = &mut accounts.iter();
+        let payer_account = next_account_info(account_info_iter)?;
         let mint_account: &AccountInfo = next_account_info(account_info_iter)?;
         let owner_account = next_account_info(account_info_iter)?;
         let rent_account = next_account_info(account_info_iter)?;
 
         msg!("Creating vault...");
+        msg!("payer account key: {:?}", payer_account.key);
         msg!("Mint account key: {:?}", mint_account.key);
         msg!("Owner account key: {:?}", owner_account.key);
         msg!("Rent account key: {:?}", rent_account.key);
@@ -51,6 +53,14 @@ impl Processor {
         msg!("Rent account balance: {:?}", rent_account.lamports());
 
         // Ensure accounts are rent-exempt
+        if !payer_account.is_signer {
+            return Err(ProgramError::MissingRequiredSignature);
+        }
+
+        if !owner_account.is_signer {
+            return Err(ProgramError::MissingRequiredSignature);
+        }
+
         let rent = &Rent::from_account_info(rent_account)?;
         if !rent.is_exempt(mint_account.lamports(), mint_account.data_len()) {
             msg!("Mint account is not rent-exempt");
