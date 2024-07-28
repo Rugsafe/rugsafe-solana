@@ -37,12 +37,6 @@ const CreateVault = () => {
     // const programId = new PublicKey('Fx7t2guBeTJnhd4qNSRxrNQ8Qab1uGNMVw4VksX1TQ74') // hello world works
     const handleCreateVault = async () => {
         try {
-            // const mintKey = new PublicKey(mintPubkey);
-            // const ownerKey = new PublicKey(ownerPubkey);
-            const mintKey = new PublicKey(SPL_TOKEN_PROGRAM_ID);
-            const ownerKey = new PublicKey(CONTRACT_PROGRAM_ID);
-            console.log(mintKey, ownerKey)
-            // const txSignature = await createVault(mintKey, ownerKey, programId, wallet, connection);
             const txSignature = await createVault(programId, wallet, connection);
             console.log('Transaction successful with signature:', txSignature);
         } catch (error) {

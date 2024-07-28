@@ -10,7 +10,9 @@ use solana_program::{
     sysvar,
     sysvar::rent::Rent,
 };
-use spl_token::instruction::{burn, initialize_mint, mint_to}; // Import the Sysvar trait
+use spl_token::state::Mint;
+
+use spl_token::instruction::{burn, initialize_mint, initialize_mint2, mint_to}; // Import the Sysvar trait
 
 pub struct Processor;
 
@@ -38,23 +40,33 @@ impl Processor {
 
     fn process_create_vault(_program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
         let account_info_iter = &mut accounts.iter();
-        msg!("v1 length of accounts: {}", account_info_iter.len());
+        msg!("v2 length of accounts: {}", account_info_iter.len());
         let payer_account = next_account_info(account_info_iter)?;
-        // let mint_account: &AccountInfo = next_account_info(account_info_iter)?;
-        // let owner_account = next_account_info(account_info_iter)?;
-        let mint_account = payer_account;
-        let owner_account = payer_account;
+        let mint_account: &AccountInfo = next_account_info(account_info_iter)?;
+        let owner_account = next_account_info(account_info_iter)?;
+        // let mint_account = payer_account;
+        // let owner_account = payer_account;
         let rent_account = next_account_info(account_info_iter)?;
+        let spl_account = next_account_info(account_info_iter)?;
+
+        let mint_account_data_len = mint_account.data_len();
+        msg!("Mint account data length: {}", mint_account_data_len);
+        // if mint_account_data_len != Mint {
+        //     msg!("Mint account data size mismatch!");
+        //     return Err(ProgramError::InvalidAccountData);
+        // }
 
         msg!("Creating vault...");
         msg!("payer account key: {:?}", payer_account.key);
         msg!("Mint account key: {:?}", mint_account.key);
         msg!("Owner account key: {:?}", owner_account.key);
         msg!("Rent account key: {:?}", rent_account.key);
+        msg!("SPL: {}", spl_token::id());
         msg!("Mint account balance: {:?}", mint_account.lamports());
         msg!("Owner account balance: {:?}", owner_account.lamports());
         msg!("Rent account balance: {:?}", rent_account.lamports());
         msg!("Payer account balance: {:?}", payer_account.lamports());
+        msg!("spl account balance: {:?}", spl_account.lamports());
 
         //// Ensure the owner is a PDA derived from the program ID
         // let (derived_owner_pubkey, bump_seed) = Pubkey::find_program_address(&[b"vault"], program_id);
@@ -73,10 +85,10 @@ impl Processor {
         // }
 
         let rent = &Rent::from_account_info(rent_account)?;
-        if !rent.is_exempt(mint_account.lamports(), mint_account.data_len()) {
-            msg!("Mint account is not rent-exempt");
-            return Err(ProgramError::AccountNotRentExempt);
-        }
+        // if !rent.is_exempt(mint_account.lamports(), mint_account.data_len()) {
+        //     msg!("Mint account is not rent-exempt");
+        //     return Err(ProgramError::AccountNotRentExempt);
+        // }
         if !rent.is_exempt(owner_account.lamports(), owner_account.data_len()) {
             msg!("Owner account is not rent-exempt");
             return Err(ProgramError::AccountNotRentExempt);
@@ -97,7 +109,7 @@ impl Processor {
                 mint_account.clone(),
                 rent_account.clone(),
                 owner_account.clone(),
-                payer_account.clone(),
+                // payer_account.clone(),
             ],
         ) {
             Ok(_) => msg!("Mint account initialized successfully"),
@@ -144,7 +156,6 @@ impl Processor {
         let user_account = next_account_info(account_info_iter)?;
         let user_rtoken_account = next_account_info(account_info_iter)?;
         let mint_account = next_account_info(account_info_iter)?;
-
         msg!("Withdrawing {} lamports", amount);
 
         invoke(

@@ -1,9 +1,9 @@
-all: t dev
+all: t dev deploy
 	echo "finished"
-dev:
-	cargo build
+dev: t 
+	cargo build-bpf
 t:
-	cargo test
+	cargo test-bpf
 deploy:
 	solana program deploy ./target/deploy/hello_world.so --url localhost
 
