@@ -94,6 +94,27 @@ impl Processor {
             return Err(ProgramError::AccountNotRentExempt);
         }
 
+        ///////////////
+        let (mint_pda, mint_bump) = Pubkey::find_program_address(&[b"mint"], program_id);
+
+        // Create the mint account
+        let mint_account = next_account_info(account_info_iter)?;
+        let required_lamports = rent.minimum_balance(Mint::LEN);
+
+        // Ensure payer_account funds the mint account
+        invoke(
+            &solana_program::system_instruction::create_account(
+                payer_account.key,
+                &mint_pda,
+                required_lamports,
+                Mint::LEN as u64,
+                spl_token_program.key,
+            ),
+            &[payer_account.clone(), mint_account.clone()],
+        )?;
+
+        /// /////////
+
         // Initialize the mint account
         msg!("Initializing mint account... v4");
         match invoke(
