@@ -38,9 +38,12 @@ impl Processor {
 
     fn process_create_vault(_program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
         let account_info_iter = &mut accounts.iter();
+        msg!("v1 length of accounts: {}", account_info_iter.len());
         let payer_account = next_account_info(account_info_iter)?;
-        let mint_account: &AccountInfo = next_account_info(account_info_iter)?;
-        let owner_account = next_account_info(account_info_iter)?;
+        // let mint_account: &AccountInfo = next_account_info(account_info_iter)?;
+        // let owner_account = next_account_info(account_info_iter)?;
+        let mint_account = payer_account;
+        let owner_account = payer_account;
         let rent_account = next_account_info(account_info_iter)?;
 
         msg!("Creating vault...");
@@ -51,15 +54,23 @@ impl Processor {
         msg!("Mint account balance: {:?}", mint_account.lamports());
         msg!("Owner account balance: {:?}", owner_account.lamports());
         msg!("Rent account balance: {:?}", rent_account.lamports());
+        msg!("Payer account balance: {:?}", payer_account.lamports());
+
+        //// Ensure the owner is a PDA derived from the program ID
+        // let (derived_owner_pubkey, bump_seed) = Pubkey::find_program_address(&[b"vault"], program_id);
+
+        // if *owner_account.key != derived_owner_pubkey {
+        //     return Err(ProgramError::InvalidAccountData);
+        // }
 
         // Ensure accounts are rent-exempt
         if !payer_account.is_signer {
             return Err(ProgramError::MissingRequiredSignature);
         }
 
-        if !owner_account.is_signer {
-            return Err(ProgramError::MissingRequiredSignature);
-        }
+        // if !owner_account.is_signer {
+        //     return Err(ProgramError::MissingRequiredSignature);
+        // }
 
         let rent = &Rent::from_account_info(rent_account)?;
         if !rent.is_exempt(mint_account.lamports(), mint_account.data_len()) {
@@ -72,10 +83,11 @@ impl Processor {
         }
 
         // Initialize the mint account
-        msg!("Initializing mint account...");
+        msg!("Initializing mint account... v3");
         match invoke(
             &initialize_mint(
                 &spl_token::id(),
+                // &_program_id,
                 &mint_account.key,
                 &owner_account.key,
                 Some(&owner_account.key),

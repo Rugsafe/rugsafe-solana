@@ -55,12 +55,13 @@ async fn test_create_vault() -> Result<(), TransportError> {
     let owner_keypair = Keypair::new(); // Owner's keypair
     let owner_key = owner_keypair.pubkey();
     let rent_key = solana_program::sysvar::rent::ID;
+    let spl_key = spl_token::id();
 
     let mut program_test =
         ProgramTest::new("hello_world", program_id, processor!(process_instruction));
 
     // Add SPL Token program
-    program_test.add_program("spl_token", spl_token::id(), None);
+    program_test.add_program("spl_token", spl_key, None);
 
     // Create mint account
     program_test.add_account(
@@ -68,7 +69,7 @@ async fn test_create_vault() -> Result<(), TransportError> {
         Account {
             lamports: 1_000_000_000,
             data: vec![0; Mint::LEN],
-            owner: spl_token::id(),
+            owner: spl_key,
             executable: false,
             rent_epoch: 0,
         },
@@ -106,11 +107,11 @@ async fn test_create_vault() -> Result<(), TransportError> {
     assert!(rent_account.is_some(), "Rent account not found");
 
     // Initialize mint account
-    let init_mint_ix =
-        initialize_mint(&spl_token::id(), &mint_key, &owner_key, Some(&owner_key), 0).unwrap();
-    let mut init_mint_tx = Transaction::new_with_payer(&[init_mint_ix], Some(&payer.pubkey()));
-    init_mint_tx.sign(&[&payer], recent_blockhash);
-    banks_client.process_transaction(init_mint_tx).await?;
+    // let init_mint_ix =
+    //     initialize_mint(&spl_key, &mint_key, &owner_key, Some(&owner_key), 0).unwrap();
+    // let mut init_mint_tx = Transaction::new_with_payer(&[init_mint_ix], Some(&payer.pubkey()));
+    // init_mint_tx.sign(&[&payer], recent_blockhash);
+    // banks_client.process_transaction(init_mint_tx).await?;
 
     // Create CreateVault instruction
     let instruction_data = [0u8];
@@ -119,6 +120,7 @@ async fn test_create_vault() -> Result<(), TransportError> {
         AccountMeta::new(mint_key, false),
         AccountMeta::new(owner_key, true), // Owner needs to sign
         AccountMeta::new_readonly(rent_key, false),
+        AccountMeta::new(spl_key, false),
     ];
 
     let create_vault_instruction = Instruction {
@@ -142,13 +144,13 @@ async fn test_create_vault() -> Result<(), TransportError> {
     transaction.sign(&[payer, &owner_keypair], recent_blockhash);
 
     // // // Process CreateVault transaction
-    // match banks_client.process_transaction(transaction).await {
-    //     Ok(_) => println!("Transaction processed successfully"),
-    //     Err(e) => {
-    //         println!("Transaction failed: {:?}", e);
-    //         return Err(e.into());
-    //     }
-    // }
+    match banks_client.process_transaction(transaction).await {
+        Ok(_) => println!("Transaction processed successfully"),
+        Err(e) => {
+            println!("Transaction failed: {:?}", e);
+            return Err(e.into());
+        }
+    }
 
     // // Verify vault creation
     // let mint_account = banks_client.get_account(mint_key).await?;
