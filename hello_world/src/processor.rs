@@ -83,7 +83,7 @@ impl Processor {
         }
 
         // Initialize the mint account
-        msg!("Initializing mint account... v3");
+        msg!("Initializing mint account... v4");
         match invoke(
             &initialize_mint(
                 &spl_token::id(),
@@ -97,6 +97,7 @@ impl Processor {
                 mint_account.clone(),
                 rent_account.clone(),
                 owner_account.clone(),
+                payer_account.clone(),
             ],
         ) {
             Ok(_) => msg!("Mint account initialized successfully"),
