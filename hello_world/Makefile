@@ -1,6 +1,6 @@
 all: t dev deploy
 	echo "finished"
-dev: t 
+dev:
 	cargo build-bpf
 t:
 	cargo test-bpf

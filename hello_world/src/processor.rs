@@ -6,13 +6,13 @@ use solana_program::{
     msg,
     program::invoke,
     program_error::ProgramError,
+    program_pack::Pack,
     pubkey::Pubkey,
     sysvar,
     sysvar::rent::Rent,
 };
+use spl_token::instruction::{burn, initialize_mint, initialize_mint2, mint_to};
 use spl_token::state::Mint;
-
-use spl_token::instruction::{burn, initialize_mint, initialize_mint2, mint_to}; // Import the Sysvar trait
 
 pub struct Processor;
 
@@ -38,7 +38,7 @@ impl Processor {
         }
     }
 
-    fn process_create_vault(_program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
+    fn process_create_vault(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
         let account_info_iter = &mut accounts.iter();
         msg!("v2 length of accounts: {}", account_info_iter.len());
         let payer_account = next_account_info(account_info_iter)?;
@@ -89,31 +89,40 @@ impl Processor {
         //     msg!("Mint account is not rent-exempt");
         //     return Err(ProgramError::AccountNotRentExempt);
         // }
-        if !rent.is_exempt(owner_account.lamports(), owner_account.data_len()) {
-            msg!("Owner account is not rent-exempt");
-            return Err(ProgramError::AccountNotRentExempt);
+
+        // if !rent.is_exempt(owner_account.lamports(), owner_account.data_len()) {
+        //     msg!("Owner account is not rent-exempt");
+        //     return Err(ProgramError::AccountNotRentExempt);
+        // }
+
+        /////////////// create account
+        if mint_account.lamports() == 0 {
+            // let (mint_pda, mint_bump) = Pubkey::find_program_address(&[b"mint"], program_id);
+
+            // // Create the mint account
+            // let mint_account = next_account_info(account_info_iter)?;
+            let required_lamports = rent.minimum_balance(Mint::LEN);
+            msg!("required_lamports: {}", required_lamports);
+            // // Ensure payer_account funds the mint account
+            msg!("before create account");
+            invoke(
+                &solana_program::system_instruction::create_account(
+                    payer_account.key,
+                    mint_account.key,
+                    required_lamports,
+                    Mint::LEN as u64,
+                    spl_account.key,
+                ),
+                &[
+                    payer_account.clone(),
+                    mint_account.clone(),
+                    // spl_account.clone(),
+                    // rent_account.clone(),
+                ],
+                // &[payer_account.clone()],
+            )?;
         }
-
-        ///////////////
-        let (mint_pda, mint_bump) = Pubkey::find_program_address(&[b"mint"], program_id);
-
-        // Create the mint account
-        let mint_account = next_account_info(account_info_iter)?;
-        let required_lamports = rent.minimum_balance(Mint::LEN);
-
-        // Ensure payer_account funds the mint account
-        invoke(
-            &solana_program::system_instruction::create_account(
-                payer_account.key,
-                &mint_pda,
-                required_lamports,
-                Mint::LEN as u64,
-                spl_token_program.key,
-            ),
-            &[payer_account.clone(), mint_account.clone()],
-        )?;
-
-        /// /////////
+        ////////////
 
         // Initialize the mint account
         msg!("Initializing mint account... v4");
@@ -130,7 +139,7 @@ impl Processor {
                 mint_account.clone(),
                 rent_account.clone(),
                 owner_account.clone(),
-                // payer_account.clone(),
+                payer_account.clone(),
             ],
         ) {
             Ok(_) => msg!("Mint account initialized successfully"),

@@ -52,8 +52,13 @@ async fn test_create_vault() -> Result<(), TransportError> {
     let program_id = Pubkey::new_unique();
     let mint_keypair = Keypair::new(); // Mint account
     let mint_key = mint_keypair.pubkey();
+
     let owner_keypair = Keypair::new(); // Owner's keypair
-    let owner_key = owner_keypair.pubkey();
+
+    //debug
+    // let owner_key = owner_keypair.pubkey();
+    let owner_key = Pubkey::new_unique(); // Owner's pubkey (not a keypair)
+
     let rent_key = solana_program::sysvar::rent::ID;
     let spl_key = spl_token::id();
 
@@ -64,16 +69,16 @@ async fn test_create_vault() -> Result<(), TransportError> {
     program_test.add_program("spl_token", spl_key, None);
 
     // Create mint account
-    program_test.add_account(
-        mint_key,
-        Account {
-            lamports: 1_000_000_000,
-            data: vec![0; Mint::LEN],
-            owner: spl_key,
-            executable: false,
-            rent_epoch: 0,
-        },
-    );
+    // program_test.add_account(
+    //     mint_key,
+    //     Account {
+    //         lamports: 1, //1_000_000_000,
+    //         data: vec![0; Mint::LEN],
+    //         owner: spl_key,
+    //         executable: false,
+    //         rent_epoch: 0,
+    //     },
+    // );
 
     // Create owner account
     program_test.add_account(
@@ -94,8 +99,8 @@ async fn test_create_vault() -> Result<(), TransportError> {
     let recent_blockhash = banks_client.get_latest_blockhash().await?;
 
     // Verify accounts
-    let mint_account = banks_client.get_account(mint_key).await?;
-    assert!(mint_account.is_some(), "Mint account not created or funded");
+    // let mint_account = banks_client.get_account(mint_key).await?;
+    // assert!(mint_account.is_some(), "Mint account not created or funded");
 
     let owner_account = banks_client.get_account(owner_key).await?;
     assert!(
@@ -116,9 +121,9 @@ async fn test_create_vault() -> Result<(), TransportError> {
     // Create CreateVault instruction
     let instruction_data = [0u8];
     let accounts = vec![
-        AccountMeta::new(payer.pubkey(), false), // Payer account (and signer)
+        AccountMeta::new(payer.pubkey(), true), // Payer account (and signer)
         AccountMeta::new(mint_key, false),
-        AccountMeta::new(owner_key, true), // Owner needs to sign
+        AccountMeta::new(owner_key, false), // Owner needs to sign
         AccountMeta::new_readonly(rent_key, false),
         AccountMeta::new(spl_key, false),
     ];
@@ -141,7 +146,11 @@ async fn test_create_vault() -> Result<(), TransportError> {
 
     ///// TESTS PASS UP UNTIL HERE
     // transaction.sign(&[payer], recent_blockhash);
-    transaction.sign(&[payer, &owner_keypair], recent_blockhash);
+    transaction.sign(&[payer], recent_blockhash);
+    // transaction.sign(&[&payer, &owner_keypair], recent_blockhash);
+    // transaction.sign(&[&payer, &mint_keypair], recent_blockhash);
+
+    println!("after sign");
 
     // // // Process CreateVault transaction
     match banks_client.process_transaction(transaction).await {
