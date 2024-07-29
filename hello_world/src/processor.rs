@@ -42,13 +42,11 @@ impl Processor {
         let account_info_iter = &mut accounts.iter();
         msg!("v2 length of accounts: {}", account_info_iter.len());
         let payer_account = next_account_info(account_info_iter)?;
-        let mint_account: &AccountInfo = next_account_info(account_info_iter)?;
-        let owner_account = next_account_info(account_info_iter)?;
-        // let mint_account = payer_account;
-        // let owner_account = payer_account;
+        let mint_account = next_account_info(account_info_iter)?;
+        // let owner_account = next_account_info(account_info_iter)?;
         let rent_account = next_account_info(account_info_iter)?;
         let spl_account = next_account_info(account_info_iter)?;
-
+        let system_program = next_account_info(account_info_iter)?;
         let mint_account_data_len = mint_account.data_len();
         msg!("Mint account data length: {}", mint_account_data_len);
         // if mint_account_data_len != Mint {
@@ -59,52 +57,42 @@ impl Processor {
         msg!("Creating vault...");
         msg!("payer account key: {:?}", payer_account.key);
         msg!("Mint account key: {:?}", mint_account.key);
-        msg!("Owner account key: {:?}", owner_account.key);
+        // msg!("Owner account key: {:?}", owner_account.key);
         msg!("Rent account key: {:?}", rent_account.key);
         msg!("SPL: {}", spl_token::id());
         msg!("Mint account balance: {:?}", mint_account.lamports());
-        msg!("Owner account balance: {:?}", owner_account.lamports());
+        // msg!("Owner account balance: {:?}", owner_account.lamports());
         msg!("Rent account balance: {:?}", rent_account.lamports());
         msg!("Payer account balance: {:?}", payer_account.lamports());
         msg!("spl account balance: {:?}", spl_account.lamports());
-
-        //// Ensure the owner is a PDA derived from the program ID
-        // let (derived_owner_pubkey, bump_seed) = Pubkey::find_program_address(&[b"vault"], program_id);
-
-        // if *owner_account.key != derived_owner_pubkey {
-        //     return Err(ProgramError::InvalidAccountData);
-        // }
 
         // Ensure accounts are rent-exempt
         if !payer_account.is_signer {
             return Err(ProgramError::MissingRequiredSignature);
         }
 
-        // if !owner_account.is_signer {
-        //     return Err(ProgramError::MissingRequiredSignature);
-        // }
-
+        msg!("1");
         let rent = &Rent::from_account_info(rent_account)?;
-        // if !rent.is_exempt(mint_account.lamports(), mint_account.data_len()) {
-        //     msg!("Mint account is not rent-exempt");
-        //     return Err(ProgramError::AccountNotRentExempt);
-        // }
 
-        // if !rent.is_exempt(owner_account.lamports(), owner_account.data_len()) {
-        //     msg!("Owner account is not rent-exempt");
-        //     return Err(ProgramError::AccountNotRentExempt);
-        // }
-
+        msg!("2");
+        let program_account_info = AccountInfo::new(
+            program_id,
+            false,
+            false,
+            &mut 0,
+            &mut [],
+            program_id,
+            false,
+            0,
+        );
         /////////////// create account
         if mint_account.lamports() == 0 {
-            // let (mint_pda, mint_bump) = Pubkey::find_program_address(&[b"mint"], program_id);
-
             // // Create the mint account
-            // let mint_account = next_account_info(account_info_iter)?;
             let required_lamports = rent.minimum_balance(Mint::LEN);
             msg!("required_lamports: {}", required_lamports);
             // // Ensure payer_account funds the mint account
             msg!("before create account");
+
             invoke(
                 &solana_program::system_instruction::create_account(
                     payer_account.key,
@@ -114,31 +102,31 @@ impl Processor {
                     spl_account.key,
                 ),
                 &[
-                    payer_account.clone(),
-                    mint_account.clone(),
+                    // payer_account.clone(),
+                    // mint_account.clone(),
+                    // system_program.clone(),
                     // spl_account.clone(),
-                    // rent_account.clone(),
+                    // program_account_info.clone(),
                 ],
-                // &[payer_account.clone()],
             )?;
         }
         ////////////
 
         // Initialize the mint account
         msg!("Initializing mint account... v4");
+
         match invoke(
             &initialize_mint(
                 &spl_token::id(),
                 // &_program_id,
                 &mint_account.key,
-                &owner_account.key,
-                Some(&owner_account.key),
+                &payer_account.key,
+                Some(&payer_account.key),
                 0,
             )?,
             &[
                 mint_account.clone(),
                 rent_account.clone(),
-                owner_account.clone(),
                 payer_account.clone(),
             ],
         ) {

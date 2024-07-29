@@ -19,67 +19,21 @@ export async function createVault(
     const mintKeypair = Keypair.generate();
     const mintPubkey = mintKeypair.publicKey;
     // const mintPubkey = new PublicKey("46Uxi9EoxSnC72w6xGjArfHcDVLBKUQFR9ydEigs1oXp");
-
     const ownerPubkey = wallet.publicKey as PublicKey;
+
+    console.log("mintPubkey:", mintPubkey.toString());
+    console.log("ownerPubkey:", ownerPubkey.toString());
     
-
-    // ////////////////////////creating accoiunt 
-    // ////////////////////////creating account
-    // const rentCa = await connection.getMinimumBalanceForRentExemption(MintLayout.span); // Mint account size is 82 bytes
-
-    // const createMintAccountIx = SystemProgram.createAccount({
-    //     fromPubkey: wallet.publicKey as PublicKey,
-    //     newAccountPubkey: mintPubkey,
-    //     lamports: rentCa,
-    //     space: MintLayout.span, // 82,
-    //     programId: TOKEN_PROGRAM_ID,  // SPL Token program owns the mint account
-    // });
-
-    // // const initMintIx = createInitializeMintInstruction(
-    // //     mintPubkey,  // mint account public key
-    // //     0,  // decimals
-    // //     ownerPubkey,  // mint authority
-    // //     ownerPubkey,  // freeze authority (optional, can be set to ownerPubkey if you don't want to specify)
-    // //     spl  // program ID of the SPL Token program
-    // // );
-
-    // const transactionCa = new Transaction()
-    //     .add(createMintAccountIx)
-    //     // .add(initMintIx);
-
-    // transactionCa.feePayer = ownerPubkey;
-
-    // console.log(transactionCa);
-
-    // // Simulate the transaction
-    // const simulation = await connection.simulateTransaction(transactionCa);
-    // console.log("Simulation result:", simulation);
-
-    // try {
-    //     const signatureCa = await wallet.sendTransaction(transactionCa, connection, { 
-    //         skipPreflight: true, 
-    //         preflightCommitment: 'singleGossip', 
-    //         signers: [mintKeypair] // Adding mintKeypair as a signer
-    //     });
-    //     console.log('Transaction successful with signature:', signatureCa);
-    //     await connection.confirmTransaction(signatureCa, 'confirmed');
-    // } catch (error: any) {
-    //     console.error('Transaction failed', error);
-    //     alert('Transaction failed: ' + error.message);
-    // }
-    // ////////////////// end  creating accounts
-
-
     // return;
     const transaction = new Transaction().add(
         new TransactionInstruction({
             keys: [
-                { pubkey: wallet.publicKey as PublicKey,    isSigner: true,  isWritable: true },
-                // { pubkey: wallet.publicKey as PublicKey,    isSigner: false, isWritable: true },
-                { pubkey: mintPubkey as PublicKey,          isSigner: false, isWritable: true },
-                { pubkey: ownerPubkey,                      isSigner: false, isWritable: true },
-                { pubkey: rent,                             isSigner: false, isWritable: false },
-                { pubkey: spl,                              isSigner: false, isWritable: true },
+                { pubkey: wallet.publicKey as PublicKey, isSigner: true, isWritable: true },
+                { pubkey: mintPubkey, isSigner: false, isWritable: true },
+                { pubkey: ownerPubkey, isSigner: true, isWritable: true },
+                { pubkey: rent, isSigner: false, isWritable: false },
+                { pubkey: spl, isSigner: false, isWritable: false },
+                { pubkey: SystemProgram.programId, isSigner: false, isWritable: true }
 
             ],
             programId: programId,
