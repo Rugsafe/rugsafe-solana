@@ -102,11 +102,12 @@ impl Processor {
                     spl_account.key,
                 ),
                 &[
-                    // payer_account.clone(),
                     // mint_account.clone(),
-                    // system_program.clone(),
-                    // spl_account.clone(),
-                    // program_account_info.clone(),
+                    // rent_account.clone(),
+                    // payer_account.clone(),
+                    payer_account.clone(),
+                    mint_account.clone(),
+                    system_program.clone(),
                 ],
             )?;
         }

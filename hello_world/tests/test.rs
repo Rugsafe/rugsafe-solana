@@ -53,12 +53,6 @@ async fn test_create_vault() -> Result<(), TransportError> {
     let mint_keypair = Keypair::new(); // Mint account
     let mint_key = mint_keypair.pubkey();
 
-    // let owner_keypair = Keypair::new(); // Owner's keypair
-
-    //debug
-    // let owner_key = owner_keypair.pubkey();
-    // let owner_key = Pubkey::new_unique(); // Owner's pubkey (not a keypair)
-
     let rent_key = solana_program::sysvar::rent::ID;
     let spl_key = spl_token::id();
 
@@ -68,29 +62,11 @@ async fn test_create_vault() -> Result<(), TransportError> {
     // Add SPL Token program
     program_test.add_program("spl_token", spl_key, None);
 
-    // Create owner account
-    // program_test.add_account(
-    //     owner_key,
-    //     Account {
-    //         lamports: 1_000_000,
-    //         data: vec![],
-    //         owner: program_id,
-    //         executable: false,
-    //         rent_epoch: 0,
-    //     },
-    // );
-
     // Start the context
     let mut context = program_test.start_with_context().await;
     let banks_client = &mut context.banks_client;
     let payer = &context.payer;
     let recent_blockhash = banks_client.get_latest_blockhash().await?;
-
-    // let owner_account = banks_client.get_account(owner_key).await?;
-    // assert!(
-    //     owner_account.is_some(),
-    //     "Owner account not created or funded"
-    // );
 
     let rent_account = banks_client.get_account(rent_key).await?;
     assert!(rent_account.is_some(), "Rent account not found");
@@ -99,11 +75,11 @@ async fn test_create_vault() -> Result<(), TransportError> {
     let instruction_data = [0u8];
     let accounts = vec![
         AccountMeta::new(payer.pubkey(), true),
-        AccountMeta::new(mint_key, false),
+        AccountMeta::new(mint_key, true),
         // AccountMeta::new(owner_key, true),
-        AccountMeta::new_readonly(rent_key, false),
-        AccountMeta::new_readonly(spl_key, false),
-        AccountMeta::new_readonly(solana_program::system_program::id(), false),
+        AccountMeta::new(rent_key, false),
+        AccountMeta::new(spl_key, false),
+        AccountMeta::new(solana_program::system_program::id(), false),
     ];
 
     let create_vault_instruction = Instruction {
@@ -122,9 +98,9 @@ async fn test_create_vault() -> Result<(), TransportError> {
     println!("Mint Keypair Pubkey: {:?}", mint_keypair.pubkey());
     println!("Mint Key: {:?}", mint_key);
 
-    // transaction.sign(&[&payer, &mint_keypair], recent_blockhash);
+    transaction.sign(&[&payer, &mint_keypair], recent_blockhash);
     // transaction.sign(&[&payer, &owner_keypair], recent_blockhash);
-    transaction.sign(&[&payer], recent_blockhash);
+    // transaction.sign(&[&payer], recent_blockhash);
 
     println!("after sign");
 
