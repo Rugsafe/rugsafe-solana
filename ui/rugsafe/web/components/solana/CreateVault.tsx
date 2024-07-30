@@ -6,20 +6,11 @@ import { createVault } from './transaction-utils';
 const LOCALHOST_URL = 'http://127.0.0.1:8899';
 
 // Generate Keypairs for testing
-// const mintKeypair = Keypair.generate();
-// const ownerKeypair = Keypair.generate();
-// Hardcoded Program IDs
+
 const SPL_TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
 const CONTRACT_PROGRAM_ID = 'AVFEXtCiwxuBHuMUsnFGoFB44ymVAbMn3QsN6f6pw5yA';
 
-
-
-// console.log("Mint PublicKey:", mintKeypair.publicKey.toBase58());
-// console.log("Owner PublicKey:", ownerKeypair.publicKey.toBase58());
-
 const CreateVault = () => {
-    // const [mintPubkey, setMintPubkey] = useState(mintKeypair.publicKey.toBase58());
-    // const [ownerPubkey, setOwnerPubkey] = useState(ownerKeypair.publicKey.toBase58());
     const [mintPubkey, setMintPubkey] = useState('');
     const [ownerPubkey, setOwnerPubkey] = useState('');
     

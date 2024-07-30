@@ -18,11 +18,9 @@ export async function createVault(
 
     const mintKeypair = Keypair.generate();
     const mintPubkey = mintKeypair.publicKey;
-    // const mintPubkey = new PublicKey("46Uxi9EoxSnC72w6xGjArfHcDVLBKUQFR9ydEigs1oXp");
     const ownerPubkey = wallet.publicKey as PublicKey;
 
     console.log("mintPubkey:", mintPubkey.toString());
-    // console.log("ownerPubkey:", ownerPubkey.toString());
     
     // return;
     const transaction = new Transaction().add(
@@ -30,7 +28,6 @@ export async function createVault(
             keys: [
                 { pubkey: wallet.publicKey as PublicKey, isSigner: true, isWritable: true },
                 { pubkey: mintPubkey, isSigner: true, isWritable: true },
-                // { pubkey: ownerPubkey, isSigner: false, isWritable: true },
                 { pubkey: rent, isSigner: false, isWritable: false },
                 { pubkey: spl, isSigner: false, isWritable: false },
                 { pubkey: SystemProgram.programId, isSigner: false, isWritable: true }
@@ -67,7 +64,6 @@ export async function createVault(
         { 
             skipPreflight: true, 
             preflightCommitment: 'singleGossip', 
-            // signers: [wallet.publicKey]
             signers: [mintKeypair]
         });
     console.log('Transaction successful with signature:', signature);

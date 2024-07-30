@@ -49,25 +49,23 @@ impl Processor {
         let system_program = next_account_info(account_info_iter)?;
         let mint_account_data_len = mint_account.data_len();
         msg!("Mint account data length: {}", mint_account_data_len);
-        // if mint_account_data_len != Mint {
-        //     msg!("Mint account data size mismatch!");
-        //     return Err(ProgramError::InvalidAccountData);
-        // }
 
         msg!("Creating vault...");
         msg!("payer account key: {:?}", payer_account.key);
         msg!("Mint account key: {:?}", mint_account.key);
-        // msg!("Owner account key: {:?}", owner_account.key);
         msg!("Rent account key: {:?}", rent_account.key);
         msg!("SPL: {}", spl_token::id());
         msg!("Mint account balance: {:?}", mint_account.lamports());
-        // msg!("Owner account balance: {:?}", owner_account.lamports());
         msg!("Rent account balance: {:?}", rent_account.lamports());
         msg!("Payer account balance: {:?}", payer_account.lamports());
         msg!("spl account balance: {:?}", spl_account.lamports());
 
         // Ensure accounts are rent-exempt
         if !payer_account.is_signer {
+            return Err(ProgramError::MissingRequiredSignature);
+        }
+
+        if !mint_account.is_signer {
             return Err(ProgramError::MissingRequiredSignature);
         }
 
@@ -116,7 +114,6 @@ impl Processor {
         match invoke(
             &initialize_mint(
                 &spl_token::id(),
-                // &_program_id,
                 &mint_account.key,
                 &payer_account.key,
                 Some(&payer_account.key),
@@ -145,20 +142,58 @@ impl Processor {
         amount: u64,
     ) -> ProgramResult {
         let account_info_iter = &mut accounts.iter();
-        let user_account = next_account_info(account_info_iter)?;
-        let vault_account = next_account_info(account_info_iter)?;
 
-        msg!("Depositing {} lamports", amount);
+        // Accounts required for the deposit process
+        let user_account = next_account_info(account_info_iter)?; // User's main account, which must be a signer
+        let user_token_account = next_account_info(account_info_iter)?; // User's TokenA account
+        let vault_token_account = next_account_info(account_info_iter)?; // Vault's TokenA account
+        let mint_account = next_account_info(account_info_iter)?; // Mint account for aTokenA
+        let user_atoken_account = next_account_info(account_info_iter)?; // User's aTokenA account
 
+        // Verify that the user account is a signer
+        if !user_account.is_signer {
+            return Err(ProgramError::MissingRequiredSignature);
+        }
+
+        // Log the deposit action
+        msg!("Depositing {} TokenA from user to vault", amount);
+
+        // Transfer TokenA from user to vault
         invoke(
-            &solana_program::system_instruction::transfer(
+            &spl_token::instruction::transfer(
+                &spl_token::id(),
+                user_token_account.key,
+                vault_token_account.key,
                 user_account.key,
-                vault_account.key,
+                &[], // No multisig signing required
                 amount,
-            ),
-            &[user_account.clone(), vault_account.clone()],
+            )?,
+            &[
+                user_token_account.clone(),
+                vault_token_account.clone(),
+                user_account.clone(),
+            ],
         )?;
 
+        // Mint aTokenA equivalent to the amount of TokenA deposited
+        msg!("Minting {} aTokenA to user's aTokenA account", amount);
+        invoke(
+            &spl_token::instruction::mint_to(
+                &spl_token::id(),
+                mint_account.key,
+                user_atoken_account.key,
+                user_account.key,
+                &[], // No multisig signing required
+                amount,
+            )?,
+            &[
+                mint_account.clone(),
+                user_atoken_account.clone(),
+                user_account.clone(),
+            ],
+        )?;
+
+        msg!("Deposit process completed successfully");
         Ok(())
     }
 
