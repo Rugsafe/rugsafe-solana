@@ -102,3 +102,8 @@ solana transfer 9hpcmyrpfSzn2T4XmioWzQ8xvAfFhSjxuTv8ioDKKT1P 0.11 --from ~/.conf
 
 // Pool
 // tokena is always sol
+
+# logs
+```
+solana logs  --verbose
+```

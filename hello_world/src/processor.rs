@@ -102,9 +102,6 @@ impl Processor {
                     spl_account.key,
                 ),
                 &[
-                    // mint_account.clone(),
-                    // rent_account.clone(),
-                    // payer_account.clone(),
                     payer_account.clone(),
                     mint_account.clone(),
                     system_program.clone(),

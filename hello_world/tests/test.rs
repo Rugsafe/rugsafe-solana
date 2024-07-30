@@ -76,7 +76,6 @@ async fn test_create_vault() -> Result<(), TransportError> {
     let accounts = vec![
         AccountMeta::new(payer.pubkey(), true),
         AccountMeta::new(mint_key, true),
-        // AccountMeta::new(owner_key, true),
         AccountMeta::new(rent_key, false),
         AccountMeta::new(spl_key, false),
         AccountMeta::new(solana_program::system_program::id(), false),
