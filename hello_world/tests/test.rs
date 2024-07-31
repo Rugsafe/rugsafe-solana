@@ -4,7 +4,6 @@ use solana_program::system_instruction;
 use solana_program::{
     instruction::{AccountMeta, Instruction},
     program_error::ProgramError,
-    // pubkey::Pubkey,
     sysvar::rent::ID as RentSysvarId,
 };
 use solana_program_test::*;
@@ -18,6 +17,10 @@ use solana_sdk::{
 use spl_token::instruction::initialize_mint;
 use spl_token::state::Account as TokenAccount;
 use spl_token::state::Mint; // Import for unpacking account data
+
+fn program_error_to_banks_client_error(e: ProgramError) -> BanksClientError {
+    BanksClientError::ClientError(Box::leak(Box::new(e.to_string())))
+}
 
 #[tokio::test]
 async fn test_process_instruction() -> Result<(), TransportError> {
@@ -121,351 +124,6 @@ async fn test_create_vault() -> Result<(), TransportError> {
     Ok(())
 }
 
-// #[tokio::test]
-// async fn test_process_deposit() -> Result<(), TransportError> {
-//     let program_id = Pubkey::new_unique();
-//     let mint_keypair = Keypair::new(); // Mint account for aTokenA
-//     let mint_key = mint_keypair.pubkey();
-
-//     let token_a_mint_keypair = Keypair::new(); // Mint account for TokenA
-//     let token_a_mint_key = token_a_mint_keypair.pubkey();
-
-//     let rent_key = solana_program::sysvar::rent::ID;
-//     let spl_key = spl_token::id();
-
-//     let mut program_test =
-//         ProgramTest::new("hello_world", program_id, processor!(process_instruction));
-//     program_test.add_program("spl_token", spl_key, None);
-
-//     let mut context = program_test.start_with_context().await;
-//     let banks_client = &mut context.banks_client;
-//     let payer = &context.payer;
-//     let recent_blockhash = banks_client.get_latest_blockhash().await?;
-
-//     // Initialize TokenA mint
-//     let init_token_a_mint_ix = spl_token::instruction::initialize_mint(
-//         &spl_token::id(),
-//         &token_a_mint_key,
-//         &payer.pubkey(),
-//         Some(&payer.pubkey()),
-//         0,
-//     )
-//     .map_err(|e| TransportError::from(e))?; // Convert ProgramError to TransportError
-//     let transaction = Transaction::new_signed_with_payer(
-//         &[init_token_a_mint_ix],
-//         Some(&payer.pubkey()),
-//         &[payer, &token_a_mint_keypair],
-//         recent_blockhash,
-//     );
-//     banks_client.process_transaction(transaction).await?;
-
-//     // Initialize aTokenA mint
-//     let init_a_token_a_mint_ix = spl_token::instruction::initialize_mint(
-//         &spl_token::id(),
-//         &mint_key,
-//         &payer.pubkey(),
-//         Some(&payer.pubkey()),
-//         0,
-//     )
-//     .map_err(|e| TransportError::from(e))?; // Convert ProgramError to TransportError
-//     let transaction = Transaction::new_signed_with_payer(
-//         &[init_a_token_a_mint_ix],
-//         Some(&payer.pubkey()),
-//         &[payer, &mint_keypair],
-//         recent_blockhash,
-//     );
-//     banks_client.process_transaction(transaction).await?;
-
-//     // Create user TokenA account
-//     let user_token_a_account = Keypair::new();
-//     let create_user_token_a_account_ix = spl_token::instruction::initialize_account(
-//         &spl_token::id(),
-//         &user_token_a_account.pubkey(),
-//         &token_a_mint_key,
-//         &payer.pubkey(),
-//     )
-//     .map_err(|e| TransportError::from(e))?;
-//     let transaction = Transaction::new_signed_with_payer(
-//         &[create_user_token_a_account_ix],
-//         Some(&payer.pubkey()),
-//         &[payer, &user_token_a_account],
-//         recent_blockhash,
-//     );
-//     banks_client.process_transaction(transaction).await?;
-
-//     // Create vault TokenA account
-//     let vault_token_a_account = Keypair::new();
-//     let create_vault_token_a_account_ix = spl_token::instruction::initialize_account(
-//         &spl_token::id(),
-//         &vault_token_a_account.pubkey(),
-//         &token_a_mint_key,
-//         &payer.pubkey(),
-//     )
-//     .map_err(|e| TransportError::from(e))?;
-//     let transaction = Transaction::new_signed_with_payer(
-//         &[create_vault_token_a_account_ix],
-//         Some(&payer.pubkey()),
-//         &[payer, &vault_token_a_account],
-//         recent_blockhash,
-//     );
-//     banks_client.process_transaction(transaction).await?;
-
-//     // Create user aTokenA account
-//     let user_a_token_a_account = Keypair::new();
-//     let create_user_a_token_a_account_ix = spl_token::instruction::initialize_account(
-//         &spl_token::id(),
-//         &user_a_token_a_account.pubkey(),
-//         &mint_key,
-//         &payer.pubkey(),
-//     )
-//     .map_err(|e| TransportError::from(e))?;
-//     let transaction = Transaction::new_signed_with_payer(
-//         &[create_user_a_token_a_account_ix],
-//         Some(&payer.pubkey()),
-//         &[payer, &user_a_token_a_account],
-//         recent_blockhash,
-//     );
-//     banks_client.process_transaction(transaction).await?;
-
-//     // Mint TokenA to the user's account
-//     let mint_to_user_token_a_ix = spl_token::instruction::mint_to(
-//         &spl_token::id(),
-//         &token_a_mint_key,
-//         &user_token_a_account.pubkey(),
-//         &payer.pubkey(),
-//         &[],
-//         100, // Mint 100 TokenA for testing
-//     )
-//     .map_err(|e| TransportError::from(e))?;
-//     let transaction = Transaction::new_signed_with_payer(
-//         &[mint_to_user_token_a_ix],
-//         Some(&payer.pubkey()),
-//         &[payer],
-//         recent_blockhash,
-//     );
-//     banks_client.process_transaction(transaction).await?;
-
-//     // Construct deposit instruction
-//     let deposit_instruction = Instruction {
-//         program_id,
-//         accounts: vec![
-//             AccountMeta::new(payer.pubkey(), true),
-//             AccountMeta::new(user_token_a_account.pubkey(), false),
-//             AccountMeta::new(vault_token_a_account.pubkey(), false),
-//             AccountMeta::new(mint_key, false),
-//             AccountMeta::new(user_a_token_a_account.pubkey(), false),
-//             AccountMeta::new_readonly(rent_key, false),
-//             AccountMeta::new_readonly(spl_key, false),
-//             AccountMeta::new_readonly(solana_program::system_program::id(), false),
-//         ],
-//         data: vec![0, 0, 0, 100], // Assume the deposit amount is packed in the instruction data
-//     };
-
-//     let mut transaction =
-//         Transaction::new_with_payer(&[deposit_instruction], Some(&payer.pubkey()));
-//     transaction.sign(&[payer], recent_blockhash);
-//     banks_client.process_transaction(transaction).await?;
-
-//     // Check balances and assert expected outcomes
-//     let user_token_a_account_info = banks_client
-//         .get_account(user_token_a_account.pubkey())
-//         .await?
-//         .unwrap();
-//     let vault_token_a_account_info = banks_client
-//         .get_account(vault_token_a_account.pubkey())
-//         .await?
-//         .unwrap();
-//     let user_a_token_a_account_info = banks_client
-//         .get_account(user_a_token_a_account.pubkey())
-//         .await?
-//         .unwrap();
-
-//     // Assert expected token balances
-//     assert_eq!(user_token_a_account_info.data.len(), 0); // User should have 0 TokenA in their account
-//     assert_eq!(vault_token_a_account_info.data.len(), 100); // Vault should have 100 TokenA
-//     assert_eq!(user_a_token_a_account_info.data.len(), 100); // User should have 100 aTokenA
-
-//     Ok(())
-// }
-
-// #[tokio::test]
-// async fn test_process_deposit() -> Result<(), BanksClientError> {
-//     let program_id = Pubkey::new_unique();
-//     let mint_keypair = Keypair::new(); // Mint account for aTokenA
-//     let mint_key = mint_keypair.pubkey();
-
-//     let token_a_mint_keypair = Keypair::new(); // Mint account for TokenA
-//     let token_a_mint_key = token_a_mint_keypair.pubkey();
-
-//     let rent_key = solana_program::sysvar::rent::ID;
-//     let spl_key = spl_token::id();
-
-//     let mut program_test =
-//         ProgramTest::new("hello_world", program_id, processor!(process_instruction));
-//     program_test.add_program("spl_token", spl_key, None);
-
-//     let mut context = program_test.start_with_context().await;
-//     let banks_client = &mut context.banks_client;
-//     let payer = &context.payer;
-//     let recent_blockhash = banks_client.get_latest_blockhash().await?;
-
-//     // Initialize TokenA mint
-//     let init_token_a_mint_ix = spl_token::instruction::initialize_mint(
-//         &spl_token::id(),
-//         &token_a_mint_key,
-//         &payer.pubkey(),
-//         Some(&payer.pubkey()),
-//         0,
-//     )
-//     .map_err(|e| BanksClientError::ClientError(e.into()))?;
-//     let transaction = Transaction::new_signed_with_payer(
-//         &[init_token_a_mint_ix],
-//         Some(&payer.pubkey()),
-//         &[payer, &token_a_mint_keypair],
-//         recent_blockhash,
-//     );
-//     banks_client.process_transaction(transaction).await?;
-
-//     // Initialize aTokenA mint
-//     let init_a_token_a_mint_ix = spl_token::instruction::initialize_mint(
-//         &spl_token::id(),
-//         &mint_key,
-//         &payer.pubkey(),
-//         Some(&payer.pubkey()),
-//         0,
-//     )
-//     .map_err(|e| BanksClientError::ClientError(e.into()))?;
-//     let transaction = Transaction::new_signed_with_payer(
-//         &[init_a_token_a_mint_ix],
-//         Some(&payer.pubkey()),
-//         &[payer, &mint_keypair],
-//         recent_blockhash,
-//     );
-//     banks_client.process_transaction(transaction).await?;
-
-//     // Create user TokenA account
-//     let user_token_a_account = Keypair::new();
-//     let create_user_token_a_account_ix = spl_token::instruction::initialize_account(
-//         &spl_token::id(),
-//         &user_token_a_account.pubkey(),
-//         &token_a_mint_key,
-//         &payer.pubkey(),
-//     )
-//     .map_err(|e| BanksClientError::ClientError(e.into()))?;
-//     let transaction = Transaction::new_signed_with_payer(
-//         &[create_user_token_a_account_ix],
-//         Some(&payer.pubkey()),
-//         &[payer, &user_token_a_account],
-//         recent_blockhash,
-//     );
-//     banks_client.process_transaction(transaction).await?;
-
-//     // Create vault TokenA account
-//     let vault_token_a_account = Keypair::new();
-//     let create_vault_token_a_account_ix = spl_token::instruction::initialize_account(
-//         &spl_token::id(),
-//         &vault_token_a_account.pubkey(),
-//         &token_a_mint_key,
-//         &payer.pubkey(),
-//     )
-//     .map_err(|e| BanksClientError::ClientError(e.into()))?;
-//     let transaction = Transaction::new_signed_with_payer(
-//         &[create_vault_token_a_account_ix],
-//         Some(&payer.pubkey()),
-//         &[payer, &vault_token_a_account],
-//         recent_blockhash,
-//     );
-//     banks_client.process_transaction(transaction).await?;
-
-//     // Create user aTokenA account
-//     let user_a_token_a_account = Keypair::new();
-//     let create_user_a_token_a_account_ix = spl_token::instruction::initialize_account(
-//         &spl_token::id(),
-//         &user_a_token_a_account.pubkey(),
-//         &mint_key,
-//         &payer.pubkey(),
-//     )
-//     .map_err(|e| BanksClientError::ClientError(e.into()))?;
-//     let transaction = Transaction::new_signed_with_payer(
-//         &[create_user_a_token_a_account_ix],
-//         Some(&payer.pubkey()),
-//         &[payer, &user_a_token_a_account],
-//         recent_blockhash,
-//     );
-//     banks_client.process_transaction(transaction).await?;
-
-//     // Mint TokenA to the user's account
-//     let mint_to_user_token_a_ix = spl_token::instruction::mint_to(
-//         &spl_token::id(),
-//         &token_a_mint_key,
-//         &user_token_a_account.pubkey(),
-//         &payer.pubkey(),
-//         &[],
-//         100, // Mint 100 TokenA for testing
-//     )
-//     .map_err(|e| BanksClientError::ClientError(e.into()))?;
-//     let transaction = Transaction::new_signed_with_payer(
-//         &[mint_to_user_token_a_ix],
-//         Some(&payer.pubkey()),
-//         &[payer],
-//         recent_blockhash,
-//     );
-//     banks_client.process_transaction(transaction).await?;
-
-//     // Construct deposit instruction
-//     let deposit_instruction = Instruction {
-//         program_id,
-//         accounts: vec![
-//             AccountMeta::new(payer.pubkey(), true),
-//             AccountMeta::new(user_token_a_account.pubkey(), false),
-//             AccountMeta::new(vault_token_a_account.pubkey(), false),
-//             AccountMeta::new(mint_key, false),
-//             AccountMeta::new(user_a_token_a_account.pubkey(), false),
-//             AccountMeta::new_readonly(rent_key, false),
-//             AccountMeta::new_readonly(spl_key, false),
-//             AccountMeta::new_readonly(solana_program::system_program::id(), false),
-//         ],
-//         data: vec![0, 0, 0, 100], // Assume the deposit amount is packed in the instruction data
-//     };
-
-//     let mut transaction =
-//         Transaction::new_with_payer(&[deposit_instruction], Some(&payer.pubkey()));
-//     transaction.sign(&[payer], recent_blockhash);
-//     banks_client.process_transaction(transaction).await?;
-
-//     // Check balances and assert expected outcomes
-//     let user_token_a_account_info = banks_client
-//         .get_account(user_token_a_account.pubkey())
-//         .await?
-//         .unwrap();
-//     let vault_token_a_account_info = banks_client
-//         .get_account(vault_token_a_account.pubkey())
-//         .await?
-//         .unwrap();
-//     let user_a_token_a_account_info = banks_client
-//         .get_account(user_a_token_a_account.pubkey())
-//         .await?
-//         .unwrap();
-
-//     // Assert expected token balances
-//     let user_token_a_balance =
-//         spl_token::state::Account::unpack(&user_token_a_account_info.data)?.amount;
-//     let vault_token_a_balance =
-//         spl_token::state::Account::unpack(&vault_token_a_account_info.data)?.amount;
-//     let user_a_token_a_balance =
-//         spl_token::state::Account::unpack(&user_a_token_a_account_info.data)?.amount;
-
-//     assert_eq!(user_token_a_balance, 0); // User should have 0 TokenA
-//     assert_eq!(vault_token_a_balance, 100); // Vault should have 100 TokenA
-//     assert_eq!(user_a_token_a_balance, 100); // User should have 100 aTokenA
-
-//     Ok(())
-// }
-
-fn program_error_to_banks_client_error(e: ProgramError) -> BanksClientError {
-    BanksClientError::ClientError(e.to_string().into())
-}
-
 #[tokio::test]
 async fn test_process_deposit() -> Result<(), BanksClientError> {
     let program_id = Pubkey::new_unique();
@@ -475,19 +133,55 @@ async fn test_process_deposit() -> Result<(), BanksClientError> {
     let token_a_mint_keypair = Keypair::new(); // Mint account for TokenA
     let token_a_mint_key = token_a_mint_keypair.pubkey();
 
+    println!("program_id: {:?}", program_id);
+    println!("mint_key: {:?}", mint_key);
+    println!("token_a_mint_key: {:?}", token_a_mint_key);
+
     let rent_key = solana_program::sysvar::rent::ID;
     let spl_key = spl_token::id();
 
     let mut program_test =
         ProgramTest::new("hello_world", program_id, processor!(process_instruction));
-    program_test.add_program("spl_token", spl_key, None);
+
+    program_test.add_program(
+        "spl_token",
+        spl_key,
+        processor!(spl_token::processor::Processor::process), // HERE
+    );
+
+    println!("Starting program test context...");
 
     let mut context = program_test.start_with_context().await;
     let banks_client = &mut context.banks_client;
     let payer = &context.payer;
     let recent_blockhash = banks_client.get_latest_blockhash().await?;
 
+    println!("recent_blockhash: {:?}", recent_blockhash);
+
     // Initialize TokenA mint
+    println!("Creating TokenA mint account...");
+
+    // Create TokenA mint account
+    let rent = banks_client.get_rent().await?;
+    let required_lamports = rent.minimum_balance(Mint::LEN);
+
+    let create_token_a_mint_account_ix = system_instruction::create_account(
+        &payer.pubkey(),
+        &token_a_mint_key,
+        required_lamports,
+        Mint::LEN as u64,
+        &spl_token::id(),
+    );
+    let transaction = Transaction::new_signed_with_payer(
+        &[create_token_a_mint_account_ix],
+        Some(&payer.pubkey()),
+        &[payer, &token_a_mint_keypair],
+        recent_blockhash,
+    );
+    banks_client.process_transaction(transaction).await?;
+
+    println!("Initializing TokenA mint...");
+
     let init_token_a_mint_ix = spl_token::instruction::initialize_mint(
         &spl_token::id(),
         &token_a_mint_key,
@@ -499,12 +193,32 @@ async fn test_process_deposit() -> Result<(), BanksClientError> {
     let transaction = Transaction::new_signed_with_payer(
         &[init_token_a_mint_ix],
         Some(&payer.pubkey()),
-        &[payer, &token_a_mint_keypair],
+        &[payer],
         recent_blockhash,
     );
     banks_client.process_transaction(transaction).await?;
 
     // Initialize aTokenA mint
+    println!("Creating aTokenA mint account...");
+
+    // Create aTokenA mint account
+    let create_a_token_a_mint_account_ix = system_instruction::create_account(
+        &payer.pubkey(),
+        &mint_key,
+        required_lamports,
+        Mint::LEN as u64,
+        &spl_token::id(),
+    );
+    let transaction = Transaction::new_signed_with_payer(
+        &[create_a_token_a_mint_account_ix],
+        Some(&payer.pubkey()),
+        &[payer, &mint_keypair],
+        recent_blockhash,
+    );
+    banks_client.process_transaction(transaction).await?;
+
+    println!("Initializing aTokenA mint...");
+
     let init_a_token_a_mint_ix = spl_token::instruction::initialize_mint(
         &spl_token::id(),
         &mint_key,
@@ -516,20 +230,27 @@ async fn test_process_deposit() -> Result<(), BanksClientError> {
     let transaction = Transaction::new_signed_with_payer(
         &[init_a_token_a_mint_ix],
         Some(&payer.pubkey()),
-        &[payer, &mint_keypair],
+        &[payer],
         recent_blockhash,
     );
     banks_client.process_transaction(transaction).await?;
 
+    /////////////////////////////////////////////
+    /// /////////////////////////////////////////////
+    /// /////////////////////////////////////////////
+    /// /////////////////////////////////////////////
+    /// /////////////////////////////////////////////
+
+    println!("Creating user TokenA account...");
     // Create user TokenA account
     let user_token_a_account = Keypair::new();
-    let create_user_token_a_account_ix = spl_token::instruction::initialize_account(
-        &spl_token::id(),
-        &user_token_a_account.pubkey(),
-        &token_a_mint_key,
+    let create_user_token_a_account_ix = system_instruction::create_account(
         &payer.pubkey(),
-    )
-    .map_err(program_error_to_banks_client_error)?;
+        &user_token_a_account.pubkey(),
+        rent.minimum_balance(TokenAccount::LEN),
+        TokenAccount::LEN as u64,
+        &spl_token::id(),
+    );
     let transaction = Transaction::new_signed_with_payer(
         &[create_user_token_a_account_ix],
         Some(&payer.pubkey()),
@@ -538,15 +259,32 @@ async fn test_process_deposit() -> Result<(), BanksClientError> {
     );
     banks_client.process_transaction(transaction).await?;
 
-    // Create vault TokenA account
-    let vault_token_a_account = Keypair::new();
-    let create_vault_token_a_account_ix = spl_token::instruction::initialize_account(
+    let initialize_user_token_a_account_ix = spl_token::instruction::initialize_account(
         &spl_token::id(),
-        &vault_token_a_account.pubkey(),
+        &user_token_a_account.pubkey(),
         &token_a_mint_key,
         &payer.pubkey(),
     )
     .map_err(program_error_to_banks_client_error)?;
+    let transaction = Transaction::new_signed_with_payer(
+        &[initialize_user_token_a_account_ix],
+        Some(&payer.pubkey()),
+        &[payer],
+        recent_blockhash,
+    );
+    banks_client.process_transaction(transaction).await?;
+
+    println!("Creating vault TokenA account...");
+
+    // Create vault TokenA account
+    let vault_token_a_account = Keypair::new();
+    let create_vault_token_a_account_ix = system_instruction::create_account(
+        &payer.pubkey(),
+        &vault_token_a_account.pubkey(),
+        rent.minimum_balance(TokenAccount::LEN),
+        TokenAccount::LEN as u64,
+        &spl_token::id(),
+    );
     let transaction = Transaction::new_signed_with_payer(
         &[create_vault_token_a_account_ix],
         Some(&payer.pubkey()),
@@ -555,15 +293,32 @@ async fn test_process_deposit() -> Result<(), BanksClientError> {
     );
     banks_client.process_transaction(transaction).await?;
 
-    // Create user aTokenA account
-    let user_a_token_a_account = Keypair::new();
-    let create_user_a_token_a_account_ix = spl_token::instruction::initialize_account(
+    let initialize_vault_token_a_account_ix = spl_token::instruction::initialize_account(
         &spl_token::id(),
-        &user_a_token_a_account.pubkey(),
-        &mint_key,
+        &vault_token_a_account.pubkey(),
+        &token_a_mint_key,
         &payer.pubkey(),
     )
     .map_err(program_error_to_banks_client_error)?;
+    let transaction = Transaction::new_signed_with_payer(
+        &[initialize_vault_token_a_account_ix],
+        Some(&payer.pubkey()),
+        &[payer],
+        recent_blockhash,
+    );
+    banks_client.process_transaction(transaction).await?;
+
+    println!("Creating user aTokenA account...");
+
+    // Create user aTokenA account
+    let user_a_token_a_account = Keypair::new();
+    let create_user_a_token_a_account_ix = system_instruction::create_account(
+        &payer.pubkey(),
+        &user_a_token_a_account.pubkey(),
+        rent.minimum_balance(TokenAccount::LEN),
+        TokenAccount::LEN as u64,
+        &spl_token::id(),
+    );
     let transaction = Transaction::new_signed_with_payer(
         &[create_user_a_token_a_account_ix],
         Some(&payer.pubkey()),
@@ -571,6 +326,23 @@ async fn test_process_deposit() -> Result<(), BanksClientError> {
         recent_blockhash,
     );
     banks_client.process_transaction(transaction).await?;
+
+    let initialize_user_a_token_a_account_ix = spl_token::instruction::initialize_account(
+        &spl_token::id(),
+        &user_a_token_a_account.pubkey(),
+        &mint_key,
+        &payer.pubkey(),
+    )
+    .map_err(program_error_to_banks_client_error)?;
+    let transaction = Transaction::new_signed_with_payer(
+        &[initialize_user_a_token_a_account_ix],
+        Some(&payer.pubkey()),
+        &[payer],
+        recent_blockhash,
+    );
+    banks_client.process_transaction(transaction).await?;
+
+    println!("Minting TokenA to the user's account...");
 
     // Mint TokenA to the user's account
     let mint_to_user_token_a_ix = spl_token::instruction::mint_to(
@@ -591,11 +363,13 @@ async fn test_process_deposit() -> Result<(), BanksClientError> {
     banks_client.process_transaction(transaction).await?;
 
     // Construct deposit instruction
+    println!("Constructing deposit instruction...");
+
     let deposit_instruction = Instruction {
         program_id,
         accounts: vec![
             AccountMeta::new(payer.pubkey(), true),
-            AccountMeta::new(user_token_a_account.pubkey(), false),
+            AccountMeta::new(user_token_a_account.pubkey(), true),
             AccountMeta::new(vault_token_a_account.pubkey(), false),
             AccountMeta::new(mint_key, false),
             AccountMeta::new(user_a_token_a_account.pubkey(), false),
@@ -606,10 +380,36 @@ async fn test_process_deposit() -> Result<(), BanksClientError> {
         data: vec![0, 0, 0, 100], // Assume the deposit amount is packed in the instruction data
     };
 
+    ////////////////////////////////////////////////////////?
+    ///
+    ////////////////////////////////////////////////////////?
+    ///
+    ////////////////////////////////////////////////////////?
+    ///
+    ///
+
+    println!("Signing and processing deposit transaction...");
+
     let mut transaction =
         Transaction::new_with_payer(&[deposit_instruction], Some(&payer.pubkey()));
-    transaction.sign(&[payer], recent_blockhash);
+    // transaction.sign(&[&payer], recent_blockhash); // dont work
+    // transaction.sign(&[&payer, &user_token_a_account], recent_blockhash);
+    // transaction.sign(&[&payer, &useraccount], recent_blockhash);
+    transaction.sign(
+        &[
+            &payer,
+            &user_token_a_account,
+            // &vault_token_a_account,
+            // &user_a_token_a_account,
+            // &mint_key,
+            // &user_a_token_a_account,
+        ],
+        recent_blockhash,
+    );
+
     banks_client.process_transaction(transaction).await?;
+
+    println!("Checking balances and asserting expected outcomes...");
 
     // Check balances and assert expected outcomes
     let user_token_a_account_info = banks_client
@@ -625,6 +425,17 @@ async fn test_process_deposit() -> Result<(), BanksClientError> {
         .await?
         .unwrap();
 
+    println!("user_token_a_account_info: {:?}", user_token_a_account_info);
+    println!(
+        "vault_token_a_account_info: {:?}",
+        vault_token_a_account_info
+    );
+    println!(
+        "user_a_token_a_account_info: {:?}",
+        user_a_token_a_account_info
+    );
+
+    println!("Unpacking token balances...");
     // Assert expected token balances
     let user_token_a_balance = TokenAccount::unpack(&user_token_a_account_info.data)
         .map_err(program_error_to_banks_client_error)?
@@ -636,6 +447,11 @@ async fn test_process_deposit() -> Result<(), BanksClientError> {
         .map_err(program_error_to_banks_client_error)?
         .amount;
 
+    println!("user_token_a_balance: {:?}", user_token_a_balance);
+    println!("vault_token_a_balance: {:?}", vault_token_a_balance);
+    println!("user_a_token_a_balance: {:?}", user_a_token_a_balance);
+
+    println!("Asserting expected token balances...");
     assert_eq!(user_token_a_balance, 0); // User should have 0 TokenA
     assert_eq!(vault_token_a_balance, 100); // Vault should have 100 TokenA
     assert_eq!(user_a_token_a_balance, 100); // User should have 100 aTokenA

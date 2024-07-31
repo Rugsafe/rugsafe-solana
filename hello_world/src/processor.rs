@@ -155,6 +155,10 @@ impl Processor {
             return Err(ProgramError::MissingRequiredSignature);
         }
 
+        // if token_program.key != &spl_token::id() {
+        //     return Err(ProgramError::IncorrectProgramId);
+        // }
+
         // Log the deposit action
         msg!("Depositing {} TokenA from user to vault", amount);
 
