@@ -37,25 +37,23 @@ impl Processor {
             }
         }
     }
-
     fn process_create_vault(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
         let account_info_iter = &mut accounts.iter();
-        msg!("v2 length of accounts: {}", account_info_iter.len());
         let payer_account = next_account_info(account_info_iter)?;
         let mint_account = next_account_info(account_info_iter)?;
-        // let owner_account = next_account_info(account_info_iter)?;
+        let vault_account = next_account_info(account_info_iter)?;
         let rent_account = next_account_info(account_info_iter)?;
         let spl_account = next_account_info(account_info_iter)?;
         let system_program = next_account_info(account_info_iter)?;
-        let mint_account_data_len = mint_account.data_len();
-        msg!("Mint account data length: {}", mint_account_data_len);
 
         msg!("Creating vault...");
         msg!("payer account key: {:?}", payer_account.key);
         msg!("Mint account key: {:?}", mint_account.key);
+        msg!("Vault account key: {:?}", vault_account.key);
         msg!("Rent account key: {:?}", rent_account.key);
         msg!("SPL: {}", spl_token::id());
         msg!("Mint account balance: {:?}", mint_account.lamports());
+        msg!("Vault account balance: {:?}", vault_account.lamports());
         msg!("Rent account balance: {:?}", rent_account.lamports());
         msg!("Payer account balance: {:?}", payer_account.lamports());
         msg!("spl account balance: {:?}", spl_account.lamports());
@@ -69,27 +67,16 @@ impl Processor {
             return Err(ProgramError::MissingRequiredSignature);
         }
 
-        msg!("1");
+        // if !vault_account.is_signer {
+        //     return Err(ProgramError::MissingRequiredSignature);
+        // }
+
         let rent = &Rent::from_account_info(rent_account)?;
 
-        msg!("2");
-        let program_account_info = AccountInfo::new(
-            program_id,
-            false,
-            false,
-            &mut 0,
-            &mut [],
-            program_id,
-            false,
-            0,
-        );
-        /////////////// create account
+        // Create and initialize the mint account
         if mint_account.lamports() == 0 {
-            // // Create the mint account
             let required_lamports = rent.minimum_balance(Mint::LEN);
             msg!("required_lamports: {}", required_lamports);
-            // // Ensure payer_account funds the mint account
-            msg!("before create account");
 
             invoke(
                 &solana_program::system_instruction::create_account(
@@ -106,11 +93,8 @@ impl Processor {
                 ],
             )?;
         }
-        ////////////
 
         // Initialize the mint account
-        msg!("Initializing mint account... v4");
-
         match invoke(
             &initialize_mint(
                 &spl_token::id(),
@@ -131,6 +115,23 @@ impl Processor {
                 return Err(e);
             }
         };
+
+        // Initialize the vault account (assuming it's a token account)
+        invoke(
+            &spl_token::instruction::initialize_account(
+                &spl_token::id(),
+                vault_account.key,
+                mint_account.key,
+                payer_account.key,
+            )?,
+            &[
+                vault_account.clone(),
+                mint_account.clone(),
+                rent_account.clone(),
+                payer_account.clone(),
+                spl_account.clone(),
+            ],
+        )?;
 
         msg!("Vault created successfully");
         Ok(())
