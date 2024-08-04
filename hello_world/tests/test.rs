@@ -239,9 +239,6 @@ async fn test_deposit() -> Result<(), BanksClientError> {
     println!("Starting test_deposit");
 
     let program_id = Pubkey::new_unique();
-    let mint_keypair = Keypair::new(); // Mint account for aTokenA
-    let mint_key = mint_keypair.pubkey();
-
     let token_a_mint_keypair = Keypair::new(); // Mint account for TokenA
     let token_a_mint_key = token_a_mint_keypair.pubkey();
 
@@ -267,59 +264,6 @@ async fn test_deposit() -> Result<(), BanksClientError> {
     let rent = banks_client.get_rent().await?;
     let required_lamports = rent.minimum_balance(Mint::LEN);
     println!("Required lamports: {}", required_lamports);
-
-    // Step 1: Initialize TokenA mint
-    println!("Initializing TokenA mint account...");
-    // let create_token_a_mint_account_ix = system_instruction::create_account(
-    //     &payer.pubkey(),
-    //     &token_a_mint_key,
-    //     required_lamports,
-    //     Mint::LEN as u64,
-    //     &spl_token::id(),
-    // );
-    // let transaction = Transaction::new_signed_with_payer(
-    //     &[create_token_a_mint_account_ix],
-    //     Some(&payer.pubkey()),
-    //     &[payer, &token_a_mint_keypair],
-    //     recent_blockhash,
-    // );
-    // banks_client.process_transaction(transaction).await?;
-    println!("TokenA mint account created.");
-
-    // let init_token_a_mint_ix = spl_token::instruction::initialize_mint(
-    //     &spl_token::id(),
-    //     &token_a_mint_key,
-    //     &payer.pubkey(),
-    //     Some(&payer.pubkey()),
-    //     0,
-    // )
-    // .map_err(program_error_to_banks_client_error)?;
-    // let transaction = Transaction::new_signed_with_payer(
-    //     &[init_token_a_mint_ix],
-    //     Some(&payer.pubkey()),
-    //     &[payer],
-    //     recent_blockhash,
-    // );
-    // banks_client.process_transaction(transaction).await?;
-    println!("TokenA mint initialized.");
-
-    // Step 2: Initialize aTokenA mint
-    println!("Initializing aTokenA mint account...");
-    // let create_a_token_a_mint_account_ix = system_instruction::create_account(
-    //     &payer.pubkey(),
-    //     &mint_key,
-    //     required_lamports,
-    //     Mint::LEN as u64,
-    //     &spl_token::id(),
-    // );
-    // let transaction = Transaction::new_signed_with_payer(
-    //     &[create_a_token_a_mint_account_ix],
-    //     Some(&payer.pubkey()),
-    //     &[payer, &mint_keypair],
-    //     recent_blockhash,
-    // );
-    // banks_client.process_transaction(transaction).await?;
-    println!("aTokenA mint account created.");
 
     // Step 3: Create the vault using the create_vault functionality
     println!("Creating vault...");
@@ -355,17 +299,13 @@ async fn test_deposit() -> Result<(), BanksClientError> {
     let create_vault_instruction = create_vault_instruction(
         &program_id,
         &vault_key,
-        // &mint_key,
         &token_a_mint_key,
         &payer.pubkey(),
-        // &[&payer.pubkey(), &mint_key],
-        // &[&payer.pubkey(), &mint_key, &vault_key],
         &[&payer.pubkey(), &token_a_mint_key, &vault_key],
     );
     let transaction = Transaction::new_signed_with_payer(
         &[create_vault_instruction],
         Some(&payer.pubkey()),
-        // &[&payer, &mint_keypair, &vault_keypair],
         &[&payer, &token_a_mint_keypair, &vault_keypair],
         recent_blockhash,
     );
@@ -395,7 +335,6 @@ async fn test_deposit() -> Result<(), BanksClientError> {
         &spl_token::id(),
         &user_token_a_account.pubkey(),
         &token_a_mint_key,
-        // &mint_key,
         &payer.pubkey(),
     )
     .map_err(program_error_to_banks_client_error)?;
@@ -430,7 +369,6 @@ async fn test_deposit() -> Result<(), BanksClientError> {
     let initialize_user_a_token_a_account_ix = spl_token::instruction::initialize_account(
         &spl_token::id(),
         &user_a_token_a_account.pubkey(),
-        // &mint_key,
         &token_a_mint_key,
         &payer.pubkey(),
     )
@@ -474,24 +412,15 @@ async fn test_deposit() -> Result<(), BanksClientError> {
         program_id,
         accounts: vec![
             AccountMeta::new(payer.pubkey(), true), // Payer Account
-            //
-            // AccountMeta::new(mint_key, false), // Mint Account (aTokenA mint)
             AccountMeta::new(token_a_mint_key, false),
-            //
-            // should be mint?
             AccountMeta::new(vault_key, false), // Vault Account
-            // AccountMeta::new(mint_key, false), // Vault Account
-            //
-            // user account?
             AccountMeta::new(user_token_a_account.pubkey(), false), // User's TokenA Account - true
-            // AccountMeta::new(payer.pubkey(), false), // User's aTokenA Account
             // end user account
             AccountMeta::new(user_a_token_a_account.pubkey(), false),
             AccountMeta::new_readonly(rent_key, false), // Rent Sysvar Account
             AccountMeta::new_readonly(spl_key, false),  // SPL Token Program Account
             AccountMeta::new_readonly(solana_program::system_program::id(), false), // System Program Account
         ],
-        // data: vec![1, 0, 0, 100], // Assume the deposit amount is packed in the instruction data
         data: deposit_instruction_data.to_vec(), // Correctly serialized data
     };
     println!("Deposit instruction constructed.");

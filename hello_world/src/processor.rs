@@ -207,8 +207,7 @@ impl Processor {
             TokenAccount::unpack(&vault_account.try_borrow_data()?)?.amount;
         let user_atoken_balance_before =
             TokenAccount::unpack(&user_atoken_account.try_borrow_data()?)?.amount;
-        // let payer_balance_before: u64 =
-        //     TokenAccount::unpack(&payer_account.try_borrow_data()?)?.amount;
+
         msg!(
             "User TokenA account balance before transfer: {}",
             user_token_a_balance_before
@@ -221,14 +220,6 @@ impl Processor {
             "User aTokenA account balance before minting: {}",
             user_atoken_balance_before
         );
-
-        // Retrieve the balance of the payer in Token A
-        // let payer_token_a_account_info =
-        //     spl_token::state::Account::unpack(&payer_account.data.borrow())?;
-        // let payer_token_a_balance = payer_token_a_account_info.amount;
-
-        // // Log the payer's balance in Token A
-        // msg!("Payer Token A account balance: {}", payer_token_a_balance);
 
         // Transfer TokenA from user to vault
         msg!("Transferring {} TokenA from user to vault", amount);
