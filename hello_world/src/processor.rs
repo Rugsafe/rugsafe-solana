@@ -12,6 +12,7 @@ use solana_program::{
     sysvar::rent::Rent,
 };
 use spl_token::instruction::{burn, initialize_mint, initialize_mint2, mint_to};
+use spl_token::state::Account as TokenAccount;
 use spl_token::state::Mint;
 
 pub struct Processor;
@@ -140,45 +141,127 @@ impl Processor {
     fn process_deposit(
         _program_id: &Pubkey,
         accounts: &[AccountInfo],
-        amount: u64,
+        amount: u64, // Pass the amount directly
     ) -> ProgramResult {
         let account_info_iter = &mut accounts.iter();
 
         // Accounts required for the deposit process
-        let user_account = next_account_info(account_info_iter)?; // User's main account, which must be a signer
-        let user_token_account = next_account_info(account_info_iter)?; // User's TokenA account
-        let vault_token_account = next_account_info(account_info_iter)?; // Vault's TokenA account
-        let mint_account = next_account_info(account_info_iter)?; // Mint account for aTokenA
-        let user_atoken_account = next_account_info(account_info_iter)?; // User's aTokenA account
+        msg!("Getting account info for the deposit process...");
+        let payer_account = next_account_info(account_info_iter)?; // Payer account
+        msg!("Payer account: {}", payer_account.key);
 
-        // Verify that the user account is a signer
-        if !user_account.is_signer {
-            return Err(ProgramError::MissingRequiredSignature);
+        let mint_account = next_account_info(account_info_iter)?; // Mint account
+        msg!("Mint account: {}", mint_account.key);
+
+        let vault_account = next_account_info(account_info_iter)?; // Vault account
+        msg!("Vault account: {}", vault_account.key);
+
+        let user_token_account = next_account_info(account_info_iter)?; // User's TokenA account
+        msg!("User TokenA account: {}", user_token_account.key);
+
+        // Check the mint associated with the user's TokenA account
+        let user_token_account_info =
+            spl_token::state::Account::unpack(&user_token_account.data.borrow())?;
+        msg!("User TokenA account mint: {}", user_token_account_info.mint);
+        msg!("mint_account.key: {}", mint_account.key);
+
+        let user_token_account_info = TokenAccount::unpack(&user_token_account.data.borrow())?;
+        let vault_account_info = TokenAccount::unpack(&vault_account.data.borrow())?;
+
+        msg!("User TokenA account mint: {}", user_token_account_info.mint);
+        msg!("Vault account mint: {}", vault_account_info.mint);
+
+        if user_token_account_info.mint != *mint_account.key {
+            msg!("Error: The mint associated with the user's TokenA account does not match the expected mint.");
+            return Err(ProgramError::InvalidAccountData);
         }
 
-        // if token_program.key != &spl_token::id() {
-        //     return Err(ProgramError::IncorrectProgramId);
-        // }
+        if user_token_account_info.owner != *payer_account.key {
+            msg!("Error: Payer account does not own the user TokenA account.");
+            return Err(ProgramError::IllegalOwner);
+        }
 
-        // Log the deposit action
-        msg!("Depositing {} TokenA from user to vault", amount);
+        let user_atoken_account = next_account_info(account_info_iter)?; // User's aTokenA account
+        msg!("User aTokenA account: {}", user_atoken_account.key);
+
+        let rent_account = next_account_info(account_info_iter)?; // Rent sysvar account
+        msg!("Rent account: {}", rent_account.key);
+
+        let spl_account = next_account_info(account_info_iter)?; // SPL Token program account
+        msg!("SPL Token program account: {}", spl_account.key);
+
+        let system_program = next_account_info(account_info_iter)?; // System program account
+        msg!("System program account: {}", system_program.key);
+
+        // Verify that the user account is a signer
+        if !payer_account.is_signer {
+            msg!("Error: Payer account is not a signer");
+            return Err(ProgramError::MissingRequiredSignature);
+        }
+        msg!("Payer account is a signer");
+
+        // Log balances before transfer
+        let user_token_a_balance_before =
+            TokenAccount::unpack(&user_token_account.try_borrow_data()?)?.amount;
+        let vault_token_a_balance_before =
+            TokenAccount::unpack(&vault_account.try_borrow_data()?)?.amount;
+        let user_atoken_balance_before =
+            TokenAccount::unpack(&user_atoken_account.try_borrow_data()?)?.amount;
+        // let payer_balance_before: u64 =
+        //     TokenAccount::unpack(&payer_account.try_borrow_data()?)?.amount;
+        msg!(
+            "User TokenA account balance before transfer: {}",
+            user_token_a_balance_before
+        );
+        msg!(
+            "Vault TokenA account balance before transfer: {}",
+            vault_token_a_balance_before
+        );
+        msg!(
+            "User aTokenA account balance before minting: {}",
+            user_atoken_balance_before
+        );
+
+        // Retrieve the balance of the payer in Token A
+        // let payer_token_a_account_info =
+        //     spl_token::state::Account::unpack(&payer_account.data.borrow())?;
+        // let payer_token_a_balance = payer_token_a_account_info.amount;
+
+        // // Log the payer's balance in Token A
+        // msg!("Payer Token A account balance: {}", payer_token_a_balance);
 
         // Transfer TokenA from user to vault
+        msg!("Transferring {} TokenA from user to vault", amount);
         invoke(
             &spl_token::instruction::transfer(
                 &spl_token::id(),
                 user_token_account.key,
-                vault_token_account.key,
-                user_account.key,
+                vault_account.key,
+                payer_account.key,
                 &[], // No multisig signing required
                 amount,
             )?,
             &[
                 user_token_account.clone(),
-                vault_token_account.clone(),
-                user_account.clone(),
+                vault_account.clone(),
+                payer_account.clone(),
             ],
         )?;
+        msg!("Transfer completed");
+
+        // Log balances after transfer
+        let user_token_a_balance_after =
+            TokenAccount::unpack(&user_token_account.try_borrow_data()?)?.amount;
+        let vault_token_a_balance_after =
+            TokenAccount::unpack(&vault_account.try_borrow_data()?)?.amount;
+        msg!(
+            "User TokenA account balance after transfer: {}",
+            user_token_a_balance_after
+        );
+        msg!(
+            "Vault TokenA account balance after transfer: {}",
+            vault_token_a_balance_after
+        );
 
         // Mint aTokenA equivalent to the amount of TokenA deposited
         msg!("Minting {} aTokenA to user's aTokenA account", amount);
@@ -187,21 +270,40 @@ impl Processor {
                 &spl_token::id(),
                 mint_account.key,
                 user_atoken_account.key,
-                user_account.key,
+                payer_account.key,
                 &[], // No multisig signing required
                 amount,
             )?,
             &[
                 mint_account.clone(),
                 user_atoken_account.clone(),
-                user_account.clone(),
+                payer_account.clone(),
             ],
         )?;
+        msg!("Minting completed");
+
+        // Log balances after minting
+        let user_atoken_balance_after =
+            TokenAccount::unpack(&user_atoken_account.try_borrow_data()?)?.amount;
+        msg!(
+            "User aTokenA account balance after minting: {}",
+            user_atoken_balance_after
+        );
 
         msg!("Deposit process completed successfully");
         Ok(())
     }
 
+    //////////////////////////////////////////////////
+    /// ////////////////////////////////////////////////
+    ///
+    ///
+    ///
+    ///
+    ///
+    ///
+    ///
+    ///
     fn process_withdraw(
         _program_id: &Pubkey,
         accounts: &[AccountInfo],
