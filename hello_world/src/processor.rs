@@ -75,25 +75,26 @@ impl Processor {
         let rent = &Rent::from_account_info(rent_account)?;
 
         // Create and initialize the mint account
-        if mint_account.lamports() == 0 {
-            let required_lamports = rent.minimum_balance(Mint::LEN);
-            msg!("required_lamports: {}", required_lamports);
+        // if mint_account.lamports() == 0 {
+        let required_lamports = rent.minimum_balance(Mint::LEN);
+        msg!("required_lamports: {}", required_lamports);
 
-            invoke(
-                &solana_program::system_instruction::create_account(
-                    payer_account.key,
-                    mint_account.key,
-                    required_lamports,
-                    Mint::LEN as u64,
-                    spl_account.key,
-                ),
-                &[
-                    payer_account.clone(),
-                    mint_account.clone(),
-                    system_program.clone(),
-                ],
-            )?;
-        }
+        msg!("create mint accct");
+        invoke(
+            &solana_program::system_instruction::create_account(
+                payer_account.key,
+                mint_account.key,
+                required_lamports,
+                Mint::LEN as u64,
+                spl_account.key,
+            ),
+            &[
+                payer_account.clone(),
+                mint_account.clone(),
+                system_program.clone(),
+            ],
+        )?;
+        // }
 
         // Initialize the mint account
         match invoke(

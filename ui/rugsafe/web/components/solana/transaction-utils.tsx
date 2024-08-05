@@ -17,9 +17,12 @@ export async function createVault(
     console.log("TOKEN_PROGRAM_ID:", TOKEN_PROGRAM_ID.toString());
 
     const mintKeypair = Keypair.generate();
+    const vaultKeypair = Keypair.generate(); // Generate keypair for vault account
+
     const mintPubkey = mintKeypair.publicKey;
     const ownerPubkey = wallet.publicKey as PublicKey;
-
+    const vaultPubkey = vaultKeypair.publicKey;
+    
     console.log("mintPubkey:", mintPubkey.toString());
     
     // return;
@@ -28,10 +31,10 @@ export async function createVault(
             keys: [
                 { pubkey: wallet.publicKey as PublicKey, isSigner: true, isWritable: true },
                 { pubkey: mintPubkey, isSigner: true, isWritable: true },
+                { pubkey: vaultPubkey, isSigner: true, isWritable: true }, // Add vault account
                 { pubkey: rent, isSigner: false, isWritable: false },
                 { pubkey: spl, isSigner: false, isWritable: false },
                 { pubkey: SystemProgram.programId, isSigner: false, isWritable: true }
-
             ],
             programId: programId,
             data: Buffer.from([0]), // The instruction data
@@ -64,7 +67,7 @@ export async function createVault(
         { 
             skipPreflight: true, 
             preflightCommitment: 'singleGossip', 
-            signers: [mintKeypair]
+            signers: [mintKeypair, vaultKeypair]
         });
     console.log('Transaction successful with signature:', signature);
     return signature;

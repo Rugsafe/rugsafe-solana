@@ -5,7 +5,7 @@ dev:
 t:
 	cargo test-bpf
 t1:
-	cargo test-bpf --package hello_world --verbose --test test -- test_deposit --exact
+	cargo test-bpf --package hello_world --verbose --test test -- test_create_vault --exact
 deploy:
 	solana program deploy ./target/deploy/hello_world.so --url localhost
 
