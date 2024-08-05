@@ -7,7 +7,7 @@ t:
 t1:
 	cargo test-bpf --package hello_world --verbose --test test -- test_create_vault --exact
 deploy:
-	solana program deploy ./target/deploy/hello_world.so --url localhost
+	solana program deploy ./target/deploy/hello_world.so --url localhost --max-len 5000000
 
 create-vault:
 	solana program -k user.json invoke --program-id <PROGRAM_ID> --data "00" --accounts '[{"pubkey":"$(solana address -k mint.json)","is_signer":true,"is_writable":true},{"pubkey":"$(solana address -k user.json)","is_signer":true,"is_writable":true},{"pubkey":"SysvarRent111111111111111111111111111111111"}]'

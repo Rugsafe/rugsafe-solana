@@ -37,19 +37,6 @@ const CreateVault = () => {
 
     return (
         <div>
-            <input
-                type="text"
-                value={mintPubkey}
-                onChange={(e) => setMintPubkey(e.target.value)}
-                placeholder="Mint PublicKey"
-            />
-            <input
-                type="text"
-                value={ownerPubkey}
-                onChange={(e) => setOwnerPubkey(e.target.value)}
-                placeholder="Owner PublicKey"
-            />
-            <br/>
             <button className="btn" onClick={handleCreateVault} disabled={!wallet.connected}>
                 Create Vault
             </button>
