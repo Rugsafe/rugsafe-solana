@@ -32,8 +32,8 @@ export async function createVault(
                 { pubkey: wallet.publicKey as PublicKey, isSigner: true, isWritable: true },
                 { pubkey: mintPubkey, isSigner: true, isWritable: true },
                 { pubkey: vaultPubkey, isSigner: true, isWritable: true }, // Add vault account
-                { pubkey: rent, isSigner: false, isWritable: false },
-                { pubkey: spl, isSigner: false, isWritable: false },
+                { pubkey: rent, isSigner: false, isWritable: true },
+                { pubkey: spl, isSigner: false, isWritable: true },
                 { pubkey: SystemProgram.programId, isSigner: false, isWritable: true }
             ],
             programId: programId,

@@ -96,6 +96,7 @@ impl Processor {
         )?;
         // }
 
+        msg!("after create mint accct, now init mint");
         // Initialize the mint account
         match invoke(
             &initialize_mint(
@@ -118,6 +119,25 @@ impl Processor {
             }
         };
 
+        msg!("after init mint, now lets create vault");
+
+        let vault_required_lamports = rent.minimum_balance(spl_token::state::Account::LEN);
+        msg!("Creating vault account");
+        invoke(
+            &solana_program::system_instruction::create_account(
+                payer_account.key,
+                vault_account.key,
+                vault_required_lamports,
+                spl_token::state::Account::LEN as u64,
+                spl_account.key,
+            ),
+            &[
+                payer_account.clone(),
+                vault_account.clone(),
+                system_program.clone(),
+            ],
+        )?;
+        msg!("after create vault, now lets init vault");
         // Initialize the vault account (assuming it's a token account)
         invoke(
             &spl_token::instruction::initialize_account(

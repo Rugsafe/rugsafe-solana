@@ -113,23 +113,23 @@ async fn test_create_vault() -> Result<(), TransportError> {
 
     // Create and initialize the vault account before using it in the transaction
     println!("Creating and initializing the vault account...");
-    let create_vault_account_ix = system_instruction::create_account(
-        &payer.pubkey(),
-        &vault_key,
-        rent.minimum_balance(TokenAccount::LEN),
-        TokenAccount::LEN as u64,
-        &spl_token::id(),
-    );
-    let create_vault_transaction = Transaction::new_signed_with_payer(
-        &[create_vault_account_ix],
-        Some(&payer.pubkey()),
-        &[&payer, &vault_keypair],
-        recent_blockhash,
-    );
+    // let create_vault_account_ix = system_instruction::create_account(
+    //     &payer.pubkey(),
+    //     &vault_key,
+    //     rent.minimum_balance(TokenAccount::LEN),
+    //     TokenAccount::LEN as u64,
+    //     &spl_token::id(),
+    // );
+    // let create_vault_transaction = Transaction::new_signed_with_payer(
+    //     &[create_vault_account_ix],
+    //     Some(&payer.pubkey()),
+    //     &[&payer, &vault_keypair],
+    //     recent_blockhash,
+    // );
     println!("Processing vault account transaction...");
-    banks_client
-        .process_transaction(create_vault_transaction)
-        .await?;
+    // banks_client
+    //     .process_transaction(create_vault_transaction)
+    //     .await?;
 
     // Call the function to create the vault instruction
     println!("Creating vault instruction...");
@@ -167,46 +167,46 @@ async fn test_create_vault() -> Result<(), TransportError> {
     // Fetch and verify the vault account
     println!("Fetching and verifying the vault account...");
     let vault_account_option = banks_client.get_account(vault_key).await?;
-    if let Some(vault_account) = vault_account_option {
-        assert!(vault_account.owner == spl_token::id());
+    // if let Some(vault_account) = vault_account_option {
+    // assert!(vault_account.owner == spl_token::id());
 
-        println!("Payer account owner: {:?}", payer_account.owner);
-        // println!("Mint account owner: {:?}", mint_account.owner);
-        println!("Vault account owner: {:?}", vault_account.owner);
+    println!("Payer account owner: {:?}", payer_account.owner);
+    // println!("Mint account owner: {:?}", mint_account.owner);
+    // println!("Vault account owner: {:?}", vault_account.owner);
 
-        assert!(payer_account.owner == solana_program::system_program::id());
-        // assert!(mint_account.owner == spl_token::id());
-        assert!(vault_account.owner == spl_token::id());
+    assert!(payer_account.owner == solana_program::system_program::id());
+    // assert!(mint_account.owner == spl_token::id());
+    // assert!(vault_account.owner == spl_token::id());
 
-        println!("Signing the transaction...");
-        transaction.sign(&[&payer, &mint_keypair, &vault_keypair], recent_blockhash);
-        // transaction.sign(&[&payer, &mint_keypair], recent_blockhash);
+    println!("Signing the transaction...");
+    transaction.sign(&[&payer, &mint_keypair, &vault_keypair], recent_blockhash);
+    // transaction.sign(&[&payer, &mint_keypair], recent_blockhash);
 
-        println!("after sign");
+    println!("after sign");
 
-        // Process CreateVault transaction
-        println!("Processing CreateVault transaction...");
-        match banks_client.process_transaction(transaction).await {
-            Ok(_) => println!("Transaction processed successfully"),
-            Err(e) => {
-                println!("Transaction failed: {:?}", e);
-                return Err(e.into());
-            }
+    // Process CreateVault transaction
+    println!("Processing CreateVault transaction...");
+    match banks_client.process_transaction(transaction).await {
+        Ok(_) => println!("Transaction processed successfully"),
+        Err(e) => {
+            println!("Transaction failed: {:?}", e);
+            return Err(e.into());
         }
-
-        // Verify vault creation
-        println!("Verifying vault creation...");
-        let mint_account = banks_client.get_account(mint_key).await?;
-        assert!(mint_account.is_some(), "Mint account not created");
-        let vault_account = banks_client.get_account(vault_key).await?;
-        assert!(vault_account.is_some(), "Vault account not created");
-
-        println!("Test completed successfully.");
-        Ok(())
-    } else {
-        println!("Vault account does not exist or was not created successfully.");
-        return Err(TransportError::Custom("Vault account not found".into()));
     }
+
+    // Verify vault creation
+    println!("Verifying vault creation...");
+    let mint_account = banks_client.get_account(mint_key).await?;
+    assert!(mint_account.is_some(), "Mint account not created");
+    let vault_account = banks_client.get_account(vault_key).await?;
+    assert!(vault_account.is_some(), "Vault account not created");
+
+    println!("Test completed successfully.");
+    Ok(())
+    // } else {
+    //     println!("Vault account does not exist or was not created successfully.");
+    //     return Err(TransportError::Custom("Vault account not found".into()));
+    // }
 }
 
 fn create_vault_instruction(
@@ -271,23 +271,23 @@ async fn test_deposit() -> Result<(), BanksClientError> {
     // dev: create the vault account?
     // Create and initialize the vault account before using it in the transaction
     println!("Creating and initializing the vault account...");
-    let create_vault_account_ix = system_instruction::create_account(
-        &payer.pubkey(),
-        &vault_key,
-        rent.minimum_balance(TokenAccount::LEN),
-        TokenAccount::LEN as u64,
-        &spl_token::id(),
-    );
-    let create_vault_transaction = Transaction::new_signed_with_payer(
-        &[create_vault_account_ix],
-        Some(&payer.pubkey()),
-        &[&payer, &vault_keypair],
-        recent_blockhash,
-    );
+    // let create_vault_account_ix = system_instruction::create_account(
+    //     &payer.pubkey(),
+    //     &vault_key,
+    //     rent.minimum_balance(TokenAccount::LEN),
+    //     TokenAccount::LEN as u64,
+    //     &spl_token::id(),
+    // );
+    // let create_vault_transaction = Transaction::new_signed_with_payer(
+    //     &[create_vault_account_ix],
+    //     Some(&payer.pubkey()),
+    //     &[&payer, &vault_keypair],
+    //     recent_blockhash,
+    // );
     println!("Processing vault account transaction...");
-    banks_client
-        .process_transaction(create_vault_transaction)
-        .await?;
+    // banks_client
+    //     .process_transaction(create_vault_transaction)
+    //     .await?;
 
     /////////////////////////////////////
     println!("create vault account");
