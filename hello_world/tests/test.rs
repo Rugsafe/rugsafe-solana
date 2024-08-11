@@ -24,6 +24,7 @@ use solana_sdk::{
 use spl_token::instruction::initialize_mint;
 use spl_token::state::Account as TokenAccount;
 use spl_token::state::Mint;
+use std::iter;
 
 fn program_error_to_banks_client_error(e: ProgramError) -> BanksClientError {
     BanksClientError::ClientError(Box::leak(Box::new(e.to_string())))
@@ -396,6 +397,66 @@ fn create_vault_instruction(
     }
 }
 
+// Log serialized data at the bit level
+fn log_bits(bytes: &[u8]) {
+    for (i, byte) in bytes.iter().enumerate() {
+        println!("Byte {}: {:#010b}", i, byte);
+    }
+}
+fn manual_deserialize(state_data: &[u8]) -> Vec<Vault> {
+    let mut rest = state_data;
+
+    // First 4 bytes: length of the vaults vector
+    let (vaults_len_bytes, next) = rest.split_at(4);
+    let vaults_len = u32::from_le_bytes(vaults_len_bytes.try_into().unwrap());
+    println!("Vaults length (u32): {:?}", vaults_len);
+    rest = next;
+
+    // Each Vault is 160 bytes (5 Pubkeys of 32 bytes each)
+    let mut vaults = Vec::new();
+    for i in 0..vaults_len {
+        let (vault_bytes, next) = rest.split_at(Vault::LEN);
+        rest = next;
+
+        // Refactoring the Vault deserialization into its own function
+        let vault = deserialize_vault(vault_bytes);
+
+        println!("Vault {}: {:?}", i, vault);
+        vaults.push(vault);
+    }
+
+    println!("Manually deserialized vaults: {:?}", vaults);
+
+    // Return the deserialized vaults
+    vaults
+}
+
+// Refactored vault deserialization function
+fn deserialize_vault(vault_bytes: &[u8]) -> Vault {
+    let (vault_account_bytes, vault_bytes) = vault_bytes.split_at(32);
+    let vault_account = Pubkey::new_from_array(vault_account_bytes.try_into().unwrap());
+
+    let (mint_account_bytes, vault_bytes) = vault_bytes.split_at(32);
+    let mint_account = Pubkey::new_from_array(mint_account_bytes.try_into().unwrap());
+
+    let (user_token_account_bytes, vault_bytes) = vault_bytes.split_at(32);
+    let user_token_account = Pubkey::new_from_array(user_token_account_bytes.try_into().unwrap());
+
+    let (user_atoken_account_bytes, vault_bytes) = vault_bytes.split_at(32);
+    let user_atoken_account = Pubkey::new_from_array(user_atoken_account_bytes.try_into().unwrap());
+
+    let (owner_bytes, _vault_bytes) = vault_bytes.split_at(32);
+    let owner = Pubkey::new_from_array(owner_bytes.try_into().unwrap());
+
+    Vault {
+        vault_account,
+        mint_account,
+        user_token_account,
+        user_atoken_account,
+        owner,
+    }
+}
+
 #[tokio::test]
 async fn test_fetch_vault_from_registry() -> Result<(), TransportError> {
     // Setup keys and program
@@ -493,7 +554,7 @@ async fn test_fetch_vault_from_registry() -> Result<(), TransportError> {
         panic!("State account not created");
     }
     println!("State account found!");
-
+    ////////////////
     let state_data = state_account.unwrap().data;
     println!("State account data length: {}", state_data.len());
     println!("First 32 bytes of state data: {:?}", &state_data[..32]);
@@ -508,12 +569,40 @@ async fn test_fetch_vault_from_registry() -> Result<(), TransportError> {
         panic!("State account not created");
     }
 
-    let state_data = state_account.unwrap().data;
-    println!("State account data length: {}", state_data.len());
-    println!("First 32 bytes of state data: {:?}", &state_data[..32]);
+    println!(
+        "Expected size of VaultRegistry struct: {}",
+        VaultRegistry::LEN
+    );
+    println!(
+        "Actual size of data to be deserialized: {}",
+        state_data.len()
+    );
 
-    println!("Attempting to deserialize state account data into VaultRegistry...");
+    // deep_dive_analysis(&state_data);
+    manual_deserialize(&state_data);
 
+    // let vault_registry_result: Result<VaultRegistry, _> = VaultRegistry::deserialize(&state_data);
+    let vault_registry_result = VaultRegistry::deserialize(&state_data);
+    let vault_registry = match vault_registry_result {
+        Ok(vr) => {
+            println!("Deserialized VaultRegistry successfully.");
+            vr
+        }
+        Err(e) => {
+            println!("Failed to deserialize VaultRegistry: {:?}", e);
+            panic!("Deserialization failed.");
+        }
+    };
+
+    println!("VaultRegistry contents: {:?}", vault_registry);
+    assert!(
+        vault_registry
+            .vaults
+            .iter()
+            .any(|v| v.vault_account == vault_key),
+        "Vault not found in registry"
+    );
+    ////////////////////////
     Ok(())
 }
 
@@ -601,27 +690,6 @@ async fn test_fetch_vault_with_data_from_registry() -> Result<(), TransportError
     let vault_account = banks_client.get_account(vault_key).await?;
     assert!(vault_account.is_some(), "Vault account not created");
 
-    ///////////////////////////////
-    // Insert actual data into the VaultRegistry
-    // let actual_vault = Vault {
-    //     owner: payer.pubkey(),
-    //     vault_account: vault_key,
-    //     mint_account: mint_key,
-    //     user_token_account: Pubkey::new_unique(), // Replace with actual value
-    //     user_atoken_account: Pubkey::new_unique(), // Replace with actual value
-    // };
-
-    // let vault_registry = VaultRegistry {
-    //     vaults: vec![actual_vault],
-    // };
-
-    // let mut serialized = vec![];
-    // vault_registry.serialize(&mut serialized).unwrap();
-    // println!(
-    //     "Serialized VaultRegistry with actual data: {:?}",
-    //     serialized
-    // );
-
     // Fetch and verify the vault registry with actual data
     println!("Fetching and verifying the vault registry with actual data...");
 
@@ -642,19 +710,6 @@ async fn test_fetch_vault_with_data_from_registry() -> Result<(), TransportError
 
     // Deserialize and verify the VaultRegistry
     println!("Attempting to deserialize state account data into VaultRegistry...");
-    // match VaultRegistry::try_from_slice(&state_data[..serialized.len()]) {
-    // match VaultRegistry::try_from_slice(&state_data[..]) {
-    //     Ok(vr) => {
-    //         println!("VaultRegistry deserialized successfully:");
-    //         println!("Number of vaults: {}", vr.vaults.len());
-    //         for (i, vault) in vr.vaults.iter().enumerate() {
-    //             println!("Vault {}: {:?}", i, vault);
-    //         }
-    //     }
-    //     Err(e) => {
-    //         println!("Error deserializing VaultRegistry: {:?}", e);
-    //     }
-    // }
 
     Ok(())
 }

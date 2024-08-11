@@ -17,12 +17,20 @@ use spl_token::state::Mint;
 
 // storage
 use crate::state::{Vault, VaultRegistry};
-use borsh::BorshSerialize;
+use borsh::{BorshDeserialize, BorshSerialize};
 use std::io::Cursor;
 
 pub struct Processor;
 
 impl Processor {
+    /*
+    @name process
+    @description Entry point for processing all instructions related to the vault. It dispatches the instruction to the appropriate handler.
+    @param program_id - The ID of the currently executing program.
+    @param accounts - The accounts involved in the transaction.
+    @param instruction_data - The instruction data to be processed.
+    */
+
     pub fn process(
         program_id: &Pubkey,
         accounts: &[AccountInfo],
@@ -43,11 +51,12 @@ impl Processor {
             }
         }
     }
-    //////////////////////
-    /// /////////////////////
-    /// ///////////////////////
-    /// /////////////////////////
-    /// /////////////////////////
+    /*
+    @name process_create_vault
+    @description Handles the creation of a new vault, including initializing the mint and vault accounts, and setting up the state account for the vault registry.
+    @param program_id - The ID of the currently executing program.
+    @param accounts - The accounts involved in the transaction.
+    */
     fn process_create_vault(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
         let account_info_iter = &mut accounts.iter();
         let payer_account = next_account_info(account_info_iter)?;
@@ -168,22 +177,22 @@ impl Processor {
             ],
         )?;
 
+        //////////////////////////////////////////
+        /// ////////////////////////////////////////////
+        /// ////////////////////////////////////
         // Check if state account is empty and initialize it
         if state_account.data_is_empty() {
-            // let state_account_required_lamports = rent.minimum_balance(32); // 4 bytes for the vector length
-            // let state_account_required_lamports =
-            //     rent.minimum_balance(VaultRegistry::MAX_VAULTS * Vault::LEN + 4);
-            let state_account_required_lamports =
-                rent.minimum_balance(VaultRegistry::MAX_VAULTS * Vault::LEN + 4);
+            // Correctly calculate the required size of the state account
+            let state_account_size = VaultRegistry::LEN;
+            let state_account_required_lamports = rent.minimum_balance(state_account_size);
+
             // Create the state account
             invoke(
                 &solana_program::system_instruction::create_account(
                     payer_account.key,
                     state_account.key,
                     state_account_required_lamports,
-                    // VaultRegistry::LEN as u64,
-                    // 32 as u64,
-                    (VaultRegistry::MAX_VAULTS * Vault::LEN + 4) as u64,
+                    state_account_size as u64,
                     program_id,
                 ),
                 &[
@@ -204,35 +213,96 @@ impl Processor {
                 owner: *payer_account.key,              // assuming payer is the owner
             };
 
-            vault_registry.vaults.push(new_vault);
+            // Use the add_vault method
+            if let Err(e) = vault_registry.add_vault(new_vault) {
+                msg!("Failed to add vault: {}", e);
+                return Err(ProgramError::Custom(0)); // Use appropriate error code
+            }
+
+            // Log the number of vaults after successful addition
+            let number_of_vaults = vault_registry.vault_count();
+            msg!("Number of vaults after addition: {}", number_of_vaults);
 
             // Debug: Print the vault registry state before serialization
             msg!("VaultRegistry before serialization: {:?}", vault_registry);
 
             let mut state_data = state_account.data.borrow_mut();
 
-            // Ensure the data is correctly initialized before serializing
-            // for byte in state_data.iter_mut() {
-            //     *byte = 0;
-            // }
+            // Perform serialization with error handling
+            let serialized_data = vault_registry.serialize();
 
-            // vault_registry.serialize(&mut &mut state_data[..])?;
-            // vault_registry.serialize(&mut &mut state_data[..state_data.len()])?;
-            // vault_registry.serialize(&mut state_data[..])?;
-            vault_registry.serialize(&mut Cursor::new(&mut state_data[..]))?;
+            if serialized_data.len() != VaultRegistry::LEN {
+                msg!(
+                    "Serialized length mismatch: expected {}, got {}",
+                    VaultRegistry::LEN,
+                    serialized_data.len()
+                );
+                return Err(ProgramError::Custom(1));
+            }
+
+            // Verify length of serialized data
+            let serialized_length = state_data.len();
+            let expected_length = VaultRegistry::LEN;
+
+            // Log the serialized and expected length
+
+            let actual_serialized_length = 4 + vault_registry.vault_count() * Vault::LEN;
+            msg!("Serialized length: {}", serialized_length);
+            msg!("Expected length: {}", expected_length);
+            msg!("actual_serialized_length: {}", actual_serialized_length);
+
+            if serialized_data.len() != VaultRegistry::LEN {
+                msg!(
+                    "Serialized length mismatch: expected {}, got {}",
+                    VaultRegistry::LEN,
+                    serialized_data.len()
+                );
+                return Err(ProgramError::Custom(1));
+            }
+
+            state_data[..serialized_data.len()].copy_from_slice(&serialized_data);
+
+            // Log the serialized data for verification
+            msg!(
+                "Serialized state data (first 64 bytes): {:?}",
+                &state_data[..64]
+            );
+
+            state_data[..VaultRegistry::LEN].copy_from_slice(&serialized_data);
+
+            let deserialized_vault_registry = VaultRegistry::deserialize(&state_data[..]);
+
+            // Log the number of vaults after deserialization
+            if deserialized_vault_registry.is_ok() {
+                let number_of_vaults_after_deserialization =
+                    deserialized_vault_registry.unwrap().vault_count();
+                msg!(
+                    "Number of vaults after deserialization: {}",
+                    number_of_vaults_after_deserialization
+                );
+            } else {
+                return Err(ProgramError::Custom(2));
+            }
 
             msg!("State account initialized successfully");
         } else {
             msg!("State account is already initialized");
         }
 
+        ////////////////////////////////////
+        /// ////////////////////////////////
+        /// //////////////////////////////
+
         msg!("Vault created successfully");
         Ok(())
     }
-    /////////////////////////
-    /// ////////////////////////
-    /// /
-    /// /////////////////////////
+    /*
+    @name process_deposit
+    @description Handles the deposit of tokens into a vault, including transferring the user's tokens to the vault and minting the corresponding amount of aTokens.
+    @param _program_id - The ID of the currently executing program.
+    @param accounts - The accounts involved in the transaction.
+    @param amount - The amount of tokens to be deposited.
+    */
     fn process_deposit(
         _program_id: &Pubkey,
         accounts: &[AccountInfo],
@@ -380,16 +450,13 @@ impl Processor {
         Ok(())
     }
 
-    //////////////////////////////////////////////////
-    /// ////////////////////////////////////////////////
-    ///
-    ///
-    ///
-    ///
-    ///
-    ///
-    ///
-    ///
+    /*
+    @name process_withdraw
+    @description Handles the withdrawal of tokens from a vault, including burning the corresponding rTokens and transferring the requested amount to the user's account.
+    @param _program_id - The ID of the currently executing program.
+    @param accounts - The accounts involved in the transaction.
+    @param amount - The amount of tokens to be withdrawn.
+    */
     fn process_withdraw(
         _program_id: &Pubkey,
         accounts: &[AccountInfo],
@@ -430,6 +497,13 @@ impl Processor {
         Ok(())
     }
 
+    /*
+    @name process_burn_rtoken
+    @description Handles the burning of rTokens and minting of bTokens to the user's account.
+    @param _program_id - The ID of the currently executing program.
+    @param accounts - The accounts involved in the transaction.
+    @param amount - The amount of rTokens to be burned and bTokens to be minted.
+    */
     fn process_burn_rtoken(
         _program_id: &Pubkey,
         accounts: &[AccountInfo],
