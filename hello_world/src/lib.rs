@@ -1,5 +1,6 @@
 mod instruction;
 mod processor;
+mod state;
 
 use solana_program::{
     account_info::AccountInfo, entrypoint, entrypoint::ProgramResult, pubkey::Pubkey,

@@ -15,6 +15,10 @@ use spl_token::instruction::{burn, initialize_mint, initialize_mint2, mint_to};
 use spl_token::state::Account as TokenAccount;
 use spl_token::state::Mint;
 
+// storage
+use crate::state::{Vault, VaultRegistry};
+use borsh::BorshSerialize;
+
 pub struct Processor;
 
 impl Processor {
@@ -38,6 +42,11 @@ impl Processor {
             }
         }
     }
+    //////////////////////
+    /// /////////////////////
+    /// ///////////////////////
+    /// /////////////////////////
+    /// /////////////////////////
     fn process_create_vault(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
         let account_info_iter = &mut accounts.iter();
         let payer_account = next_account_info(account_info_iter)?;
@@ -46,18 +55,21 @@ impl Processor {
         let rent_account = next_account_info(account_info_iter)?;
         let spl_account = next_account_info(account_info_iter)?;
         let system_program = next_account_info(account_info_iter)?;
+        let state_account = next_account_info(account_info_iter)?; // Add this line
 
         msg!("Creating vault...");
         msg!("payer account key: {:?}", payer_account.key);
         msg!("Mint account key: {:?}", mint_account.key);
         msg!("Vault account key: {:?}", vault_account.key);
         msg!("Rent account key: {:?}", rent_account.key);
+        msg!("State account key: {:?}", state_account.key);
         msg!("SPL: {}", spl_token::id());
         msg!("Mint account balance: {:?}", mint_account.lamports());
         msg!("Vault account balance: {:?}", vault_account.lamports());
         msg!("Rent account balance: {:?}", rent_account.lamports());
         msg!("Payer account balance: {:?}", payer_account.lamports());
         msg!("spl account balance: {:?}", spl_account.lamports());
+        msg!("state account balance: {:?}", state_account.lamports());
 
         // Ensure accounts are rent-exempt
         if !payer_account.is_signer {
@@ -155,10 +167,48 @@ impl Processor {
             ],
         )?;
 
+        if state_account.data_is_empty() {
+            let state_account_required_lamports = rent.minimum_balance(VaultRegistry::LEN);
+
+            invoke(
+                &solana_program::system_instruction::create_account(
+                    payer_account.key,
+                    state_account.key,
+                    state_account_required_lamports,
+                    VaultRegistry::LEN as u64,
+                    program_id,
+                ),
+                &[
+                    payer_account.clone(),
+                    state_account.clone(),
+                    system_program.clone(),
+                ],
+            )?;
+
+            let vault_registry = VaultRegistry { vaults: Vec::new() };
+            vault_registry.serialize(&mut &mut state_account.data.borrow_mut()[..])?;
+            msg!("State account initialized successfully");
+        }
+
+        // Add the vault to the registry
+        // let mut vault_registry = VaultRegistry::try_from_slice(&state_account.data.borrow())?;
+        // let new_vault = Vault {
+        //     vault_account: *vault_account.key,
+        //     mint_account: *mint_account.key,
+        //     user_token_account: Pubkey::default(), // Set later when user accounts are created
+        //     user_atoken_account: Pubkey::default(), // Set later when user accounts are created
+        //     owner: *payer_account.key,             // Store the owner's public key
+        // };
+        // vault_registry.vaults.push(new_vault);
+        // vault_registry.serialize(&mut &mut state_account.data.borrow_mut()[..])?;
+
         msg!("Vault created successfully");
         Ok(())
     }
-
+    /////////////////////////
+    /// ////////////////////////
+    /// /
+    /// /////////////////////////
     fn process_deposit(
         _program_id: &Pubkey,
         accounts: &[AccountInfo],

@@ -69,6 +69,9 @@ async fn test_create_vault() -> Result<(), TransportError> {
     let rent_key = solana_program::sysvar::rent::ID;
     let spl_key = spl_token::id();
 
+    let state_keypair = Keypair::new(); // State account
+    let state_key = state_keypair.pubkey();
+
     let mut program_test =
         ProgramTest::new("hello_world", program_id, processor!(process_instruction));
 
@@ -97,7 +100,8 @@ async fn test_create_vault() -> Result<(), TransportError> {
         &vault_key,
         &mint_key,
         &payer.pubkey(),
-        &[&payer.pubkey(), &mint_key, &vault_key],
+        &state_key,
+        // &[&payer.pubkey(), &mint_key, &vault_key, &state_key],
     );
 
     println!("after create_vault_instruction");
@@ -114,7 +118,10 @@ async fn test_create_vault() -> Result<(), TransportError> {
     assert!(payer_account.owner == solana_program::system_program::id());
 
     println!("Signing the transaction...");
-    transaction.sign(&[&payer, &mint_keypair, &vault_keypair], recent_blockhash);
+    transaction.sign(
+        &[&payer, &mint_keypair, &vault_keypair, &state_keypair],
+        recent_blockhash,
+    );
 
     println!("after sign");
 
@@ -139,29 +146,6 @@ async fn test_create_vault() -> Result<(), TransportError> {
     Ok(())
 }
 
-fn create_vault_instruction(
-    program_id: &Pubkey,
-    vault_key: &Pubkey,
-    mint_key: &Pubkey,
-    payer: &Pubkey,
-    signer_keys: &[&Pubkey],
-) -> Instruction {
-    let accounts = vec![
-        AccountMeta::new(*payer, true),
-        AccountMeta::new(*mint_key, true),
-        AccountMeta::new(*vault_key, true),
-        AccountMeta::new_readonly(sysvar::rent::id(), false),
-        AccountMeta::new_readonly(spl_token::id(), false),
-        AccountMeta::new_readonly(solana_program::system_program::id(), false),
-    ];
-
-    Instruction {
-        program_id: *program_id,
-        accounts,
-        data: vec![0], // Add any additional data if needed
-    }
-}
-
 #[tokio::test]
 async fn test_deposit() -> Result<(), BanksClientError> {
     println!("Starting test_deposit");
@@ -172,6 +156,9 @@ async fn test_deposit() -> Result<(), BanksClientError> {
 
     let rent_key = solana_program::sysvar::rent::ID;
     let spl_key = spl_token::id();
+
+    let state_keypair = Keypair::new(); // State account
+    let state_key = state_keypair.pubkey();
 
     let mut program_test =
         ProgramTest::new("hello_world", program_id, processor!(process_instruction));
@@ -203,12 +190,18 @@ async fn test_deposit() -> Result<(), BanksClientError> {
         &vault_key,
         &token_a_mint_key,
         &payer.pubkey(),
-        &[&payer.pubkey(), &token_a_mint_key, &vault_key],
+        &state_key,
+        // &[&payer.pubkey(), &token_a_mint_key, &vault_key, &state_key],
     );
     let transaction = Transaction::new_signed_with_payer(
         &[create_vault_instruction],
         Some(&payer.pubkey()),
-        &[&payer, &token_a_mint_keypair, &vault_keypair],
+        &[
+            &payer,
+            &token_a_mint_keypair,
+            &vault_keypair,
+            &state_keypair,
+        ],
         recent_blockhash,
     );
     banks_client.process_transaction(transaction).await?;
@@ -368,4 +361,29 @@ async fn test_deposit() -> Result<(), BanksClientError> {
 
     println!("Test passed successfully.");
     Ok(())
+}
+
+fn create_vault_instruction(
+    program_id: &Pubkey,
+    vault_key: &Pubkey,
+    mint_key: &Pubkey,
+    payer: &Pubkey,
+    state: &Pubkey,
+    // signer_keys: &[&Pubkey],
+) -> Instruction {
+    let accounts = vec![
+        AccountMeta::new(*payer, true),
+        AccountMeta::new(*mint_key, true),
+        AccountMeta::new(*vault_key, true),
+        AccountMeta::new_readonly(sysvar::rent::id(), false),
+        AccountMeta::new_readonly(spl_token::id(), false),
+        AccountMeta::new_readonly(solana_program::system_program::id(), false),
+        AccountMeta::new(*state, true),
+    ];
+
+    Instruction {
+        program_id: *program_id,
+        accounts,
+        data: vec![0], // Add any additional data if needed
+    }
 }
