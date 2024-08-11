@@ -171,9 +171,10 @@ impl Processor {
         // Check if state account is empty and initialize it
         if state_account.data_is_empty() {
             // let state_account_required_lamports = rent.minimum_balance(32); // 4 bytes for the vector length
+            // let state_account_required_lamports =
+            //     rent.minimum_balance(VaultRegistry::MAX_VAULTS * Vault::LEN + 4);
             let state_account_required_lamports =
                 rent.minimum_balance(VaultRegistry::MAX_VAULTS * Vault::LEN + 4);
-
             // Create the state account
             invoke(
                 &solana_program::system_instruction::create_account(
@@ -181,7 +182,8 @@ impl Processor {
                     state_account.key,
                     state_account_required_lamports,
                     // VaultRegistry::LEN as u64,
-                    32 as u64,
+                    // 32 as u64,
+                    (VaultRegistry::MAX_VAULTS * Vault::LEN + 4) as u64,
                     program_id,
                 ),
                 &[
@@ -192,7 +194,21 @@ impl Processor {
             )?;
 
             // Initialize VaultRegistry and serialize it into the state account's data
-            let vault_registry = VaultRegistry { vaults: Vec::new() };
+            let mut vault_registry = VaultRegistry { vaults: Vec::new() };
+
+            let new_vault = Vault {
+                vault_account: *vault_account.key,
+                mint_account: *mint_account.key,
+                user_token_account: *payer_account.key, // assuming payer is the user
+                user_atoken_account: *vault_account.key, // placeholder, use appropriate account
+                owner: *payer_account.key,              // assuming payer is the owner
+            };
+
+            vault_registry.vaults.push(new_vault);
+
+            // Debug: Print the vault registry state before serialization
+            msg!("VaultRegistry before serialization: {:?}", vault_registry);
+
             let mut state_data = state_account.data.borrow_mut();
 
             // Ensure the data is correctly initialized before serializing

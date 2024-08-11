@@ -17,7 +17,7 @@ pub struct VaultRegistry {
 
 impl VaultRegistry {
     pub const MAX_VAULTS: usize = 10;
-    // pub const LEN: usize = 4 + (Vault::LEN * Self::MAX_VAULTS); // 4 bytes for vec length
+    pub const LEN: usize = 4 + (Vault::LEN * Self::MAX_VAULTS); // 4 bytes for vec length
 }
 
 impl Vault {
