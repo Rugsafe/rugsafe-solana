@@ -18,6 +18,7 @@ use spl_token::state::Mint;
 // storage
 use crate::state::{Vault, VaultRegistry};
 use borsh::BorshSerialize;
+use std::io::Cursor;
 
 pub struct Processor;
 
@@ -169,7 +170,9 @@ impl Processor {
 
         // Check if state account is empty and initialize it
         if state_account.data_is_empty() {
-            let state_account_required_lamports = rent.minimum_balance(32); // 4 bytes for the vector length
+            // let state_account_required_lamports = rent.minimum_balance(32); // 4 bytes for the vector length
+            let state_account_required_lamports =
+                rent.minimum_balance(VaultRegistry::MAX_VAULTS * Vault::LEN + 4);
 
             // Create the state account
             invoke(
@@ -197,7 +200,11 @@ impl Processor {
             //     *byte = 0;
             // }
 
-            vault_registry.serialize(&mut &mut state_data[..])?;
+            // vault_registry.serialize(&mut &mut state_data[..])?;
+            // vault_registry.serialize(&mut &mut state_data[..state_data.len()])?;
+            // vault_registry.serialize(&mut state_data[..])?;
+            vault_registry.serialize(&mut Cursor::new(&mut state_data[..]))?;
+
             msg!("State account initialized successfully");
         } else {
             msg!("State account is already initialized");

@@ -15,17 +15,6 @@ pub struct VaultRegistry {
     pub vaults: Vec<Vault>,
 }
 
-// OLD COMMENTED OUT IMPLEMENTATION
-// impl VaultRegistry {
-//     pub const MAX_VAULTS: usize = 10;
-//     pub const LEN: usize = 8 + (32 * 5) * Self::MAX_VAULTS;
-// }
-
-// impl VaultRegistry {
-//     pub const MAX_VAULTS: usize = 10;
-//     pub const LEN: usize = 8 + (32 * 5) * Self::MAX_VAULTS + 4; // Add +4 for the length prefix of the vector
-// }
-
 impl VaultRegistry {
     pub const MAX_VAULTS: usize = 10;
     // pub const LEN: usize = 4 + (Vault::LEN * Self::MAX_VAULTS); // 4 bytes for vec length
@@ -58,17 +47,4 @@ impl VaultRegistry {
     pub fn vault_count(&self) -> usize {
         self.vaults.len()
     }
-
-    // pub fn try_from_slice(data: &[u8]) -> Result<Self, std::io::Error> {
-    //     let mut vaults = Vec::new();
-    //     let mut cursor = std::io::Cursor::new(data);
-
-    //     let vault_count = cursor.read_u32::<LittleEndian>()?;
-    //     for _ in 0..vault_count {
-    //         let vault = Vault::deserialize(&mut cursor)?;
-    //         vaults.push(vault);
-    //     }
-
-    //     Ok(VaultRegistry { vaults })
-    // }
 }

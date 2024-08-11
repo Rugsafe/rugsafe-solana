@@ -1,4 +1,5 @@
-use borsh::de::BorshDeserialize;
+// use borsh::de::BorshDeserialize;
+use borsh::{BorshDeserialize, BorshSerialize};
 use hello_world::process_instruction;
 use hello_world::state::{Vault, VaultRegistry};
 use hex;
@@ -394,150 +395,6 @@ fn create_vault_instruction(
         data: vec![0], // Add any additional data if needed
     }
 }
-///////////////////////
-/// /////////////////////
-/// //////////////////////
-///
-///
-///
-// #[tokio::test]
-// async fn test_fetch_vault_from_registry() -> Result<(), TransportError> {
-//     // Setup the context and accounts
-//     let program_id = Pubkey::new_unique();
-//     let program_test = ProgramTest::new("hello_world", program_id, processor!(process_instruction));
-
-//     println!("Starting context...");
-//     let mut context = program_test.start_with_context().await;
-//     let banks_client = &mut context.banks_client;
-//     let payer = &context.payer;
-//     let recent_blockhash = banks_client.get_latest_blockhash().await?;
-//     println!("Context started. Recent blockhash: {:?}", recent_blockhash);
-
-//     // Get the rent minimum balance
-//     let rent = solana_program::sysvar::rent::Rent::default();
-
-//     let vault_rent_lamports = rent.minimum_balance(0);
-//     let state_rent_lamports = rent.minimum_balance(VaultRegistry::LEN);
-//     let mint_rent_lamports = rent.minimum_balance(Mint::LEN);
-
-//     println!("Rent-exempt balances calculated:");
-//     println!("vault_rent_lamports: {}", vault_rent_lamports);
-//     println!("state_rent_lamports: {}", state_rent_lamports);
-//     println!("mint_rent_lamports: {}", mint_rent_lamports);
-
-//     // Create necessary accounts
-//     let vault_keypair = Keypair::new();
-//     let state_keypair = Keypair::new();
-//     let mint_keypair = Keypair::new();
-
-//     println!("Keypairs generated:");
-//     println!("vault_keypair: {:?}", vault_keypair.pubkey());
-//     println!("state_keypair: {:?}", state_keypair.pubkey());
-//     println!("mint_keypair: {:?}", mint_keypair.pubkey());
-
-//     // Ensure accounts are properly created
-//     let mut create_accounts_transaction = Transaction::new_with_payer(
-//         &[
-//             system_instruction::create_account(
-//                 &payer.pubkey(),
-//                 &vault_keypair.pubkey(),
-//                 vault_rent_lamports,
-//                 0,
-//                 &program_id,
-//             ),
-//             system_instruction::create_account(
-//                 &payer.pubkey(),
-//                 &state_keypair.pubkey(),
-//                 state_rent_lamports,
-//                 VaultRegistry::LEN as u64,
-//                 &program_id,
-//             ),
-//             system_instruction::create_account(
-//                 &payer.pubkey(),
-//                 &mint_keypair.pubkey(),
-//                 mint_rent_lamports,
-//                 Mint::LEN as u64,
-//                 &spl_token::id(),
-//             ),
-//         ],
-//         Some(&payer.pubkey()),
-//     );
-//     create_accounts_transaction.sign(
-//         &[&payer, &vault_keypair, &state_keypair, &mint_keypair],
-//         recent_blockhash,
-//     );
-
-//     println!("Processing create accounts transaction...");
-//     banks_client
-//         .process_transaction(create_accounts_transaction)
-//         .await
-//         .map_err(|err| {
-//             println!("Failed to process create accounts transaction: {:?}", err);
-//             err
-//         })?;
-
-//     println!("Accounts created successfully.");
-
-//     // Run the test to create the vault
-//     let create_vault_instruction = create_vault_instruction(
-//         &program_id,
-//         &vault_keypair.pubkey(),
-//         &mint_keypair.pubkey(),
-//         &payer.pubkey(),
-//         &state_keypair.pubkey(),
-//     );
-
-//     println!("Creating vault transaction...");
-//     let mut transaction =
-//         Transaction::new_with_payer(&[create_vault_instruction], Some(&payer.pubkey()));
-//     transaction.sign(
-//         &[&payer, &vault_keypair, &mint_keypair, &state_keypair],
-//         recent_blockhash,
-//     );
-
-//     println!("Processing create vault transaction...");
-//     banks_client
-//         .process_transaction(transaction)
-//         .await
-//         .map_err(|err| {
-//             println!("Failed to process create vault transaction: {:?}", err);
-//             err
-//         })?;
-
-//     println!("Vault created successfully.");
-
-//     // Fetch and verify the state account
-//     println!("Fetching state account...");
-//     let state_account = banks_client.get_account(state_keypair.pubkey()).await?;
-//     assert!(state_account.is_some(), "State account not created");
-
-//     let state_data = state_account.unwrap().data;
-//     let expected_size = VaultRegistry::LEN;
-//     assert_eq!(
-//         state_data.len(),
-//         expected_size,
-//         "State account size mismatch"
-//     );
-
-//     println!("State account size is correct.");
-
-//     // Deserialize and validate the data
-//     match VaultRegistry::try_from_slice(&state_data) {
-//         Ok(vault_registry) => {
-//             println!(
-//                 "VaultRegistry deserialized successfully: {:?}",
-//                 vault_registry
-//             );
-//         }
-//         Err(e) => {
-//             println!("Deserialization error: {:?}", e);
-//             panic!("Failed to deserialize VaultRegistry");
-//         }
-//     }
-
-//     println!("Test completed successfully.");
-//     Ok(())
-// }
 
 #[tokio::test]
 async fn test_fetch_vault_from_registry() -> Result<(), TransportError> {
@@ -623,7 +480,11 @@ async fn test_fetch_vault_from_registry() -> Result<(), TransportError> {
     assert!(mint_account.is_some(), "Mint account not created");
     let vault_account = banks_client.get_account(vault_key).await?;
     assert!(vault_account.is_some(), "Vault account not created");
-
+    //vault registry
+    let vault_registry = VaultRegistry { vaults: Vec::new() };
+    let mut serialized = vec![];
+    vault_registry.serialize(&mut serialized).unwrap();
+    println!("Serialized VaultRegistry: {:?}", serialized);
     ///////////////////////////////
 
     println!("Fetching and verifying the vault registry...");
@@ -644,92 +505,167 @@ async fn test_fetch_vault_from_registry() -> Result<(), TransportError> {
     //from claude
     println!("First 32 bytes of state data: {:?}", &state_data[..32]);
 
-    /////////// work until here
+    let vault_registry = VaultRegistry { vaults: Vec::new() };
+    let mut serialized = vec![];
+    vault_registry.serialize(&mut serialized).unwrap();
+    println!("Serialized VaultRegistry: {:?}", serialized);
 
-    println!(
-        "Expected VaultRegistry size: {}",
-        std::mem::size_of::<VaultRegistry>()
-    );
+    println!("Fetching and verifying the vault registry...");
+    let state_account = banks_client.get_account(state_key).await?;
+    if state_account.is_none() {
+        println!(
+            "Error: State account not found for state_key: {:?}",
+            state_key
+        );
+        panic!("State account not created");
+    }
 
-    let expected_size = std::mem::size_of::<VaultRegistry>();
-    println!("Expected VaultRegistry size: {}", expected_size);
-
-    // Ensure that we're working with the correct slice of data
-    let registry_data = &state_data[..expected_size];
-    println!(
-        "Adjusted state data length for deserialization: {}",
-        registry_data.len()
-    );
-
-    println!("Attempting to deserialize state account data into VaultRegistry...");
-    // let vault_registry: VaultRegistry =
-    // match borsh::BorshDeserialize::try_from_slice(&registry_data) {
-    //     Ok(vr) => {
-    //         println!("VaultRegistry deserialized successfully: {:?}", vr);
-    //         vr
-    //     }
-    //     Err(e) => {
-    //         println!("Error deserializing VaultRegistry: {:?}", e);
-    //         panic!("Failed to deserialize state account data");
-    //     }
-    // };
-
-    //claude
-    println!("Attempting to deserialize entire state account data...");
-    // match VaultRegistry::try_from_slice(&state_data) {
-    //     Ok(vr) => {
-    //         println!("VaultRegistry deserialized successfully: {:?}", vr);
-    //     }
-    //     Err(e) => {
-    //         println!("Error deserializing full VaultRegistry: {:?}", e);
-    //     }
-    // }
-    //
-    // match VaultRegistry::try_from_slice(&state_data) {
-    //     Ok(vr) => {
-    //         println!("VaultRegistry deserialized successfully:");
-    //         println!("Number of vaults: {}", vr.vaults.len());
-    //         for (i, vault) in vr.vaults.iter().enumerate() {
-    //             println!("Vault {}: {:?}", i, vault);
-    //         }
-    //     }
-    //     Err(e) => {
-    //         println!("Error deserializing VaultRegistry: {:?}", e);
-    //         // Print the first 64 bytes of the state data for debugging
-    //         println!("First 64 bytes of state data: {:?}", &state_data[..64]);
-    //     }
-    // }
-
-    println!("Attempting to deserialize first 24 bytes of state account data...");
-    // match VaultRegistry::try_from_slice(&state_data[..24]) {
-    //     Ok(vr) => {
-    //         println!(
-    //             "VaultRegistry (24 bytes) deserialized successfully: {:?}",
-    //             vr
-    //         );
-    //     }
-    //     Err(e) => {
-    //         println!("Error deserializing VaultRegistry (24 bytes): {:?}", e);
-    //     }
-    // }
-
-    // match VaultRegistry::try_from_slice(&state_data) {
-    //     Ok(vr) => {
-    //         println!("VaultRegistry deserialized successfully:");
-    //         println!("Number of vaults: {}", vr.vaults.len());
-    //         for (i, vault) in vr.vaults.iter().enumerate() {
-    //             println!("Vault {}: {:?}", i, vault);
-    //         }
-    //     }
-    //     Err(e) => {
-    //         println!("Error deserializing VaultRegistry: {:?}", e);
-    //         println!("First 64 bytes of state data: {:?}", &state_data[..64]);
-    //     }
-    // }
-    println!("State data length: {}", state_data.len());
+    let state_data = state_account.unwrap().data;
+    println!("State account data length: {}", state_data.len());
     println!("First 32 bytes of state data: {:?}", &state_data[..32]);
 
-    match VaultRegistry::try_from_slice(&state_data) {
+    println!("Attempting to deserialize state account data into VaultRegistry...");
+    match VaultRegistry::try_from_slice(&state_data[..serialized.len()]) {
+        // match VaultRegistry::try_from_slice(&state_data[..]) {
+        Ok(vr) => {
+            println!("VaultRegistry deserialized successfully:");
+            println!("Number of vaults: {}", vr.vaults.len());
+        }
+        Err(e) => {
+            println!("Error deserializing VaultRegistry: {:?}", e);
+        }
+    }
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_fetch_vault_with_data_from_registry() -> Result<(), TransportError> {
+    // Setup keys and program
+    let program_id = Pubkey::new_unique();
+    let mint_keypair = Keypair::new(); // Mint account
+    let mint_key = mint_keypair.pubkey();
+    let vault_keypair = Keypair::new(); // Vault account
+    let vault_key = vault_keypair.pubkey();
+
+    let rent_key = solana_program::sysvar::rent::ID;
+    let spl_key = spl_token::id();
+
+    let state_keypair = Keypair::new(); // State account
+    let state_key = state_keypair.pubkey();
+
+    let mut program_test =
+        ProgramTest::new("hello_world", program_id, processor!(process_instruction));
+
+    // Add SPL Token program
+    program_test.add_program(
+        "spl_token",
+        spl_key,
+        processor!(spl_token::processor::Processor::process),
+    );
+
+    // Start the context
+    let mut context = program_test.start_with_context().await;
+    let banks_client = &mut context.banks_client;
+    let payer = &context.payer;
+    let recent_blockhash = banks_client.get_latest_blockhash().await?;
+
+    // Retrieve rent details
+    println!("Retrieving rent details...");
+    let rent_account = banks_client.get_account(rent_key).await?;
+    assert!(rent_account.is_some(), "Rent account not found");
+
+    // Call the function to create the vault instruction
+    println!("Creating vault instruction...");
+    let create_vault_instruction = create_vault_instruction(
+        &program_id,
+        &vault_key,
+        &mint_key,
+        &payer.pubkey(),
+        &state_key,
+    );
+
+    println!("after create_vault_instruction");
+
+    let mut transaction =
+        Transaction::new_with_payer(&[create_vault_instruction], Some(&payer.pubkey()));
+    println!("Transaction created for vault instruction...");
+
+    // Debugging: Print account owners
+    println!("Fetching payer account...");
+    let payer_account = banks_client.get_account(payer.pubkey()).await?.unwrap();
+    println!("Payer account owner: {:?}", payer_account.owner);
+
+    assert!(payer_account.owner == solana_program::system_program::id());
+
+    println!("Signing the transaction...");
+    transaction.sign(
+        &[&payer, &mint_keypair, &vault_keypair, &state_keypair],
+        recent_blockhash,
+    );
+
+    println!("after sign");
+
+    // Process CreateVault transaction
+    println!("Processing CreateVault transaction...");
+    match banks_client.process_transaction(transaction).await {
+        Ok(_) => println!("Transaction processed successfully"),
+        Err(e) => {
+            println!("Transaction failed: {:?}", e);
+            return Err(e.into());
+        }
+    }
+
+    // Verify vault creation
+    println!("Verifying vault creation...");
+    let mint_account = banks_client.get_account(mint_key).await?;
+    assert!(mint_account.is_some(), "Mint account not created");
+    let vault_account = banks_client.get_account(vault_key).await?;
+    assert!(vault_account.is_some(), "Vault account not created");
+
+    ///////////////////////////////
+    // Insert actual data into the VaultRegistry
+    let actual_vault = Vault {
+        owner: payer.pubkey(),
+        vault_account: vault_key,
+        mint_account: mint_key,
+        user_token_account: Pubkey::new_unique(), // Replace with actual value
+        user_atoken_account: Pubkey::new_unique(), // Replace with actual value
+    };
+
+    let vault_registry = VaultRegistry {
+        vaults: vec![actual_vault],
+    };
+
+    let mut serialized = vec![];
+    vault_registry.serialize(&mut serialized).unwrap();
+    println!(
+        "Serialized VaultRegistry with actual data: {:?}",
+        serialized
+    );
+
+    // Fetch and verify the vault registry with actual data
+    println!("Fetching and verifying the vault registry with actual data...");
+
+    println!("Fetching state account with state_key: {:?}", state_key);
+    let state_account = banks_client.get_account(state_key).await?;
+    if state_account.is_none() {
+        println!(
+            "Error: State account not found for state_key: {:?}",
+            state_key
+        );
+        panic!("State account not created");
+    }
+    println!("State account found!");
+
+    let state_data = state_account.unwrap().data;
+    println!("State account data length: {}", state_data.len());
+    println!("First 32 bytes of state data: {:?}", &state_data[..32]);
+
+    // Deserialize and verify the VaultRegistry
+    println!("Attempting to deserialize state account data into VaultRegistry...");
+    // match VaultRegistry::try_from_slice(&state_data[..serialized.len()]) {
+    match VaultRegistry::try_from_slice(&state_data[..]) {
         Ok(vr) => {
             println!("VaultRegistry deserialized successfully:");
             println!("Number of vaults: {}", vr.vaults.len());
