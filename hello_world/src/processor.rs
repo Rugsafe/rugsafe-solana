@@ -167,15 +167,18 @@ impl Processor {
             ],
         )?;
 
+        // Check if state account is empty and initialize it
         if state_account.data_is_empty() {
-            let state_account_required_lamports = rent.minimum_balance(VaultRegistry::LEN);
+            let state_account_required_lamports = rent.minimum_balance(32); // 4 bytes for the vector length
 
+            // Create the state account
             invoke(
                 &solana_program::system_instruction::create_account(
                     payer_account.key,
                     state_account.key,
                     state_account_required_lamports,
-                    VaultRegistry::LEN as u64,
+                    // VaultRegistry::LEN as u64,
+                    32 as u64,
                     program_id,
                 ),
                 &[
@@ -185,22 +188,20 @@ impl Processor {
                 ],
             )?;
 
+            // Initialize VaultRegistry and serialize it into the state account's data
             let vault_registry = VaultRegistry { vaults: Vec::new() };
-            vault_registry.serialize(&mut &mut state_account.data.borrow_mut()[..])?;
-            msg!("State account initialized successfully");
-        }
+            let mut state_data = state_account.data.borrow_mut();
 
-        // Add the vault to the registry
-        // let mut vault_registry = VaultRegistry::try_from_slice(&state_account.data.borrow())?;
-        // let new_vault = Vault {
-        //     vault_account: *vault_account.key,
-        //     mint_account: *mint_account.key,
-        //     user_token_account: Pubkey::default(), // Set later when user accounts are created
-        //     user_atoken_account: Pubkey::default(), // Set later when user accounts are created
-        //     owner: *payer_account.key,             // Store the owner's public key
-        // };
-        // vault_registry.vaults.push(new_vault);
-        // vault_registry.serialize(&mut &mut state_account.data.borrow_mut()[..])?;
+            // Ensure the data is correctly initialized before serializing
+            // for byte in state_data.iter_mut() {
+            //     *byte = 0;
+            // }
+
+            vault_registry.serialize(&mut &mut state_data[..])?;
+            msg!("State account initialized successfully");
+        } else {
+            msg!("State account is already initialized");
+        }
 
         msg!("Vault created successfully");
         Ok(())
