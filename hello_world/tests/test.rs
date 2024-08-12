@@ -529,20 +529,12 @@ fn deserialize_vault(vault_bytes: &[u8]) -> Vault {
     let (mint_account_bytes, vault_bytes) = vault_bytes.split_at(32);
     let mint_account = Pubkey::new_from_array(mint_account_bytes.try_into().unwrap());
 
-    let (user_token_account_bytes, vault_bytes) = vault_bytes.split_at(32);
-    let user_token_account = Pubkey::new_from_array(user_token_account_bytes.try_into().unwrap());
-
-    let (user_atoken_account_bytes, vault_bytes) = vault_bytes.split_at(32);
-    let user_atoken_account = Pubkey::new_from_array(user_atoken_account_bytes.try_into().unwrap());
-
     let (owner_bytes, _vault_bytes) = vault_bytes.split_at(32);
     let owner = Pubkey::new_from_array(owner_bytes.try_into().unwrap());
 
     Vault {
         vault_account,
         mint_account,
-        user_token_account,
-        user_atoken_account,
         owner,
     }
 }

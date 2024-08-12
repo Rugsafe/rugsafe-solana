@@ -5,7 +5,7 @@ dev:
 t:
 	cargo test-bpf
 t1:
-	cargo test-bpf --package hello_world --verbose --test test -- test_fetch_vault_from_registry --nocapture
+	cargo test-bpf --package hello_world --verbose --test test -- test_deposit --nocapture
 deploy:
 	solana program deploy ./target/deploy/hello_world.so --url localhost --max-len 5000000
 

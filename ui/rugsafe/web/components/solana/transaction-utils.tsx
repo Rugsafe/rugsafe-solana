@@ -7,17 +7,13 @@ import { TOKEN_PROGRAM_ID, MintLayout, createInitializeMintInstruction } from '@
 class Vault {
     vaultAccount: PublicKey;
     mintAccount: PublicKey;
-    userTokenAccount: PublicKey;
-    userATokenAccount: PublicKey;
     owner: PublicKey;
 
-    static LEN: number = 32 * 5; // Define the static LEN property within the class
+    static LEN: number = 32 * 3;
 
-    constructor(fields: { vaultAccount: Uint8Array; mintAccount: Uint8Array; userTokenAccount: Uint8Array; userATokenAccount: Uint8Array; owner: Uint8Array }) {
+    constructor(fields: { vaultAccount: Uint8Array; mintAccount: Uint8Array; owner: Uint8Array }) {
         this.vaultAccount = new PublicKey(fields.vaultAccount);
         this.mintAccount = new PublicKey(fields.mintAccount);
-        this.userTokenAccount = new PublicKey(fields.userTokenAccount);
-        this.userATokenAccount = new PublicKey(fields.userATokenAccount);
         this.owner = new PublicKey(fields.owner);
     }
 
@@ -25,9 +21,7 @@ class Vault {
         return new Vault({
             vaultAccount: input.slice(0, 32),
             mintAccount: input.slice(32, 64),
-            userTokenAccount: input.slice(64, 96),
-            userATokenAccount: input.slice(96, 128),
-            owner: input.slice(128, 160),
+            owner: input.slice(64, 96),
         });
     }
 }
@@ -56,7 +50,7 @@ class VaultRegistry {
 }
 
 
-Vault.LEN = 160; // 32 * 5 bytes for each Pubkey
+Vault.LEN = 96; // 32 * 5 bytes for each Pubkey
 
 
 const VaultSchema = new Map([
@@ -67,8 +61,6 @@ const VaultSchema = new Map([
             fields: [
                 ['vaultAccount', [32]],
                 ['mintAccount', [32]],
-                ['userTokenAccount', [32]],
-                ['userATokenAccount', [32]],
                 ['owner', [32]],
             ],
         },
@@ -109,7 +101,7 @@ export async function createVault(
     const mintPubkey = mintKeypair.publicKey;
     const ownerPubkey = wallet.publicKey as PublicKey;
     const vaultPubkey = vaultKeypair.publicKey;
-    
+    console.log("ownerPubkey", ownerPubkey)
     console.log("mintPubkey:", mintPubkey.toString());
     
     const [pda, bump] = await PublicKey.findProgramAddress([Buffer.from('vault_registry')], programId);
@@ -186,7 +178,7 @@ export async function deposit(
     depositInstructionData.writeUInt8(1, 0); // Instruction ID for "Deposit"
     depositInstructionData.writeBigUInt64LE(BigInt(depositAmount), 1);
 
-    
+    console.log(depositInstructionData)
     const [stateAccountPDA, bump] = await PublicKey.findProgramAddress([Buffer.from('vault_registry')], programId);
     console.log("stateAccountPDA", stateAccountPDA)
     console.log("bump", bump)
@@ -208,6 +200,7 @@ export async function deposit(
         data: depositInstructionData,
     });
 
+    console.log("depositInstruction")
     console.log(depositInstruction)
 
     const transaction = new Transaction().add(depositInstruction);

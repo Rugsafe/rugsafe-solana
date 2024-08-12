@@ -4,8 +4,6 @@ use solana_program::pubkey::Pubkey;
 pub struct Vault {
     pub vault_account: Pubkey,
     pub mint_account: Pubkey,
-    pub user_token_account: Pubkey,
-    pub user_atoken_account: Pubkey,
     pub owner: Pubkey,
 }
 
@@ -15,7 +13,7 @@ pub struct VaultRegistry {
 }
 
 impl Vault {
-    pub const LEN: usize = 32 * 5; // 5 Pubkeys, each 32 bytes
+    pub const LEN: usize = 32 * 3; // 5 Pubkeys, each 32 bytes
 
     /*
     @name serialize
@@ -26,8 +24,6 @@ impl Vault {
         let mut data = Vec::with_capacity(Self::LEN);
         data.extend_from_slice(self.vault_account.as_ref());
         data.extend_from_slice(self.mint_account.as_ref());
-        data.extend_from_slice(self.user_token_account.as_ref());
-        data.extend_from_slice(self.user_atoken_account.as_ref());
         data.extend_from_slice(self.owner.as_ref());
         data
     }
@@ -40,15 +36,11 @@ impl Vault {
     pub fn deserialize(input: &[u8]) -> Self {
         let vault_account = Pubkey::new_from_array(input[0..32].try_into().unwrap());
         let mint_account = Pubkey::new_from_array(input[32..64].try_into().unwrap());
-        let user_token_account = Pubkey::new_from_array(input[64..96].try_into().unwrap());
-        let user_atoken_account = Pubkey::new_from_array(input[96..128].try_into().unwrap());
-        let owner = Pubkey::new_from_array(input[128..160].try_into().unwrap());
+        let owner = Pubkey::new_from_array(input[64..96].try_into().unwrap());
 
         Vault {
             vault_account,
             mint_account,
-            user_token_account,
-            user_atoken_account,
             owner,
         }
     }

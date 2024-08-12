@@ -228,9 +228,7 @@ impl Processor {
             let new_vault: Vault = Vault {
                 vault_account: *vault_account.key,
                 mint_account: *mint_account.key,
-                user_token_account: *payer_account.key, // assuming payer is the user
-                user_atoken_account: *vault_account.key, // placeholder, use appropriate account
-                owner: *payer_account.key,              // assuming payer is the owner
+                owner: *payer_account.key,
             };
 
             // Use the add_vault method
@@ -322,9 +320,7 @@ impl Processor {
             let new_vault = Vault {
                 vault_account: *vault_account.key,
                 mint_account: *mint_account.key,
-                user_token_account: *payer_account.key, // assuming payer is the user
-                user_atoken_account: *vault_account.key, // placeholder, use appropriate account
-                owner: *payer_account.key,              // assuming payer is the owner
+                owner: *payer_account.key,
             };
 
             if let Err(e) = vault_registry.add_vault(new_vault) {
@@ -440,6 +436,88 @@ impl Processor {
         }
         msg!("Payer account is a signer");
 
+        ////////////////////////////////
+        /// /////////////////////////////
+        // try to create in here
+        msg!(
+            "user_token_account.lamports(): {}",
+            user_token_account.lamports()
+        );
+        if user_token_account.lamports() == 0 {
+            let rent = &Rent::from_account_info(rent_account)?;
+            let required_lamports = rent.minimum_balance(TokenAccount::LEN);
+
+            invoke(
+                &solana_program::system_instruction::create_account(
+                    payer_account.key,
+                    user_token_account.key,
+                    required_lamports,
+                    TokenAccount::LEN as u64,
+                    &spl_token::id(),
+                ),
+                &[
+                    payer_account.clone(),
+                    user_token_account.clone(),
+                    system_program.clone(),
+                ],
+            )?;
+
+            invoke(
+                &spl_token::instruction::initialize_account(
+                    &spl_token::id(),
+                    user_token_account.key,
+                    mint_account.key,
+                    payer_account.key,
+                )?,
+                &[
+                    user_token_account.clone(),
+                    mint_account.clone(),
+                    rent_account.clone(),
+                    payer_account.clone(),
+                ],
+            )?;
+        }
+
+        // Check if `user_atoken_account` is empty
+        msg!(
+            "user_atoken_account.lamports(): {}",
+            user_atoken_account.lamports()
+        );
+        if user_atoken_account.lamports() == 0 {
+            let rent = &Rent::from_account_info(rent_account)?;
+            let required_lamports = rent.minimum_balance(TokenAccount::LEN);
+
+            invoke(
+                &solana_program::system_instruction::create_account(
+                    payer_account.key,
+                    user_atoken_account.key,
+                    required_lamports,
+                    TokenAccount::LEN as u64,
+                    &spl_token::id(),
+                ),
+                &[
+                    payer_account.clone(),
+                    user_atoken_account.clone(),
+                    system_program.clone(),
+                ],
+            )?;
+
+            invoke(
+                &spl_token::instruction::initialize_account(
+                    &spl_token::id(),
+                    user_atoken_account.key,
+                    mint_account.key,
+                    payer_account.key,
+                )?,
+                &[
+                    user_atoken_account.clone(),
+                    mint_account.clone(),
+                    rent_account.clone(),
+                    payer_account.clone(),
+                ],
+            )?;
+        }
+        /// ////////////////////////////
         // Log balances before transfer
         let user_token_a_balance_before =
             TokenAccount::unpack(&user_token_account.try_borrow_data()?)?.amount;
