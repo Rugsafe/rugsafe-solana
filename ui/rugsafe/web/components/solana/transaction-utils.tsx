@@ -2,6 +2,93 @@ import { Connection, PublicKey, Transaction, TransactionInstruction, sendAndConf
 import { WalletContextState } from '@solana/wallet-adapter-react';
 import { TOKEN_PROGRAM_ID, MintLayout, createInitializeMintInstruction } from '@solana/spl-token';
 
+
+// Define Vault and VaultRegistry classes
+class Vault {
+    vaultAccount: PublicKey;
+    mintAccount: PublicKey;
+    userTokenAccount: PublicKey;
+    userATokenAccount: PublicKey;
+    owner: PublicKey;
+
+    static LEN: number = 32 * 5; // Define the static LEN property within the class
+
+    constructor(fields: { vaultAccount: Uint8Array; mintAccount: Uint8Array; userTokenAccount: Uint8Array; userATokenAccount: Uint8Array; owner: Uint8Array }) {
+        this.vaultAccount = new PublicKey(fields.vaultAccount);
+        this.mintAccount = new PublicKey(fields.mintAccount);
+        this.userTokenAccount = new PublicKey(fields.userTokenAccount);
+        this.userATokenAccount = new PublicKey(fields.userATokenAccount);
+        this.owner = new PublicKey(fields.owner);
+    }
+
+    static deserialize(input: Uint8Array): Vault {
+        return new Vault({
+            vaultAccount: input.slice(0, 32),
+            mintAccount: input.slice(32, 64),
+            userTokenAccount: input.slice(64, 96),
+            userATokenAccount: input.slice(96, 128),
+            owner: input.slice(128, 160),
+        });
+    }
+}
+
+
+class VaultRegistry {
+    vaults: Vault[];
+
+    constructor(vaults: Vault[]) {
+        this.vaults = vaults;
+    }
+
+    static deserialize(data: Uint8Array): VaultRegistry {
+        const vaults: Vault[] = [];
+        const vaultCount = new DataView(data.buffer).getUint32(0, true); // Read the vault count (4 bytes)
+        let offset = 4;
+
+        for (let i = 0; i < vaultCount; i++) {
+            const vault = Vault.deserialize(data.slice(offset, offset + Vault.LEN));
+            vaults.push(vault);
+            offset += Vault.LEN;
+        }
+
+        return new VaultRegistry(vaults);
+    }
+}
+
+
+Vault.LEN = 160; // 32 * 5 bytes for each Pubkey
+
+
+const VaultSchema = new Map([
+    [
+        Vault,
+        {
+            kind: 'struct',
+            fields: [
+                ['vaultAccount', [32]],
+                ['mintAccount', [32]],
+                ['userTokenAccount', [32]],
+                ['userATokenAccount', [32]],
+                ['owner', [32]],
+            ],
+        },
+    ],
+]);
+
+const VaultRegistrySchema = new Map([
+    [
+        VaultRegistry,
+        {
+            kind: 'struct',
+            fields: [
+                ['vaults', [Vault]],
+            ],
+        },
+    ],
+]);
+
+export { Vault, VaultRegistry };
+
 export async function createVault(
     programId: PublicKey,
     wallet: WalletContextState,
@@ -25,6 +112,9 @@ export async function createVault(
     
     console.log("mintPubkey:", mintPubkey.toString());
     
+    const [pda, bump] = await PublicKey.findProgramAddress([Buffer.from('vault_registry')], programId);
+    console.log("pda", pda)
+    console.log("bump", bump)
     // return;
     const transaction = new Transaction().add(
         new TransactionInstruction({
@@ -34,7 +124,11 @@ export async function createVault(
                 { pubkey: vaultPubkey, isSigner: true, isWritable: true }, // Add vault account
                 { pubkey: rent, isSigner: false, isWritable: true },
                 { pubkey: spl, isSigner: false, isWritable: true },
-                { pubkey: SystemProgram.programId, isSigner: false, isWritable: true }
+                { pubkey: SystemProgram.programId, isSigner: false, isWritable: true },
+                //pda
+                // { pubkey: Keypair.generate().publicKey, isSigner: true, isWritable: true }, // state_account
+                { pubkey: pda, isSigner: false, isWritable: true }, // Pass the PDA
+
             ],
             programId: programId,
             data: Buffer.from([0]), // The instruction data
@@ -126,6 +220,28 @@ export async function deposit(
         return signature;
     } catch (error) {
         console.error('Transaction failed', error);
+        throw error;
+    }
+}
+
+export async function fetchVaultRegistry(stateAccountPubkey: PublicKey, connection: Connection) {
+    try {
+        // Fetch the account data from the blockchain
+        const accountInfo = await connection.getAccountInfo(stateAccountPubkey);
+
+        if (!accountInfo) {
+            throw new Error('State account not found');
+        }
+
+        // Extract the data buffer
+        const data = accountInfo.data;
+
+        // Manually deserialize the data according to your VaultRegistry structure
+        const vaultRegistry = VaultRegistry.deserialize(new Uint8Array(data));
+
+        return vaultRegistry;
+    } catch (error) {
+        console.error('Failed to fetch or deserialize VaultRegistry:', error);
         throw error;
     }
 }

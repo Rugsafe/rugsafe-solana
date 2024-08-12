@@ -79,8 +79,10 @@ async fn test_create_vault() -> Result<(), TransportError> {
     let rent_key = solana_program::sysvar::rent::ID;
     let spl_key = spl_token::id();
 
-    let state_keypair = Keypair::new(); // State account
-    let state_key = state_keypair.pubkey();
+    // let state_keypair = Keypair::new(); // State account
+
+    // let state_key = state_keypair.pubkey();
+    let (state_key, _bump_seed) = Pubkey::find_program_address(&[b"vault_registry"], &program_id);
 
     let mut program_test =
         ProgramTest::new("hello_world", program_id, processor!(process_instruction));
@@ -129,7 +131,8 @@ async fn test_create_vault() -> Result<(), TransportError> {
 
     println!("Signing the transaction...");
     transaction.sign(
-        &[&payer, &mint_keypair, &vault_keypair, &state_keypair],
+        // &[&payer, &mint_keypair, &vault_keypair, &state_keypair],
+        &[&payer, &mint_keypair, &vault_keypair],
         recent_blockhash,
     );
 
@@ -166,8 +169,10 @@ async fn test_deposit() -> Result<(), BanksClientError> {
     let rent_key = solana_program::sysvar::rent::ID;
     let spl_key = spl_token::id();
 
-    let state_keypair = Keypair::new(); // State account
-    let state_key = state_keypair.pubkey();
+    // let state_keypair = Keypair::new(); // State account
+
+    // let state_key = state_keypair.pubkey();
+    let (state_key, _bump_seed) = Pubkey::find_program_address(&[b"vault_registry"], &program_id);
 
     let mut program_test =
         ProgramTest::new("hello_world", program_id, processor!(process_instruction));
@@ -209,7 +214,7 @@ async fn test_deposit() -> Result<(), BanksClientError> {
             &payer,
             &token_a_mint_keypair,
             &vault_keypair,
-            &state_keypair,
+            // &state_keypair,
         ],
         recent_blockhash,
     );
@@ -387,7 +392,7 @@ fn create_vault_instruction(
         AccountMeta::new_readonly(sysvar::rent::id(), false),
         AccountMeta::new_readonly(spl_token::id(), false),
         AccountMeta::new_readonly(solana_program::system_program::id(), false),
-        AccountMeta::new(*state, true),
+        AccountMeta::new(*state, false), //was true
     ];
 
     Instruction {
@@ -469,8 +474,10 @@ async fn test_fetch_vault_from_registry() -> Result<(), TransportError> {
     let rent_key = solana_program::sysvar::rent::ID;
     let spl_key = spl_token::id();
 
-    let state_keypair = Keypair::new(); // State account
-    let state_key = state_keypair.pubkey();
+    // let state_keypair = Keypair::new(); // State account
+
+    // let state_key = state_keypair.pubkey();
+    let (state_key, _bump_seed) = Pubkey::find_program_address(&[b"vault_registry"], &program_id);
 
     let mut program_test =
         ProgramTest::new("hello_world", program_id, processor!(process_instruction));
@@ -519,7 +526,8 @@ async fn test_fetch_vault_from_registry() -> Result<(), TransportError> {
 
     println!("Signing the transaction...");
     transaction.sign(
-        &[&payer, &mint_keypair, &vault_keypair, &state_keypair],
+        // &[&payer, &mint_keypair, &vault_keypair, &state_keypair],
+        &[&payer, &mint_keypair, &vault_keypair],
         recent_blockhash,
     );
 
@@ -618,8 +626,10 @@ async fn test_fetch_vault_with_data_from_registry() -> Result<(), TransportError
     let rent_key = solana_program::sysvar::rent::ID;
     let spl_key = spl_token::id();
 
-    let state_keypair = Keypair::new(); // State account
-    let state_key = state_keypair.pubkey();
+    // let state_keypair = Keypair::new(); // State account
+
+    // let state_key = state_keypair.pubkey();
+    let (state_key, _bump_seed) = Pubkey::find_program_address(&[b"vault_registry"], &program_id);
 
     let mut program_test =
         ProgramTest::new("hello_world", program_id, processor!(process_instruction));
@@ -667,7 +677,8 @@ async fn test_fetch_vault_with_data_from_registry() -> Result<(), TransportError
 
     println!("Signing the transaction...");
     transaction.sign(
-        &[&payer, &mint_keypair, &vault_keypair, &state_keypair],
+        // &[&payer, &mint_keypair, &vault_keypair, &state_keypair],
+        &[&payer, &mint_keypair, &vault_keypair],
         recent_blockhash,
     );
 
@@ -708,8 +719,49 @@ async fn test_fetch_vault_with_data_from_registry() -> Result<(), TransportError
     println!("State account data length: {}", state_data.len());
     println!("First 32 bytes of state data: {:?}", &state_data[..32]);
 
-    // Deserialize and verify the VaultRegistry
-    println!("Attempting to deserialize state account data into VaultRegistry...");
+    println!("Fetching and verifying the vault registry...");
+    let state_account = banks_client.get_account(state_key).await?;
+    if state_account.is_none() {
+        println!(
+            "Error: State account not found for state_key: {:?}",
+            state_key
+        );
+        panic!("State account not created");
+    }
 
+    println!(
+        "Expected size of VaultRegistry struct: {}",
+        VaultRegistry::LEN
+    );
+    println!(
+        "Actual size of data to be deserialized: {}",
+        state_data.len()
+    );
+
+    // deep_dive_analysis(&state_data);
+    manual_deserialize(&state_data);
+
+    // let vault_registry_result: Result<VaultRegistry, _> = VaultRegistry::deserialize(&state_data);
+    let vault_registry_result = VaultRegistry::deserialize(&state_data);
+    let vault_registry = match vault_registry_result {
+        Ok(vr) => {
+            println!("Deserialized VaultRegistry successfully.");
+            vr
+        }
+        Err(e) => {
+            println!("Failed to deserialize VaultRegistry: {:?}", e);
+            panic!("Deserialization failed.");
+        }
+    };
+
+    println!("VaultRegistry contents: {:?}", vault_registry);
+    assert!(
+        vault_registry
+            .vaults
+            .iter()
+            .any(|v| v.vault_account == vault_key),
+        "Vault not found in registry"
+    );
+    ////////////////////////
     Ok(())
 }

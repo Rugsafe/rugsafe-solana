@@ -3,6 +3,8 @@
 import { AppHero } from '../ui/ui-layout';
 import CreateVault from '../solana/CreateVault'; // Import the CreateVault component
 import ListVaults from '../ListVaults';
+import ListVaultsFromRegistry from '../ListVaultsFromRegistry';
+
 
 const links: { label: string; href: string }[] = [
   { label: 'Solana Docs', href: 'https://docs.solana.com/' },
@@ -23,7 +25,8 @@ export default function DashboardFeature() {
         xyz
       </div>
       <CreateVault /> {/* Add the CreateVault component here */}
-      <ListVaults />
+      {/* <ListVaults /> */}
+      <ListVaultsFromRegistry />
     </div>
   );
 }

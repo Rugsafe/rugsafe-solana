@@ -5,12 +5,16 @@ use solana_program::{
     entrypoint::ProgramResult,
     msg,
     program::invoke,
+    program::invoke_signed,
     program_error::ProgramError,
     program_pack::Pack,
     pubkey::Pubkey,
     sysvar,
     sysvar::rent::Rent,
 };
+
+// use solana_sdk::program::invoke_signed;
+
 use spl_token::instruction::{burn, initialize_mint, initialize_mint2, mint_to};
 use spl_token::state::Account as TokenAccount;
 use spl_token::state::Mint;
@@ -65,7 +69,18 @@ impl Processor {
         let rent_account = next_account_info(account_info_iter)?;
         let spl_account = next_account_info(account_info_iter)?;
         let system_program = next_account_info(account_info_iter)?;
-        let state_account = next_account_info(account_info_iter)?; // Add this line
+        // let state_account = next_account_info(account_info_iter)?; // Add this line
+
+        // Derive the state account PDA
+        let (state_account_pda, bump_seed) =
+            Pubkey::find_program_address(&[b"vault_registry"], program_id);
+
+        let state_account = next_account_info(account_info_iter)?;
+
+        // Ensure the state account matches the derived PDA
+        if state_account.key != &state_account_pda {
+            return Err(ProgramError::InvalidAccountData);
+        }
 
         msg!("Creating vault...");
         msg!("payer account key: {:?}", payer_account.key);
@@ -187,7 +202,10 @@ impl Processor {
             let state_account_required_lamports = rent.minimum_balance(state_account_size);
 
             // Create the state account
-            invoke(
+            msg!("about to create state cuz its empty");
+
+            // invoke(
+            invoke_signed(
                 &solana_program::system_instruction::create_account(
                     payer_account.key,
                     state_account.key,
@@ -200,12 +218,14 @@ impl Processor {
                     state_account.clone(),
                     system_program.clone(),
                 ],
+                // &[&[b"vault_registry", &[bump_seed]]],
+                &[&[b"vault_registry".as_ref(), &[bump_seed]]],
             )?;
 
             // Initialize VaultRegistry and serialize it into the state account's data
             let mut vault_registry = VaultRegistry { vaults: Vec::new() };
 
-            let new_vault = Vault {
+            let new_vault: Vault = Vault {
                 vault_account: *vault_account.key,
                 mint_account: *mint_account.key,
                 user_token_account: *payer_account.key, // assuming payer is the user
