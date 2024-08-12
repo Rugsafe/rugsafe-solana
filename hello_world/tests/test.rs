@@ -158,6 +158,91 @@ async fn test_create_vault() -> Result<(), TransportError> {
     println!("Test completed successfully.");
     Ok(())
 }
+
+#[tokio::test]
+async fn test_create_two_vaults() -> Result<(), TransportError> {
+    // Setup keys and program
+    let program_id = Pubkey::new_unique();
+    let mint_keypair1 = Keypair::new(); // Mint account for first vault
+    let mint_key1 = mint_keypair1.pubkey();
+    let vault_keypair1 = Keypair::new(); // Vault account for first vault
+    let vault_key1 = vault_keypair1.pubkey();
+
+    let mint_keypair2 = Keypair::new(); // Mint account for second vault
+    let mint_key2 = mint_keypair2.pubkey();
+    let vault_keypair2 = Keypair::new(); // Vault account for second vault
+    let vault_key2 = vault_keypair2.pubkey();
+
+    let rent_key = solana_program::sysvar::rent::ID;
+    let spl_key = spl_token::id();
+
+    let mut program_test =
+        ProgramTest::new("hello_world", program_id, processor!(process_instruction));
+
+    // Derive the state account PDA
+    let (state_account_pda, _bump_seed) =
+        Pubkey::find_program_address(&[b"vault_registry"], &program_id);
+
+    // Add SPL Token program
+    program_test.add_program(
+        "spl_token",
+        spl_key,
+        processor!(spl_token::processor::Processor::process),
+    );
+
+    // Start the context
+    let mut context = program_test.start_with_context().await;
+    let banks_client = &mut context.banks_client;
+    let payer = &context.payer;
+    let recent_blockhash = banks_client.get_latest_blockhash().await?;
+
+    // Retrieve rent details
+    let rent_account = banks_client.get_account(rent_key).await?;
+    assert!(rent_account.is_some(), "Rent account not found");
+
+    // Create the first vault
+    let create_vault_instruction1 = create_vault_instruction(
+        &program_id,
+        &vault_key1,
+        &mint_key1,
+        &payer.pubkey(),
+        &state_account_pda,
+    );
+
+    let mut transaction1 =
+        Transaction::new_with_payer(&[create_vault_instruction1], Some(&payer.pubkey()));
+
+    transaction1.sign(&[&payer, &mint_keypair1, &vault_keypair1], recent_blockhash);
+
+    banks_client.process_transaction(transaction1).await?;
+
+    // Verify first vault creation
+    let vault_account1 = banks_client.get_account(vault_key1).await?;
+    assert!(vault_account1.is_some(), "First vault account not created");
+
+    // Create the second vault
+    let create_vault_instruction2 = create_vault_instruction(
+        &program_id,
+        &vault_key2,
+        &mint_key2,
+        &payer.pubkey(),
+        &state_account_pda,
+    );
+
+    let mut transaction2 =
+        Transaction::new_with_payer(&[create_vault_instruction2], Some(&payer.pubkey()));
+
+    transaction2.sign(&[&payer, &mint_keypair2, &vault_keypair2], recent_blockhash);
+
+    banks_client.process_transaction(transaction2).await?;
+
+    // Verify second vault creation
+    let vault_account2 = banks_client.get_account(vault_key2).await?;
+    assert!(vault_account2.is_some(), "Second vault account not created");
+
+    Ok(())
+}
+
 #[tokio::test]
 async fn test_deposit() -> Result<(), BanksClientError> {
     println!("Starting test_deposit");

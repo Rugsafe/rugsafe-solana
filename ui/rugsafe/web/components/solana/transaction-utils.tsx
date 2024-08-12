@@ -186,23 +186,32 @@ export async function deposit(
     depositInstructionData.writeUInt8(1, 0); // Instruction ID for "Deposit"
     depositInstructionData.writeBigUInt64LE(BigInt(depositAmount), 1);
 
+    
+    const [stateAccountPDA, bump] = await PublicKey.findProgramAddress([Buffer.from('vault_registry')], programId);
+    console.log("stateAccountPDA", stateAccountPDA)
+    console.log("bump", bump)
+    
     const depositInstruction = new TransactionInstruction({
         programId,
         keys: [
             { pubkey: wallet.publicKey as PublicKey, isSigner: true, isWritable: true }, // Payer
             { pubkey: mintPubkey, isSigner: false, isWritable: true }, // Mint account
             { pubkey: vaultPubkey, isSigner: false, isWritable: true }, // Vault account
-            { pubkey: userTokenAPubkey, isSigner: true, isWritable: true }, // User's Token account
-            { pubkey: userATokenAPubkey, isSigner: true, isWritable: true }, // User's aToken account
-            { pubkey: rentPubkey, isSigner: false, isWritable: false }, // Rent sysvar
-            { pubkey: splPubkey, isSigner: false, isWritable: false }, // SPL Token Program
-            { pubkey: SystemProgram.programId, isSigner: false, isWritable: false }, // System Program
+            { pubkey: userTokenAPubkey, isSigner: false, isWritable: true }, // User's Token account
+            { pubkey: userATokenAPubkey, isSigner: false, isWritable: true }, // User's aToken account
+            { pubkey: rentPubkey, isSigner: false, isWritable: true }, // Rent sysvar
+            { pubkey: splPubkey, isSigner: false, isWritable: true }, // SPL Token Program
+            { pubkey: SystemProgram.programId, isSigner: false, isWritable: true }, // System Program
+            { pubkey: stateAccountPDA, isSigner: false, isWritable: true }, 
+
         ],
         data: depositInstructionData,
     });
 
-    const transaction = new Transaction().add(depositInstruction);
+    console.log(depositInstruction)
 
+    const transaction = new Transaction().add(depositInstruction);
+    console.log(transaction)
     try {
         const { blockhash } = await connection.getRecentBlockhash();
         transaction.recentBlockhash = blockhash;

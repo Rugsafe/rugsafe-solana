@@ -307,6 +307,61 @@ impl Processor {
             msg!("State account initialized successfully");
         } else {
             msg!("State account is already initialized");
+
+            // Step 1: Deserialize the existing vault registry
+            let mut state_data = state_account.try_borrow_mut_data()?;
+            let mut vault_registry = match VaultRegistry::deserialize(&mut state_data.as_ref()) {
+                Ok(vr) => vr,
+                Err(_) => {
+                    msg!("Failed to deserialize existing VaultRegistry");
+                    return Err(ProgramError::InvalidAccountData);
+                }
+            };
+
+            // Step 2: Add the new vault to the registry
+            let new_vault = Vault {
+                vault_account: *vault_account.key,
+                mint_account: *mint_account.key,
+                user_token_account: *payer_account.key, // assuming payer is the user
+                user_atoken_account: *vault_account.key, // placeholder, use appropriate account
+                owner: *payer_account.key,              // assuming payer is the owner
+            };
+
+            if let Err(e) = vault_registry.add_vault(new_vault) {
+                msg!("Failed to add vault: {}", e);
+                return Err(ProgramError::Custom(0)); // Use appropriate error code
+            }
+
+            // Step 3: Serialize the updated vault registry back into the state account
+            let serialized_data = vault_registry.serialize();
+            if serialized_data.len() != VaultRegistry::LEN {
+                msg!(
+                    "Serialized length mismatch: expected {}, got {}",
+                    VaultRegistry::LEN,
+                    serialized_data.len()
+                );
+                return Err(ProgramError::Custom(1));
+            }
+
+            state_data[..serialized_data.len()].copy_from_slice(&serialized_data);
+
+            // Optional: Log the serialized data for verification
+            msg!(
+                "Updated serialized state data (first 64 bytes): {:?}",
+                &state_data[..64]
+            );
+
+            msg!("VaultRegistry updated successfully");
+
+            // Log the number of vaults in the registry after the update
+            let vault_count = vault_registry.vault_count();
+            msg!("Number of vaults after update: {}", vault_count);
+
+            // Optional: Log the serialized data for verification
+            msg!(
+                "Updated serialized state data (first 64 bytes): {:?}",
+                &state_data[..64]
+            );
         }
 
         ////////////////////////////////////
