@@ -5,9 +5,9 @@ dev:
 t:
 	cargo test-bpf
 t1:
-	cargo test-bpf --package hello_world --verbose --test test -- test_deposit --nocapture
+	cargo test-bpf --package rugsafe --verbose --test test -- test_faucet --nocapture
 deploy:
-	solana program deploy ./target/deploy/hello_world.so --url localhost --max-len 5000000
+	solana program deploy ./target/deploy/rugsafe.so --url localhost --max-len 5000000
 
 create-vault:
 	solana program -k user.json invoke --program-id <PROGRAM_ID> --data "00" --accounts '[{"pubkey":"$(solana address -k mint.json)","is_signer":true,"is_writable":true},{"pubkey":"$(solana address -k user.json)","is_signer":true,"is_writable":true},{"pubkey":"SysvarRent111111111111111111111111111111111"}]'

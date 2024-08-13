@@ -1559,19 +1559,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "95505c38b4572b2d910cecb0281560f54b440a19336cbbcb27bf6ce6adc6f5a8"
 
 [[package]]
-name = "hello_world"
-version = "0.1.0"
-dependencies = [
- "borsh 1.5.1",
- "borsh-derive 1.5.1",
- "hex",
- "solana-program",
- "solana-program-test",
- "solana-sdk",
- "spl-token",
-]
-
-[[package]]
 name = "hermit-abi"
 version = "0.1.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3026,6 +3013,19 @@ checksum = "c247d24e63230cdb56463ae328478bd5eac8b8faa8c69461a77e8e323afac90e"
 dependencies = [
  "libc",
  "windows-sys 0.48.0",
+]
+
+[[package]]
+name = "rugsafe"
+version = "0.1.0"
+dependencies = [
+ "borsh 1.5.1",
+ "borsh-derive 1.5.1",
+ "hex",
+ "solana-program",
+ "solana-program-test",
+ "solana-sdk",
+ "spl-token",
 ]
 
 [[package]]

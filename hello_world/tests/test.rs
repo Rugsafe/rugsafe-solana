@@ -1,8 +1,10 @@
 // use borsh::de::BorshDeserialize;
-use borsh::{BorshDeserialize, BorshSerialize};
-use hello_world::process_instruction;
-use hello_world::state::{Vault, VaultRegistry};
+// use borsh::{BorshDeserialize, BorshSerialize};
 use hex;
+use rugsafe::instruction::VaultInstruction;
+use rugsafe::process_instruction;
+use rugsafe::processor::Processor;
+use rugsafe::state::{Vault, VaultRegistry};
 use solana_program::program_pack::Pack;
 use solana_program::rent::Rent;
 use solana_program::system_instruction;
@@ -84,8 +86,7 @@ async fn test_create_vault() -> Result<(), TransportError> {
     // let state_key = state_keypair.pubkey();
     let (state_key, _bump_seed) = Pubkey::find_program_address(&[b"vault_registry"], &program_id);
 
-    let mut program_test =
-        ProgramTest::new("hello_world", program_id, processor!(process_instruction));
+    let mut program_test = ProgramTest::new("rugsafe", program_id, processor!(process_instruction));
 
     // Add SPL Token program
     program_test.add_program(
@@ -176,8 +177,7 @@ async fn test_create_two_vaults() -> Result<(), TransportError> {
     let rent_key = solana_program::sysvar::rent::ID;
     let spl_key = spl_token::id();
 
-    let mut program_test =
-        ProgramTest::new("hello_world", program_id, processor!(process_instruction));
+    let mut program_test = ProgramTest::new("rugsafe", program_id, processor!(process_instruction));
 
     // Derive the state account PDA
     let (state_account_pda, _bump_seed) =
@@ -259,8 +259,7 @@ async fn test_deposit() -> Result<(), BanksClientError> {
     // let state_key = state_keypair.pubkey();
     let (state_key, _bump_seed) = Pubkey::find_program_address(&[b"vault_registry"], &program_id);
 
-    let mut program_test =
-        ProgramTest::new("hello_world", program_id, processor!(process_instruction));
+    let mut program_test = ProgramTest::new("rugsafe", program_id, processor!(process_instruction));
 
     program_test.add_program(
         "spl_token",
@@ -556,8 +555,7 @@ async fn test_fetch_vault_from_registry() -> Result<(), TransportError> {
     // let state_key = state_keypair.pubkey();
     let (state_key, _bump_seed) = Pubkey::find_program_address(&[b"vault_registry"], &program_id);
 
-    let mut program_test =
-        ProgramTest::new("hello_world", program_id, processor!(process_instruction));
+    let mut program_test = ProgramTest::new("rugsafe", program_id, processor!(process_instruction));
 
     // Add SPL Token program
     program_test.add_program(
@@ -708,8 +706,7 @@ async fn test_fetch_vault_with_data_from_registry() -> Result<(), TransportError
     // let state_key = state_keypair.pubkey();
     let (state_key, _bump_seed) = Pubkey::find_program_address(&[b"vault_registry"], &program_id);
 
-    let mut program_test =
-        ProgramTest::new("hello_world", program_id, processor!(process_instruction));
+    let mut program_test = ProgramTest::new("rugsafe", program_id, processor!(process_instruction));
 
     // Add SPL Token program
     program_test.add_program(
@@ -840,5 +837,123 @@ async fn test_fetch_vault_with_data_from_registry() -> Result<(), TransportError
         "Vault not found in registry"
     );
     ////////////////////////
+    Ok(())
+}
+////////////////////////////
+////////////////////////////
+//////////////////////////////
+#[tokio::test]
+async fn test_faucet() -> Result<(), Box<dyn std::error::Error>> {
+    println!("Starting test_faucet");
+
+    let program_id = Pubkey::new_unique();
+    // let mint_authority = Keypair::new();
+    // let user_account = Keypair::new();
+
+    let mut program_test = ProgramTest::new("rugsafe", program_id, processor!(Processor::process));
+
+    // Add SPL Token program
+    program_test.add_program(
+        "spl_token",
+        spl_token::id(),
+        processor!(spl_token::processor::Processor::process),
+    );
+
+    println!("Starting program test context...");
+    let (mut banks_client, payer, recent_blockhash) = program_test.start().await;
+
+    // Create mint account
+    println!("Creating mint account...");
+    let mint_keypair = Keypair::new();
+    let rent_key = solana_program::sysvar::rent::ID;
+
+    let mint_rent = banks_client.get_rent().await?.minimum_balance(Mint::LEN);
+    let create_mint_ix = system_instruction::create_account(
+        &payer.pubkey(),
+        &mint_keypair.pubkey(),
+        mint_rent,
+        Mint::LEN as u64,
+        &spl_token::id(),
+    );
+    let initialize_mint_ix = spl_token::instruction::initialize_mint(
+        &spl_token::id(),
+        &mint_keypair.pubkey(),
+        &payer.pubkey(),
+        None,
+        0,
+    )
+    .map_err(|e| Box::new(e) as Box<dyn std::error::Error>)?;
+
+    // Create user token account
+    println!("Creating user token account...");
+    let user_token_keypair = Keypair::new();
+    let token_account_rent = banks_client
+        .get_rent()
+        .await?
+        .minimum_balance(TokenAccount::LEN);
+    let create_token_account_ix = system_instruction::create_account(
+        &payer.pubkey(),
+        &user_token_keypair.pubkey(),
+        token_account_rent,
+        TokenAccount::LEN as u64,
+        &spl_token::id(),
+    );
+    let initialize_token_account_ix = spl_token::instruction::initialize_account(
+        &spl_token::id(),
+        &user_token_keypair.pubkey(),
+        &mint_keypair.pubkey(),
+        &payer.pubkey(),
+    )
+    .map_err(|e| Box::new(e) as Box<dyn std::error::Error>)?;
+
+    // Create and send setup transaction
+    let setup_tx = Transaction::new_signed_with_payer(
+        &[
+            create_mint_ix,
+            initialize_mint_ix,
+            create_token_account_ix,
+            initialize_token_account_ix,
+        ],
+        Some(&payer.pubkey()),
+        &[&payer, &mint_keypair, &user_token_keypair],
+        recent_blockhash,
+    );
+    banks_client.process_transaction(setup_tx).await?;
+
+    // Create the faucet instruction
+    println!("Creating faucet instruction...");
+    let faucet_ix = Instruction::new_with_borsh(
+        program_id,
+        &VaultInstruction::Faucet { amount: 1000 },
+        vec![
+            AccountMeta::new(payer.pubkey(), true),
+            AccountMeta::new(user_token_keypair.pubkey(), true),
+            AccountMeta::new(mint_keypair.pubkey(), true),
+            AccountMeta::new_readonly(spl_token::id(), false),
+            AccountMeta::new_readonly(rent_key, false),
+        ],
+    );
+
+    // Create and send the faucet transaction
+    let faucet_tx = Transaction::new_signed_with_payer(
+        &[faucet_ix],
+        Some(&payer.pubkey()),
+        &[&payer, &mint_keypair, &user_token_keypair],
+        recent_blockhash,
+    );
+    banks_client.process_transaction(faucet_tx).await?;
+
+    // Verify the user token account balance
+    println!("Verifying user token account balance...");
+    let user_token_account = banks_client
+        .get_account(user_token_keypair.pubkey())
+        .await?
+        .expect("user_token_account not found");
+
+    let token_account_data = TokenAccount::unpack(&user_token_account.data)
+        .map_err(|e| Box::new(e) as Box<dyn std::error::Error>)?;
+    assert_eq!(token_account_data.amount, 1000, "Incorrect token balance");
+
+    println!("Test completed successfully.");
     Ok(())
 }

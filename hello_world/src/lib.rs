@@ -1,5 +1,5 @@
-mod instruction;
-mod processor;
+pub mod instruction;
+pub mod processor;
 pub mod state;
 
 use solana_program::{

@@ -1,12 +1,14 @@
+use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::program_error::ProgramError;
 
 #[repr(C)]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, BorshSerialize, BorshDeserialize)]
 pub enum VaultInstruction {
     CreateVault,
     Deposit { amount: u64 },
     Withdraw { amount: u64 },
     BurnRToken { amount: u64 },
+    Faucet { amount: u64 },
 }
 
 impl VaultInstruction {
@@ -27,6 +29,10 @@ impl VaultInstruction {
             3 => {
                 let amount = Self::unpack_amount(rest)?;
                 Self::BurnRToken { amount }
+            }
+            4 => {
+                let amount = Self::unpack_amount(rest)?;
+                Self::Faucet { amount }
             }
             _ => return Err(ProgramError::InvalidInstructionData),
         })

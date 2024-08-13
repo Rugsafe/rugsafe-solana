@@ -1,5 +1,5 @@
 [package]
-name = "hello_world"
+name = "rugsafe"
 version = "0.1.0"
 edition = "2021"
 rust-version = "1.75.0"
@@ -18,5 +18,5 @@ solana-sdk = "=2.0.2"
 spl-token = { version = "6.0.0", features = ["no-entrypoint"], default-features = false }
 
 [lib]
-name = "hello_world"
+name = "rugsafe"
 crate-type = ["cdylib", "lib"]

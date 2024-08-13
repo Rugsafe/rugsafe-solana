@@ -1,6 +1,23 @@
-import { Connection, PublicKey, Transaction, TransactionInstruction, sendAndConfirmTransaction, Keypair, LAMPORTS_PER_SOL, SystemProgram } from '@solana/web3.js';
+import { 
+    Connection, 
+    PublicKey, 
+    Transaction, 
+    TransactionInstruction, 
+    sendAndConfirmTransaction, 
+    Keypair, 
+    LAMPORTS_PER_SOL, 
+    SystemProgram, 
+    ParsedAccountData 
+} from '@solana/web3.js';
 import { WalletContextState } from '@solana/wallet-adapter-react';
-import { TOKEN_PROGRAM_ID, MintLayout, createInitializeMintInstruction } from '@solana/spl-token';
+import { getAssociatedTokenAddress,
+        createAssociatedTokenAccountInstruction, 
+        TOKEN_PROGRAM_ID, 
+        ASSOCIATED_TOKEN_PROGRAM_ID, 
+        MintLayout, 
+        createInitializeMintInstruction 
+} from '@solana/spl-token';
+import BN from 'bn.js';
 
 
 // Define Vault and VaultRegistry classes
@@ -173,6 +190,12 @@ export async function deposit(
     const rentPubkey = new PublicKey("SysvarRent111111111111111111111111111111111");
     const splPubkey = TOKEN_PROGRAM_ID;
 
+    console.log("programId", programId.toString())
+    console.log("mintPubkey", mintPubkey.toString())
+    console.log("vaultPubkey", vaultPubkey.toString())
+    console.log("userTokenAPubkey", userTokenAPubkey.toString())
+    console.log("userATokenAPubkey", userATokenAPubkey.toString())
+    console.log("depositAmount", depositAmount)
     // Prepare deposit instruction data
     let depositInstructionData = Buffer.alloc(9);
     depositInstructionData.writeUInt8(1, 0); // Instruction ID for "Deposit"
@@ -247,3 +270,70 @@ export async function fetchVaultRegistry(stateAccountPubkey: PublicKey, connecti
         throw error;
     }
 }
+
+
+export const callFaucet = async (
+    programId: PublicKey,
+    wallet: any, // adjust types as per your setup
+    connection: Connection,
+    mintPubkey: string
+) => {
+    if (!wallet.publicKey) {
+        throw new Error('Wallet not connected');
+    }
+
+    const mintPublicKey = new PublicKey(mintPubkey);
+    const rent = new PublicKey("SysvarRent111111111111111111111111111111111");
+
+    const userTokenAccount = await getAssociatedTokenAddress(
+        mintPublicKey,
+        wallet.publicKey
+    );
+
+    const transaction = new Transaction().add(
+        new TransactionInstruction({
+            keys: [
+                { pubkey: wallet.publicKey, isSigner: true, isWritable: true },
+                { pubkey: userTokenAccount, isSigner: false, isWritable: true },
+                { pubkey: mintPublicKey, isSigner: false, isWritable: true },
+                { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+                { pubkey: rent, isSigner: false, isWritable: false },
+
+            ],
+            programId,
+            data: Buffer.from([4, ...new Uint8Array(new BN(1000).toArray('le', 8))]), // Adjust as per your program's needs
+        })
+    );
+
+    const { blockhash } = await connection.getRecentBlockhash();
+    transaction.recentBlockhash = blockhash;
+    transaction.feePayer = wallet.publicKey;
+
+    const signedTransaction = await wallet.signTransaction(transaction);
+    const signature = await connection.sendRawTransaction(signedTransaction.serialize());
+
+    await connection.confirmTransaction(signature, 'confirmed');
+    return signature;
+};
+
+export const getTokenBalance = async (
+    connection: Connection,
+    wallet: any,
+    mintPubkey: string
+) => {
+    const mintPublicKey = new PublicKey(mintPubkey);
+
+    const userTokenAccount = await getAssociatedTokenAddress(
+        mintPublicKey,
+        wallet.publicKey
+    );
+
+    const accountInfo = await connection.getParsedAccountInfo(userTokenAccount);
+
+    if (accountInfo.value && 'parsed' in accountInfo.value.data) {
+        const parsedData = accountInfo.value.data as ParsedAccountData;
+        return parsedData.parsed.info.tokenAmount.uiAmount || 0;
+    } else {
+        return 0;
+    }
+};

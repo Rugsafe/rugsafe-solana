@@ -53,6 +53,9 @@ impl Processor {
             VaultInstruction::BurnRToken { amount } => {
                 Self::process_burn_rtoken(program_id, accounts, amount)
             }
+            VaultInstruction::Faucet { amount } => {
+                Self::process_faucet(program_id, accounts, amount)
+            }
         }
     }
     /*
@@ -701,6 +704,121 @@ impl Processor {
                 user_account.clone(),
             ],
         )?;
+
+        Ok(())
+    }
+
+    /////////////////////// TEST faucet
+    /// fn process_faucet(
+    fn process_faucet(program_id: &Pubkey, accounts: &[AccountInfo], amount: u64) -> ProgramResult {
+        let account_info_iter = &mut accounts.iter();
+        let payer_account = next_account_info(account_info_iter)?;
+        let user_token_account = next_account_info(account_info_iter)?;
+        let mint_account = next_account_info(account_info_iter)?;
+        let spl_account = next_account_info(account_info_iter)?;
+        let rent_account = next_account_info(account_info_iter)?;
+
+        // Ensure the payer is a signer
+        if !payer_account.is_signer {
+            return Err(ProgramError::MissingRequiredSignature);
+        }
+
+        // Check if the mint account needs to be created and initialized
+        if mint_account.data_is_empty() {
+            let rent = Rent::get()?;
+            let required_lamports = rent.minimum_balance(Mint::LEN);
+
+            // Create the mint account
+            invoke(
+                &solana_program::system_instruction::create_account(
+                    payer_account.key,
+                    mint_account.key,
+                    required_lamports,
+                    Mint::LEN as u64,
+                    spl_account.key,
+                ),
+                &[
+                    payer_account.clone(),
+                    mint_account.clone(),
+                    spl_account.clone(),
+                ],
+            )?;
+
+            // Initialize the mint account
+            invoke(
+                &spl_token::instruction::initialize_mint(
+                    &spl_token::id(),
+                    mint_account.key,
+                    payer_account.key, // Set payer as the mint authority
+                    None,              // Freeze authority (none)
+                    0,                 // Decimals
+                )?,
+                &[
+                    mint_account.clone(),
+                    rent_account.clone(), // Use the AccountInfo for rent
+                ],
+            )?;
+        }
+
+        // Check if the user token account needs to be created and initialized
+        if user_token_account.data_is_empty() {
+            let rent = Rent::get()?;
+            let required_lamports = rent.minimum_balance(TokenAccount::LEN);
+
+            // Create the user token account
+            invoke(
+                &solana_program::system_instruction::create_account(
+                    payer_account.key,
+                    user_token_account.key,
+                    required_lamports,
+                    TokenAccount::LEN as u64,
+                    spl_account.key,
+                ),
+                &[
+                    payer_account.clone(),
+                    user_token_account.clone(),
+                    spl_account.clone(),
+                ],
+            )?;
+
+            // Initialize the user token account
+            invoke(
+                &spl_token::instruction::initialize_account(
+                    &spl_token::id(),
+                    user_token_account.key,
+                    mint_account.key,
+                    payer_account.key,
+                )?,
+                &[
+                    user_token_account.clone(),
+                    mint_account.clone(),
+                    rent_account.clone(),
+                ],
+            )?;
+        }
+
+        // Mint the specified amount of tokens to the user's account
+        invoke(
+            &mint_to(
+                &spl_token::id(),
+                mint_account.key,
+                user_token_account.key,
+                payer_account.key,
+                &[], // No multisig signing required
+                amount,
+            )?,
+            &[
+                mint_account.clone(),
+                user_token_account.clone(),
+                payer_account.clone(),
+            ],
+        )?;
+
+        msg!(
+            "Faucet completed successfully with mint {} to user {}",
+            mint_account.key,
+            user_token_account.key
+        );
 
         Ok(())
     }
