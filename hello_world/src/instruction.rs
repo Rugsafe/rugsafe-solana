@@ -1,6 +1,6 @@
 use borsh::{BorshDeserialize, BorshSerialize};
+use solana_program::msg;
 use solana_program::program_error::ProgramError;
-
 #[repr(C)]
 #[derive(Clone, Debug, PartialEq, BorshSerialize, BorshDeserialize)]
 pub enum VaultInstruction {
@@ -13,13 +13,19 @@ pub enum VaultInstruction {
 
 impl VaultInstruction {
     pub fn unpack(input: &[u8]) -> Result<Self, ProgramError> {
+        msg!("input: {:?}", hex::encode(input));
+
         let (&tag, rest) = input
             .split_first()
             .ok_or(ProgramError::InvalidInstructionData)?;
+        msg!("tag: {}", tag);
+        msg!("Rest: {:?}", hex::encode(rest));
+
         Ok(match tag {
             0 => Self::CreateVault,
             1 => {
                 let amount = Self::unpack_amount(rest)?;
+                msg!("amount from inside unpack 1: {}", &amount.to_string());
                 Self::Deposit { amount }
             }
             2 => {
@@ -32,6 +38,7 @@ impl VaultInstruction {
             }
             4 => {
                 let amount = Self::unpack_amount(rest)?;
+                msg!("amount from inside unpack 2: {}", &amount.to_string());
                 Self::Faucet { amount }
             }
             _ => return Err(ProgramError::InvalidInstructionData),
@@ -44,6 +51,7 @@ impl VaultInstruction {
             .and_then(|slice| slice.try_into().ok())
             .map(u64::from_le_bytes)
             .ok_or(ProgramError::InvalidInstructionData)?;
+        msg!("amount from inside unpack_amount: {}", amount);
         Ok(amount)
     }
 }

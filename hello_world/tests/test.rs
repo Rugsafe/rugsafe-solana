@@ -891,6 +891,7 @@ async fn test_faucet() -> Result<(), Box<dyn std::error::Error>> {
         .get_rent()
         .await?
         .minimum_balance(TokenAccount::LEN);
+
     let create_token_account_ix = system_instruction::create_account(
         &payer.pubkey(),
         &user_token_keypair.pubkey(),
@@ -922,17 +923,48 @@ async fn test_faucet() -> Result<(), Box<dyn std::error::Error>> {
 
     // Create the faucet instruction
     println!("Creating faucet instruction...");
-    let faucet_ix = Instruction::new_with_borsh(
+    // let faucet_ix = Instruction::new_with_borsh(
+    //     program_id,
+    //     &VaultInstruction::Faucet { amount: 1000 },
+    //     vec![
+    //         AccountMeta::new(payer.pubkey(), true),
+    //         AccountMeta::new(user_token_keypair.pubkey(), true),
+    //         AccountMeta::new(mint_keypair.pubkey(), true),
+    //         AccountMeta::new_readonly(spl_token::id(), false),
+    //         AccountMeta::new_readonly(rent_key, false),
+    //         AccountMeta::new_readonly(solana_program::system_program::id(), false),
+    //     ],
+    // );
+
+    // let faucet_ix = Instruction {
+    //     program_id,
+    //     accounts: vec![
+    //         AccountMeta::new(payer.pubkey(), true),
+    //         AccountMeta::new(user_token_keypair.pubkey(), true),
+    //         AccountMeta::new(mint_keypair.pubkey(), true),
+    //         AccountMeta::new_readonly(spl_token::id(), false),
+    //         AccountMeta::new_readonly(rent_key, false),
+    //         AccountMeta::new_readonly(solana_program::system_program::id(), false),
+    //     ],
+    //     data: vec![4, 100], // Instruction ID for "Deposit"
+    // };
+
+    let amount: u64 = 1000;
+    let mut data = vec![4]; // Instruction ID
+    data.extend_from_slice(&amount.to_le_bytes()); // Append the amount as an 8-byte little-endian value
+
+    let faucet_ix = Instruction {
         program_id,
-        &VaultInstruction::Faucet { amount: 1000 },
-        vec![
+        accounts: vec![
             AccountMeta::new(payer.pubkey(), true),
             AccountMeta::new(user_token_keypair.pubkey(), true),
             AccountMeta::new(mint_keypair.pubkey(), true),
             AccountMeta::new_readonly(spl_token::id(), false),
             AccountMeta::new_readonly(rent_key, false),
+            AccountMeta::new_readonly(solana_program::system_program::id(), false),
         ],
-    );
+        data, // Construct data manually here
+    };
 
     // Create and send the faucet transaction
     let faucet_tx = Transaction::new_signed_with_payer(
