@@ -867,7 +867,7 @@ async fn test_faucet() -> Result<(), Box<dyn std::error::Error>> {
 
     //////////////////////////////
     // Create user token account keypair
-    let user_token_keypair = Keypair::new();
+    let user_token_keypair: Keypair = Keypair::new();
 
     // Prepare the faucet instruction
     let amount: u64 = 1000;
