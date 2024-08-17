@@ -710,8 +710,6 @@ impl Processor {
         Ok(())
     }
 
-    /////////////////////// TEST faucet
-    /// fn process_faucet(
     fn process_faucet(program_id: &Pubkey, accounts: &[AccountInfo], amount: u64) -> ProgramResult {
         let account_info_iter = &mut accounts.iter();
 
@@ -720,22 +718,32 @@ impl Processor {
         let mint_account = next_account_info(account_info_iter)?;
         let spl_account = next_account_info(account_info_iter)?;
         let rent_account = next_account_info(account_info_iter)?;
-        let system_program = next_account_info(account_info_iter)?; // Add this line to include the system program
+        let system_program = next_account_info(account_info_iter)?;
+
+        // Derive the PDA for the mint account
+        let (expected_mint_pubkey, bump_seed) =
+            Pubkey::find_program_address(&[b"mint"], program_id);
+
+        msg!("expected_mint_pubkey: {}", expected_mint_pubkey);
+        msg!("comparing it to: {}", mint_account.key);
+        // Ensure the derived mint address matches the passed mint account
+        if *mint_account.key != expected_mint_pubkey {
+            msg!("Error: Invalid mint account passed");
+            return Err(ProgramError::InvalidArgument);
+        }
 
         // Ensure the payer is a signer
         msg!("payer_account.is_signer: {}", payer_account.is_signer);
-        // if !payer_account.is_signer {
-        //     return Err(ProgramError::MissingRequiredSignature);
-        // }
 
         // Check if the mint account needs to be created and initialized
         if mint_account.data_is_empty() {
             let rent = Rent::get()?;
             let required_lamports = rent.minimum_balance(Mint::LEN);
 
-            msg!("1");
             // Create the mint account
-            invoke(
+            msg!("1");
+
+            invoke_signed(
                 &solana_program::system_instruction::create_account(
                     payer_account.key,
                     mint_account.key,
@@ -746,24 +754,27 @@ impl Processor {
                 &[
                     payer_account.clone(),
                     mint_account.clone(),
-                    // spl_account.clone(),
-                    system_program.clone(), // Include system program in the invoke call
+                    system_program.clone(),
                 ],
+                // &[&[b"vault_registry", &[bump_seed]]],
+                &[&[b"mint".as_ref(), &[bump_seed]]],
             )?;
 
-            msg!("2");
-            // Initialize the mint account
+            // msg!("2");
+
+            // // Initialize the mint account
             invoke(
                 &spl_token::instruction::initialize_mint(
                     &spl_token::id(),
                     mint_account.key,
-                    payer_account.key, // Set payer as the mint authority
-                    None,              // Freeze authority (none)
-                    0,                 // Decimals
+                    payer_account.key,
+                    None,
+                    0,
                 )?,
                 &[
                     mint_account.clone(),
-                    rent_account.clone(), // Use the AccountInfo for rent
+                    rent_account.clone(),
+                    // payer_account.clone(),
                 ],
             )?;
         }
@@ -774,6 +785,7 @@ impl Processor {
             let required_lamports = rent.minimum_balance(TokenAccount::LEN);
 
             msg!("3");
+
             // Create the user token account
             invoke(
                 &solana_program::system_instruction::create_account(
@@ -786,13 +798,12 @@ impl Processor {
                 &[
                     payer_account.clone(),
                     user_token_account.clone(),
-                    // spl_account.clone(),
-                    system_program.clone(), // Include system program in the invoke call
+                    system_program.clone(),
                 ],
             )?;
 
             msg!("4");
-            // Initialize the user token account
+
             invoke(
                 &spl_token::instruction::initialize_account(
                     &spl_token::id(),
@@ -804,11 +815,14 @@ impl Processor {
                     user_token_account.clone(),
                     mint_account.clone(),
                     rent_account.clone(),
+                    payer_account.clone(),
+                    spl_account.clone(),
                 ],
             )?;
         }
 
         msg!("5");
+
         // Mint the specified amount of tokens to the user's account
         invoke(
             &mint_to(
@@ -816,7 +830,7 @@ impl Processor {
                 mint_account.key,
                 user_token_account.key,
                 payer_account.key,
-                &[], // No multisig signing required
+                &[],
                 amount,
             )?,
             &[

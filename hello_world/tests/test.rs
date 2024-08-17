@@ -847,9 +847,6 @@ async fn test_faucet() -> Result<(), Box<dyn std::error::Error>> {
     println!("Starting test_faucet");
 
     let program_id = Pubkey::new_unique();
-    // let mint_authority = Keypair::new();
-    // let user_account = Keypair::new();
-
     let mut program_test = ProgramTest::new("rugsafe", program_id, processor!(Processor::process));
 
     // Add SPL Token program
@@ -862,93 +859,17 @@ async fn test_faucet() -> Result<(), Box<dyn std::error::Error>> {
     println!("Starting program test context...");
     let (mut banks_client, payer, recent_blockhash) = program_test.start().await;
 
-    // Create mint account
-    println!("Creating mint account...");
-    let mint_keypair = Keypair::new();
-    let rent_key = solana_program::sysvar::rent::ID;
+    ///////////////////////////////
+    // Derive mint PDA as expected by the backend
+    let (mint_pubkey, _bump_seed) = Pubkey::find_program_address(&[b"mint"], &program_id);
+    // let mint_keypair = Keypair::new(); // Mint account
+    // let mint_pubkey = mint_keypair.pubkey();
 
-    let mint_rent = banks_client.get_rent().await?.minimum_balance(Mint::LEN);
-    let create_mint_ix = system_instruction::create_account(
-        &payer.pubkey(),
-        &mint_keypair.pubkey(),
-        mint_rent,
-        Mint::LEN as u64,
-        &spl_token::id(),
-    );
-    let initialize_mint_ix = spl_token::instruction::initialize_mint(
-        &spl_token::id(),
-        &mint_keypair.pubkey(),
-        &payer.pubkey(),
-        None,
-        0,
-    )
-    .map_err(|e| Box::new(e) as Box<dyn std::error::Error>)?;
-
-    // Create user token account
-    println!("Creating user token account...");
+    //////////////////////////////
+    // Create user token account keypair
     let user_token_keypair = Keypair::new();
-    let token_account_rent = banks_client
-        .get_rent()
-        .await?
-        .minimum_balance(TokenAccount::LEN);
 
-    let create_token_account_ix = system_instruction::create_account(
-        &payer.pubkey(),
-        &user_token_keypair.pubkey(),
-        token_account_rent,
-        TokenAccount::LEN as u64,
-        &spl_token::id(),
-    );
-    let initialize_token_account_ix = spl_token::instruction::initialize_account(
-        &spl_token::id(),
-        &user_token_keypair.pubkey(),
-        &mint_keypair.pubkey(),
-        &payer.pubkey(),
-    )
-    .map_err(|e| Box::new(e) as Box<dyn std::error::Error>)?;
-
-    // Create and send setup transaction
-    let setup_tx = Transaction::new_signed_with_payer(
-        &[
-            create_mint_ix,
-            initialize_mint_ix,
-            create_token_account_ix,
-            initialize_token_account_ix,
-        ],
-        Some(&payer.pubkey()),
-        &[&payer, &mint_keypair, &user_token_keypair],
-        recent_blockhash,
-    );
-    banks_client.process_transaction(setup_tx).await?;
-
-    // Create the faucet instruction
-    println!("Creating faucet instruction...");
-    // let faucet_ix = Instruction::new_with_borsh(
-    //     program_id,
-    //     &VaultInstruction::Faucet { amount: 1000 },
-    //     vec![
-    //         AccountMeta::new(payer.pubkey(), true),
-    //         AccountMeta::new(user_token_keypair.pubkey(), true),
-    //         AccountMeta::new(mint_keypair.pubkey(), true),
-    //         AccountMeta::new_readonly(spl_token::id(), false),
-    //         AccountMeta::new_readonly(rent_key, false),
-    //         AccountMeta::new_readonly(solana_program::system_program::id(), false),
-    //     ],
-    // );
-
-    // let faucet_ix = Instruction {
-    //     program_id,
-    //     accounts: vec![
-    //         AccountMeta::new(payer.pubkey(), true),
-    //         AccountMeta::new(user_token_keypair.pubkey(), true),
-    //         AccountMeta::new(mint_keypair.pubkey(), true),
-    //         AccountMeta::new_readonly(spl_token::id(), false),
-    //         AccountMeta::new_readonly(rent_key, false),
-    //         AccountMeta::new_readonly(solana_program::system_program::id(), false),
-    //     ],
-    //     data: vec![4, 100], // Instruction ID for "Deposit"
-    // };
-
+    // Prepare the faucet instruction
     let amount: u64 = 1000;
     let mut data = vec![4]; // Instruction ID
     data.extend_from_slice(&amount.to_le_bytes()); // Append the amount as an 8-byte little-endian value
@@ -958,9 +879,9 @@ async fn test_faucet() -> Result<(), Box<dyn std::error::Error>> {
         accounts: vec![
             AccountMeta::new(payer.pubkey(), true),
             AccountMeta::new(user_token_keypair.pubkey(), true),
-            AccountMeta::new(mint_keypair.pubkey(), true),
+            AccountMeta::new(mint_pubkey, false), // Use derived mint pubkey
             AccountMeta::new_readonly(spl_token::id(), false),
-            AccountMeta::new_readonly(rent_key, false),
+            AccountMeta::new_readonly(solana_program::sysvar::rent::ID, false),
             AccountMeta::new_readonly(solana_program::system_program::id(), false),
         ],
         data, // Construct data manually here
@@ -970,7 +891,10 @@ async fn test_faucet() -> Result<(), Box<dyn std::error::Error>> {
     let faucet_tx = Transaction::new_signed_with_payer(
         &[faucet_ix],
         Some(&payer.pubkey()),
-        &[&payer, &mint_keypair, &user_token_keypair],
+        &[&payer, &user_token_keypair], // No mint keypair, backend handles mint creation
+        // &[&payer, &mint_keypair, &user_token_keypair],
+        // &[&payer, mint_pubkey],
+        // &[&payer],
         recent_blockhash,
     );
     banks_client.process_transaction(faucet_tx).await?;

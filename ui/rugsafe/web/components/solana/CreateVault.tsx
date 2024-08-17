@@ -44,7 +44,7 @@ const CreateVault = () => {
             }
 
             // const mintPublicKey = new PublicKey(mintPubkey.publicKey);
-
+            console.log("INSIDE HANDLE FAUCET, PRIOR: ", mintPubkey)
 
             const txSignature = await callFaucet(programId, wallet, connection, mintPubkey);
             // const txSignature = await callFaucet(programId, wallet, connection, mintPublicKey);

@@ -372,62 +372,185 @@ export const callFaucet = async (
 */
 
 
+// export const callFaucet = async (
+//     programId: PublicKey,
+//     wallet: any,
+//     connection: Connection,
+//     mintKeypair: Keypair  // Changed from PublicKey to Keypair
+// ) => {
+//     if (!wallet.publicKey) {
+//         throw new Error('Wallet not connected');
+//     }
+
+//     const mintPublicKey = mintKeypair.publicKey;  // Use the publicKey of the Keypair
+//     const rent = new PublicKey("SysvarRent111111111111111111111111111111111");
+
+//     // Ensure mint is associated with the token program
+//     const mintInfo = await connection.getAccountInfo(mintPublicKey);
+//     if (mintInfo && mintInfo.owner.toBase58() !== TOKEN_PROGRAM_ID.toBase58()) {
+//         throw new Error(`Mint is not owned by the token program: ${mintInfo.owner.toBase58()}`);
+//     }else{
+//         console.log("they are equal:", mintInfo)
+//     }
+
+//     // Derive the user's associated token account address
+//     console.log(`right before: ${mintPublicKey}`)
+
+//     const userTokenAccount = await getAssociatedTokenAddress(
+//         mintPublicKey,
+//         wallet.publicKey
+//     );
+//     console.log(`right after: ${userTokenAccount} : ${userTokenAccount}`)
+
+
+//     console.log("Generated user token account:", userTokenAccount.toString());
+
+//     const amount = 1000;
+//     const data = Buffer.from([4, ...new Uint8Array(new BN(amount).toArray('le', 8))]);
+//     console.log("Data", data);
+
+//     const transaction = new Transaction();
+
+//     // Check if the user's token account exists, if not, add instruction to create it
+//     const userTokenAccountInfo = await connection.getAccountInfo(userTokenAccount);
+//     console.log("userTokenAccountInfo", userTokenAccountInfo)
+//     console.log("transaction 1:", transaction)
+//     if (!userTokenAccountInfo) {
+//         const associatedTokenAddress = createAssociatedTokenAccountInstruction(
+//             wallet.publicKey,
+//             userTokenAccount,
+//             wallet.publicKey,
+//             mintPublicKey
+//         )
+//         console.log("associatedTokenAddress:", associatedTokenAddress)
+//         transaction.add(
+//             associatedTokenAddress
+//         );
+//     }
+
+//     console.log("transaction 2:", transaction)
+//     console.log("programId:", programId, programId.toBase58())
+//     transaction.add(
+//         new TransactionInstruction({
+//             keys: [
+//                 { pubkey: wallet.publicKey, isSigner: true, isWritable: true },
+//                 { pubkey: userTokenAccount, isSigner: false, isWritable: true },
+//                 { pubkey: mintPublicKey, isSigner: false, isWritable: true },
+//                 { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+//                 { pubkey: rent, isSigner: false, isWritable: false },
+//                 { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+//             ],
+//             programId,
+//             data: data,
+//         })
+//     );
+
+//     try {
+
+//         /*
+
+//         transaction.recentBlockhash = blockhash;
+//         transaction.feePayer = wallet.publicKey;
+
+//         transaction.partialSign(mintPubkey);  // Assuming you have the mint keypair
+//         // transaction.partialSign(wallet.keypair); 
+            
+//         const signedTransaction = await wallet.signTransaction(transaction);
+//         console.log("signedTransaction", signedTransaction)
+//         const signature = await connection.sendRawTransaction(signedTransaction.serialize());
+
+//         await connection.confirmTransaction(signature, 'confirmed');
+//         return signature;
+
+//         */
+//         // Sign and send the transaction
+//         console.log("mintKeypair:", mintKeypair);
+//         const { blockhash } = await connection.getRecentBlockhash();
+//         transaction.recentBlockhash = blockhash;
+//         transaction.feePayer = wallet.publicKey;
+
+//         // const signature = await sendAndConfirmTransaction(
+//         //     connection,
+//         //     transaction,
+//         //     [wallet.payer, mintKeypair], 
+//         //     // [wallet.payer],
+//         //     // [mintKeypair],  
+//         //     { commitment: 'confirmed' }
+//         // );
+        
+//         console.log("")
+//         const signedTransaction = await wallet.signTransaction(transaction);
+//         const signature = await connection.sendRawTransaction(signedTransaction.serialize());
+//         console.log("Transaction sent:", signature);
+
+
+//         return signature;
+//     } catch (error) {
+//         console.error("Error in callFaucet:", error);
+//         throw error;
+//     }
+// };
+
+
 export const callFaucet = async (
     programId: PublicKey,
     wallet: any,
     connection: Connection,
-    mintKeypair: Keypair  // Changed from PublicKey to Keypair
+    mintKeypair: Keypair
 ) => {
     if (!wallet.publicKey) {
         throw new Error('Wallet not connected');
     }
 
-    const mintPublicKey = mintKeypair.publicKey;  // Use the publicKey of the Keypair
+    console.log("Program ID:", programId.toBase58());
+
+    const mintPublicKey = mintKeypair.publicKey;
     const rent = new PublicKey("SysvarRent111111111111111111111111111111111");
 
     // Derive the user's associated token account address
-    console.log(`right before: ${mintPublicKey}`)
+    // const userTokenAccount = await getAssociatedTokenAddress(
+    //     mintPublicKey,
+    //     wallet.publicKey
+    // );
 
-    const userTokenAccount = await getAssociatedTokenAddress(
-        mintPublicKey,
-        wallet.publicKey
-    );
-    console.log(`right after: ${userTokenAccount} : ${userTokenAccount}`)
-
+    const [userTokenAccount] = await PublicKey.findProgramAddress(
+        [
+          wallet.publicKey.toBuffer(),
+          TOKEN_PROGRAM_ID.toBuffer(),
+          mintPublicKey.toBuffer(),
+        ],
+        TOKEN_PROGRAM_ID
+      );
 
     console.log("Generated user token account:", userTokenAccount.toString());
+    console.log("Mint Public Key:", mintPublicKey.toBase58());
+    console.log("User Token Account:", userTokenAccount.toBase58());
 
     const amount = 1000;
     const data = Buffer.from([4, ...new Uint8Array(new BN(amount).toArray('le', 8))]);
-    console.log("Data", data);
 
     const transaction = new Transaction();
 
     // Check if the user's token account exists, if not, add instruction to create it
     const userTokenAccountInfo = await connection.getAccountInfo(userTokenAccount);
-    console.log("userTokenAccountInfo", userTokenAccountInfo)
-    console.log("transaction 1:", transaction)
     if (!userTokenAccountInfo) {
-        const associatedTokenAddress = createAssociatedTokenAccountInstruction(
-            wallet.publicKey,
-            userTokenAccount,
-            wallet.publicKey,
-            mintPublicKey
-        )
-        console.log("associatedTokenAddress:", associatedTokenAddress)
         transaction.add(
-            associatedTokenAddress
+            createAssociatedTokenAccountInstruction(
+                wallet.publicKey,
+                userTokenAccount,
+                wallet.publicKey,
+                mintPublicKey
+            )
         );
     }
 
-    console.log("transaction 2:", transaction)
-    console.log("programId:", programId, programId.toBase58())
+    // Add the faucet instruction
     transaction.add(
         new TransactionInstruction({
             keys: [
                 { pubkey: wallet.publicKey, isSigner: true, isWritable: true },
                 { pubkey: userTokenAccount, isSigner: false, isWritable: true },
-                { pubkey: mintPublicKey, isSigner: false, isWritable: true },
+                { pubkey: mintPublicKey, isSigner: true, isWritable: true },
                 { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
                 { pubkey: rent, isSigner: false, isWritable: false },
                 { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
@@ -438,43 +561,47 @@ export const callFaucet = async (
     );
 
     try {
-
-        /*
-
-        transaction.recentBlockhash = blockhash;
-        transaction.feePayer = wallet.publicKey;
-
-        transaction.partialSign(mintPubkey);  // Assuming you have the mint keypair
-        // transaction.partialSign(wallet.keypair); 
-            
-        const signedTransaction = await wallet.signTransaction(transaction);
-        console.log("signedTransaction", signedTransaction)
-        const signature = await connection.sendRawTransaction(signedTransaction.serialize());
-
-        await connection.confirmTransaction(signature, 'confirmed');
-        return signature;
-
-        */
-        // Sign and send the transaction
-        console.log("mintKeypair:", mintKeypair);
         const { blockhash } = await connection.getRecentBlockhash();
         transaction.recentBlockhash = blockhash;
         transaction.feePayer = wallet.publicKey;
 
+        // const signedTransaction = await wallet.signTransaction(transaction);
+        
+        //////////////////
+        // const signature = await connection.sendRawTransaction(signedTransaction.serialize());
+        // const signature = await connection.sendRawTransaction(transaction.serialize());
+        
         // const signature = await sendAndConfirmTransaction(
         //     connection,
         //     transaction,
-        //     [wallet.payer, mintKeypair], 
+        //     [], 
         //     // [wallet.payer],
         //     // [mintKeypair],  
         //     { commitment: 'confirmed' }
         // );
-        
-        console.log("")
-        const signedTransaction = await wallet.signTransaction(transaction);
-        const signature = await connection.sendRawTransaction(signedTransaction.serialize());
-        console.log("Transaction sent:", signature);
 
+        // const signature = await wallet.sendTransaction(transaction, 
+        //     connection, 
+        //     { 
+        //         skipPreflight: true, 
+        //         preflightCommitment: 'singleGossip', 
+        //         signers: [wallet.payer]
+        //     }
+        // );
+
+        const signedTransaction = await wallet.signTransaction(transaction);
+        // const signature = await connection.sendRawTransaction(signedTransaction.serialize());
+        const signature = await wallet.sendTransaction(transaction, 
+            connection, 
+            { 
+                skipPreflight: true, 
+                preflightCommitment: 'singleGossip', 
+                // signers: [mintKeypair, userTokenAccount]
+                signers: [wallet, mintKeypair, userTokenAccount]
+            });
+
+        // console.log("Transaction sent:", signature);
+        // await connection.confirmTransaction(signature, 'confirmed');
 
         return signature;
     } catch (error) {
@@ -482,7 +609,6 @@ export const callFaucet = async (
         throw error;
     }
 };
-
 
 
 export const getTokenBalance = async (
