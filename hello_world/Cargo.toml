@@ -10,6 +10,7 @@ spl-token = { version = "6.0.0", features = ["no-entrypoint"], default-features 
 borsh = "1.5.1"
 borsh-derive = "1.5.1"
 hex = "0.4.3"
+spl-associated-token-account = { version = "4.0.0", features = ["no-entrypoint"], default-features = false }
 
 
 [dev-dependencies]

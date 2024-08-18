@@ -10,7 +10,8 @@ const SPL_TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
 // const CONTRACT_PROGRAM_ID = 'FobNvbQsK5BAniZC2oJhXakjcPiArpsthTGDnX9eHDVY';
 const CONTRACT_PROGRAM_ID = 'FobNvbQsK5BAniZC2oJhXakjcPiArpsthTGDnX9eHDVY'
 const CreateVault = () => {
-    const [mintPubkey, setMintPubkey] = useState<Keypair | null>(null);
+    // const [mintPubkey, setMintPubkey] = useState<Keypair | null>(null);
+    const [mintPubkey, setMintPubkey] = useState<PublicKey | null>(null);
     const [balance, setBalance] = useState(0);
 
     const wallet = useWallet();
@@ -21,9 +22,10 @@ const CreateVault = () => {
     useEffect(() => {
         if (!mintPubkey) {
             // Generate a new mint public key if it hasn't been set
-            const newMintKeypair = Keypair.generate();
+            // const newMintKeypair = Keypair.generate();
+            const newMintKeypair = new PublicKey("3JR13Th4Lp7Y6nBhj2LP1mMciQG4ZJoT3t9rF2D5xjNq");
             setMintPubkey(newMintKeypair);
-            console.log('Generated new mint public key:', newMintKeypair.publicKey.toBase58());
+            console.log('Generated new mint public key:', newMintKeypair.toBase58());
         }
     }, [mintPubkey]);
 
@@ -46,7 +48,8 @@ const CreateVault = () => {
             // const mintPublicKey = new PublicKey(mintPubkey.publicKey);
             console.log("INSIDE HANDLE FAUCET, PRIOR: ", mintPubkey)
 
-            const txSignature = await callFaucet(programId, wallet, connection, mintPubkey);
+            // const txSignature = await callFaucet(programId, wallet, connection, mintPubkey);
+            const txSignature = await callFaucet(programId, wallet, connection);
             // const txSignature = await callFaucet(programId, wallet, connection, mintPublicKey);
             console.log('Faucet transaction successful with signature:', txSignature);
             fetchBalance(); // Update balance after faucet call
@@ -63,8 +66,10 @@ const CreateVault = () => {
             }
 
             // TODO
-            // const userBalance = await getTokenBalance(connection, wallet, mintPubkey.publicKey.toBase58());
-            // setBalance(userBalance);
+            console.log(" mintPubkey.publicKey.toBase58(): ",  mintPubkey.toBase58())
+            // const userBalance = await getTokenBalance(connection, wallet, mintPubkey.toBase58());
+            const userBalance = await getTokenBalance(connection, wallet, mintPubkey);
+            setBalance(userBalance);
             // console.log('Fetched user balance:', userBalance);
 
         } catch (error) {
@@ -89,7 +94,7 @@ const CreateVault = () => {
             <div>
                 <h3>Your Token Balance: {balance}</h3>
                 {mintPubkey && (
-                    <p>Mint Public Key: {mintPubkey.publicKey.toBase58()}</p>
+                    <p>Mint Public Key: {mintPubkey.toBase58()}</p>
                 )}
             </div>
         </div>
