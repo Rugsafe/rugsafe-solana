@@ -70,11 +70,14 @@ impl Processor {
         let account_info_iter = &mut accounts.iter();
         let payer_account = next_account_info(account_info_iter)?;
         // mint for anticoins
-        let mint_account = next_account_info(account_info_iter)?;
+        // let mint_account = next_account_info(account_info_iter)?;
+        let mint_account_token_a = next_account_info(account_info_iter)?;
+        let mint_account_a_token_a = next_account_info(account_info_iter)?;
         // the account that will hold Token A
         let vault_account = next_account_info(account_info_iter)?;
         let rent_account = next_account_info(account_info_iter)?;
         let spl_account = next_account_info(account_info_iter)?;
+
         let system_program = next_account_info(account_info_iter)?;
         // let state_account = next_account_info(account_info_iter)?; // Add this line
 
@@ -89,18 +92,40 @@ impl Processor {
             return Err(ProgramError::InvalidAccountData);
         }
 
+        let associated_token_program = next_account_info(account_info_iter)?;
+
         msg!("Creating vault...");
         msg!("payer account key: {:?}", payer_account.key);
-        msg!("Mint account key: {:?}", mint_account.key);
+        msg!("Mint account Token A key: {:?}", mint_account_token_a.key);
+        msg!(
+            "Mint account AToken A key: {:?}",
+            mint_account_a_token_a.key
+        );
         msg!("Vault account key: {:?}", vault_account.key);
         msg!("Rent account key: {:?}", rent_account.key);
         msg!("State account key: {:?}", state_account.key);
         msg!("SPL: {}", spl_token::id());
-        msg!("Mint account balance: {:?}", mint_account.lamports());
+
+        // NOTE: two mint types
+        // msg!("Mint account balance: {:?}", mint_account.lamports());
+        msg!(
+            "Mint Token Aaccount balance: {:?}",
+            mint_account_token_a.lamports()
+        );
+        msg!(
+            "Mint AToken A account balance: {:?}",
+            mint_account_a_token_a.lamports()
+        );
+
         msg!("Vault account balance: {:?}", vault_account.lamports());
         msg!("Rent account balance: {:?}", rent_account.lamports());
         msg!("Payer account balance: {:?}", payer_account.lamports());
         msg!("spl account balance: {:?}", spl_account.lamports());
+        msg!(
+            "associated token account balance: {:?}",
+            associated_token_program.lamports()
+        );
+
         msg!("state account balance: {:?}", state_account.lamports());
 
         // Ensure accounts are rent-exempt
@@ -108,9 +133,10 @@ impl Processor {
             return Err(ProgramError::MissingRequiredSignature);
         }
 
-        if !mint_account.is_signer {
-            return Err(ProgramError::MissingRequiredSignature);
-        }
+        // NOTE: is this needed?
+        // if !mint_account.is_signer {
+        //     return Err(ProgramError::MissingRequiredSignature);
+        // }
 
         // if !vault_account.is_signer {
         //     return Err(ProgramError::MissingRequiredSignature);
@@ -123,19 +149,26 @@ impl Processor {
         let required_lamports = rent.minimum_balance(Mint::LEN);
         msg!("required_lamports: {}", required_lamports);
 
-        if mint_account.data_is_empty() {
+        //NOTE: ensure Token A mint is not empty
+        if mint_account_token_a.data_is_empty() {
+            msg!("ERROR: mint_account_token_a should not be empty at vault creation time");
+            return Err(ProgramError::Custom(99));
+        }
+
+        // NOTE: check if ATokenA mint is empty, since we need to mint atokens
+        if mint_account_a_token_a.data_is_empty() {
             msg!("create mint accct");
             invoke(
                 &solana_program::system_instruction::create_account(
                     payer_account.key,
-                    mint_account.key,
+                    mint_account_a_token_a.key,
                     required_lamports,
                     Mint::LEN as u64,
                     spl_account.key,
                 ),
                 &[
                     payer_account.clone(),
-                    mint_account.clone(),
+                    mint_account_a_token_a.clone(),
                     system_program.clone(),
                 ],
             )?;
@@ -146,13 +179,13 @@ impl Processor {
             match invoke(
                 &initialize_mint(
                     &spl_token::id(),
-                    &mint_account.key,
+                    &mint_account_a_token_a.key,
                     &payer_account.key,
                     Some(&payer_account.key),
                     0,
                 )?,
                 &[
-                    mint_account.clone(),
+                    mint_account_a_token_a.clone(),
                     rent_account.clone(),
                     payer_account.clone(),
                 ],
@@ -171,81 +204,28 @@ impl Processor {
         let vault_required_lamports = rent.minimum_balance(spl_token::state::Account::LEN);
         msg!("Creating vault account");
         if vault_account.data_is_empty() {
-            //old
-            // invoke(
-            //     &solana_program::system_instruction::create_account(
-            //         payer_account.key,
-            //         vault_account.key,
-            //         vault_required_lamports,
-            //         spl_token::state::Account::LEN as u64,
-            //         spl_account.key,
-            //     ),
-            //     &[
-            //         payer_account.clone(),
-            //         vault_account.clone(),
-            //         system_program.clone(),
-            //     ],
-            // )?;
-            // msg!("after create vault, now lets init vault");
-            // // Initialize the vault account (assuming it's a token account)
-            // invoke(
-            //     &spl_token::instruction::initialize_account(
-            //         &spl_token::id(),
-            //         vault_account.key,
-            //         mint_account.key,
-            //         payer_account.key,
-            //     )?,
-            //     &[
-            //         vault_account.clone(),
-            //         mint_account.clone(),
-            //         rent_account.clone(),
-            //         payer_account.clone(),
-            //         spl_account.clone(),
-            //     ],
-            // )?;
-            //deprecated
-            // invoke(
-            //     &spl_associated_token_account::create_associated_token_account(
-            //         payer_account.key,
-            //         payer_account.key,
-            //         mint_account.key,
-            //     ),
-            //     &[
-            //         payer_account.clone(),
-            //         vault_account.clone(),
-            //         payer_account.clone(),
-            //         mint_account.clone(),
-            //         system_program.clone(),
-            //         token_program.clone(),
-            //         rent_account.clone(),
-            //         associated_token_program.clone(),
-            //         // vault_account.clone(),
-            //         // mint_account.clone(),
-            //         // rent_account.clone(),
-            //         // payer_account.clone(),
-            //         // spl_account.clone(),
-            //     ],
-            // )?;
-
             // associated attempt
+            msg!("Actually Creating Associated Token vault account");
+
             invoke(
                 &spl_associated_token_account::instruction::create_associated_token_account(
                     payer_account.key,
                     payer_account.key,
-                    mint_account.key,
-                    spl_account.key,
+                    mint_account_token_a.key, // the mint this associated account should be for is the token a mint
+                    &spl_token::id(),         // SPL Token program ID is needed here
                 ),
                 &[
-                    payer_account.clone(),
-                    vault_account.clone(),
-                    payer_account.clone(),
-                    mint_account.clone(),
-                    system_program.clone(),
-                    spl_account.clone(),
-                    rent_account.clone(),
-                    // associated_token_program.clone(),
+                    payer_account.clone(),        // Funding account
+                    vault_account.clone(),        // Associated token account
+                    payer_account.clone(),        // Wallet address
+                    mint_account_token_a.clone(), // Token mint address
+                    system_program.clone(),       // System program
+                    spl_account.clone(),          // SPL Token program
+                                                  // associated_token_program.clone(),
                 ],
             )?;
+        } else {
+            msg!("Associated Token vault account is NOT EMPTY");
         }
 
         //////////////////////////////////////////
@@ -283,7 +263,7 @@ impl Processor {
 
             let new_vault: Vault = Vault {
                 vault_account: *vault_account.key,
-                mint_account: *mint_account.key,
+                mint_account: *mint_account_a_token_a.key,
                 owner: *payer_account.key,
             };
 
@@ -375,7 +355,7 @@ impl Processor {
             // Step 2: Add the new vault to the registry
             let new_vault = Vault {
                 vault_account: *vault_account.key,
-                mint_account: *mint_account.key,
+                mint_account: *mint_account_a_token_a.key,
                 owner: *payer_account.key,
             };
 
@@ -423,6 +403,12 @@ impl Processor {
         msg!("Vault created successfully");
         Ok(())
     }
+
+    ////////////////////////////////////////
+    ///
+    ///
+    ///
+
     /*
     @name process_deposit
     @description Handles the deposit of tokens into a vault, including transferring the user's tokens to the vault and minting the corresponding amount of aTokens.
@@ -443,25 +429,31 @@ impl Processor {
         let payer_account = next_account_info(account_info_iter)?; // Payer account
         msg!("Payer account: {}", payer_account.key);
 
-        let mint_account = next_account_info(account_info_iter)?; // Mint account
-        msg!("Mint account: {}", mint_account.key);
+        // let mint_account = next_account_info(account_info_iter)?; // Mint account
+        // msg!("Mint account: {}", mint_account.key);
+        let mint_token_a_account = next_account_info(account_info_iter)?;
+        msg!("TokenA Mint account: {}", mint_token_a_account.key);
+
+        let mint_atoken_a_account = next_account_info(account_info_iter)?;
+        msg!("ATokenA Mint account: {}", mint_atoken_a_account.key);
 
         let vault_account = next_account_info(account_info_iter)?; // Vault account
         msg!("Vault account: {}", vault_account.key);
 
-        let user_token_account = next_account_info(account_info_iter)?; // User's TokenA account
-        msg!("User TokenA account: {}", user_token_account.key);
+        let user_token_a_account = next_account_info(account_info_iter)?; // User's TokenA account
+        msg!("User TokenA account: {}", user_token_a_account.key);
 
         // Check the mint associated with the user's TokenA account
-        let user_token_account_info =
-            spl_token::state::Account::unpack(&user_token_account.data.borrow())?;
-        msg!("User TokenA account mint: {}", user_token_account_info.mint);
-        msg!("mint_account.key: {}", mint_account.key);
+        let user_token_a_account_info =
+            spl_token::state::Account::unpack(&user_token_a_account.data.borrow())?;
+        msg!(
+            "User TokenA account mint: {}",
+            user_token_a_account_info.mint
+        );
 
-        let user_token_account_info = TokenAccount::unpack(&user_token_account.data.borrow())?;
+        let user_token_account_info = TokenAccount::unpack(&user_token_a_account.data.borrow())?;
         let vault_account_info = TokenAccount::unpack(&vault_account.data.borrow())?;
 
-        msg!("User TokenA account mint: {}", user_token_account_info.mint);
         msg!("Vault account mint: {}", vault_account_info.mint);
 
         // if user_token_account_info.mint != *mint_account.key {
@@ -497,44 +489,47 @@ impl Processor {
         /// /////////////////////////////
         // try to create in here
         msg!(
-            "user_token_account.lamports(): {}",
-            user_token_account.lamports()
+            "user_token_a_account.lamports(): {}",
+            user_token_a_account.lamports()
         );
 
-        if user_token_account.lamports() == 0 {
-            let rent = &Rent::from_account_info(rent_account)?;
-            let required_lamports = rent.minimum_balance(TokenAccount::LEN);
+        // NOTE: if the user token account is empty
+        if user_token_a_account.lamports() == 0 {
+            // let rent = &Rent::from_account_info(rent_account)?;
+            // let required_lamports = rent.minimum_balance(TokenAccount::LEN);
 
-            msg!("user_atoken_account.lamports() == 0");
-            invoke(
-                &solana_program::system_instruction::create_account(
-                    payer_account.key,
-                    user_token_account.key,
-                    required_lamports,
-                    TokenAccount::LEN as u64,
-                    &spl_token::id(),
-                ),
-                &[
-                    payer_account.clone(),
-                    user_token_account.clone(),
-                    system_program.clone(),
-                ],
-            )?;
+            // msg!("user_atoken_account.lamports() == 0");
+            // invoke(
+            //     &solana_program::system_instruction::create_account(
+            //         payer_account.key,
+            //         user_token_account.key,
+            //         required_lamports,
+            //         TokenAccount::LEN as u64,
+            //         &spl_token::id(),
+            //     ),
+            //     &[
+            //         payer_account.clone(),
+            //         user_token_account.clone(),
+            //         system_program.clone(),
+            //     ],
+            // )?;
 
-            invoke(
-                &spl_token::instruction::initialize_account(
-                    &spl_token::id(),
-                    user_token_account.key,
-                    mint_account.key,
-                    payer_account.key,
-                )?,
-                &[
-                    user_token_account.clone(),
-                    mint_account.clone(),
-                    rent_account.clone(),
-                    payer_account.clone(),
-                ],
-            )?;
+            // invoke(
+            //     &spl_token::instruction::initialize_account(
+            //         &spl_token::id(),
+            //         user_token_account.key,
+            //         mint_account.key,
+            //         payer_account.key,
+            //     )?,
+            //     &[
+            //         user_token_account.clone(),
+            //         mint_account.clone(),
+            //         rent_account.clone(),
+            //         payer_account.clone(),
+            //     ],
+            // )?;
+            msg!("ERROR: USER CANT DEPOSIT IF THEIR TOKEN A ACCOUNT ISNT ACTIVE lol");
+            return Err(ProgramError::Custom((101)));
         }
 
         // Check if `user_atoken_account` is empty
@@ -543,23 +538,39 @@ impl Processor {
             user_atoken_account.lamports()
         );
 
+        // NOTE: if the users ATokenA account doesnt exist, then create one
         if user_atoken_account.lamports() == 0 {
             let rent = &Rent::from_account_info(rent_account)?;
             let required_lamports = rent.minimum_balance(TokenAccount::LEN);
 
             msg!("user_atoken_account.lamports() == 0");
+            // invoke(
+            //     &solana_program::system_instruction::create_account(
+            //         payer_account.key,
+            //         user_atoken_account.key,
+            //         required_lamports,
+            //         TokenAccount::LEN as u64,
+            //         &spl_token::id(),
+            //     ),
+            //     &[
+            //         payer_account.clone(),
+            //         user_atoken_account.clone(),
+            //         system_program.clone(),
+            //     ],
+            // )?;
             invoke(
-                &solana_program::system_instruction::create_account(
-                    payer_account.key,
-                    user_atoken_account.key,
-                    required_lamports,
-                    TokenAccount::LEN as u64,
-                    &spl_token::id(),
+                &spl_associated_token_account::create_associated_token_account(
+                    &payer_account.key,
+                    &payer_account.key,
+                    &mint_atoken_a_account.key,
                 ),
                 &[
                     payer_account.clone(),
                     user_atoken_account.clone(),
+                    payer_account.clone(),
                     system_program.clone(),
+                    rent_account.clone(),
+                    spl_account.clone(),
                 ],
             )?;
 
@@ -569,7 +580,9 @@ impl Processor {
                 &spl_token::instruction::initialize_account(
                     &spl_token::id(),
                     user_atoken_account.key,
-                    mint_account.key,
+                    // NOTE: use atokena mint for this account
+                    // mint_account.key,
+                    mint_atoken_a_account.key,
                     payer_account.key,
                 )?,
                 &[
@@ -577,19 +590,27 @@ impl Processor {
                     // mint_account.clone(),
                     // rent_account.clone(),
                     // payer_account.clone(),
-                    user_atoken_account.clone(),
-                    mint_account.clone(),
-                    rent_account.clone(),
+                    ////
+                    // user_atoken_account.clone(),
+                    // mint_atoken_a_account.clone(),
+                    // rent_account.clone(),
+                    // payer_account.clone(),
+                    // spl_account.clone(),
                     payer_account.clone(),
+                    user_atoken_account.clone(),
+                    payer_account.clone(),
+                    system_program.clone(),
+                    rent_account.clone(),
                     spl_account.clone(),
                 ],
             )?;
         }
+
         /// ////////////////////////////
         // Log balances before transfer
         msg!("Log balances before transfer");
         let user_token_a_balance_before =
-            TokenAccount::unpack(&user_token_account.try_borrow_data()?)?.amount;
+            TokenAccount::unpack(&user_token_a_account.try_borrow_data()?)?.amount;
         let vault_token_a_balance_before =
             TokenAccount::unpack(&vault_account.try_borrow_data()?)?.amount;
         let user_atoken_balance_before =
@@ -613,14 +634,14 @@ impl Processor {
         invoke(
             &spl_token::instruction::transfer(
                 &spl_token::id(),
-                user_token_account.key,
+                user_token_a_account.key,
                 vault_account.key,
                 payer_account.key,
                 &[], // No multisig signing required
                 amount,
             )?,
             &[
-                user_token_account.clone(),
+                user_token_a_account.clone(),
                 vault_account.clone(),
                 payer_account.clone(),
             ],
@@ -629,7 +650,7 @@ impl Processor {
 
         // Log balances after transfer
         let user_token_a_balance_after =
-            TokenAccount::unpack(&user_token_account.try_borrow_data()?)?.amount;
+            TokenAccount::unpack(&user_token_a_account.try_borrow_data()?)?.amount;
         let vault_token_a_balance_after =
             TokenAccount::unpack(&vault_account.try_borrow_data()?)?.amount;
         msg!(
@@ -642,18 +663,20 @@ impl Processor {
         );
 
         // Mint aTokenA equivalent to the amount of TokenA deposited
-        msg!("Minting {} aTokenA to user's aTokenA account", amount);
+        msg!("Minting -- {} aTokenA to user's aTokenA account", amount);
         invoke(
             &spl_token::instruction::mint_to(
+                // &spl_token::id(),
                 &spl_token::id(),
-                mint_account.key,
+                // &spl_associated_token_account::id(),
+                mint_atoken_a_account.key,
                 user_atoken_account.key,
                 payer_account.key,
                 &[], // No multisig signing required
                 amount,
             )?,
             &[
-                mint_account.clone(),
+                mint_atoken_a_account.clone(),
                 user_atoken_account.clone(),
                 payer_account.clone(),
             ],

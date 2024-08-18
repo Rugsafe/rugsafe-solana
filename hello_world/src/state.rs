@@ -2,7 +2,9 @@ use solana_program::pubkey::Pubkey;
 
 #[derive(Debug, PartialEq)]
 pub struct Vault {
+    // NOTE: Is a token Account associated with Token A's mint
     pub vault_account: Pubkey,
+    // NOTE: Is a mint for minting ATokenA
     pub mint_account: Pubkey,
     pub owner: Pubkey,
 }
