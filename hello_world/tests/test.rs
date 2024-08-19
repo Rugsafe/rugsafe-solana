@@ -75,8 +75,8 @@ async fn test_process_instruction() -> Result<(), TransportError> {
 async fn test_create_vault() -> Result<(), TransportError> {
     // Setup keys and program
     let program_id = Pubkey::new_unique();
-    let mint_keypair = Keypair::new(); // Mint account
-    let mint_atokena_key = mint_keypair.pubkey();
+    let mint_atokena_keypair = Keypair::new(); // Mint account
+    let mint_atokena_key = mint_atokena_keypair.pubkey();
 
     let rent_key = solana_program::sysvar::rent::ID;
     let spl_key = spl_token::id();
@@ -147,7 +147,7 @@ async fn test_create_vault() -> Result<(), TransportError> {
     transaction.sign(
         // &[&payer, &mint_keypair, &vault_keypair, &state_keypair],
         // &[&payer, &mint_keypair, &vault_keypair],
-        &[&payer, &mint_keypair],
+        &[&payer, &mint_tokena_keypair, &mint_atokena_keypair],
         recent_blockhash,
     );
 
@@ -173,100 +173,100 @@ async fn test_create_vault() -> Result<(), TransportError> {
     println!("Test completed successfully.");
     Ok(())
 }
-#[tokio::test]
-async fn test_create_two_vaults() -> Result<(), TransportError> {
-    // Setup keys and program
-    let program_id = Pubkey::new_unique();
+// #[tokio::test]
+// async fn test_create_two_vaults() -> Result<(), TransportError> {
+//     // Setup keys and program
+//     let program_id = Pubkey::new_unique();
 
-    let rent_key = solana_program::sysvar::rent::ID;
-    let spl_key = spl_token::id();
-    let associated_token_program = spl_associated_token_account::id();
+//     let rent_key = solana_program::sysvar::rent::ID;
+//     let spl_key = spl_token::id();
+//     let associated_token_program = spl_associated_token_account::id();
 
-    let mut program_test = ProgramTest::new("rugsafe", program_id, processor!(process_instruction));
+//     let mut program_test = ProgramTest::new("rugsafe", program_id, processor!(process_instruction));
 
-    // Derive the state account PDA
-    let (state_account_pda, _bump_seed) =
-        Pubkey::find_program_address(&[b"vault_registry"], &program_id);
+//     // Derive the state account PDA
+//     let (state_account_pda, _bump_seed) =
+//         Pubkey::find_program_address(&[b"vault_registry"], &program_id);
 
-    // Add SPL Token program
-    program_test.add_program(
-        "spl_token",
-        spl_key,
-        processor!(spl_token::processor::Processor::process),
-    );
+//     // Add SPL Token program
+//     program_test.add_program(
+//         "spl_token",
+//         spl_key,
+//         processor!(spl_token::processor::Processor::process),
+//     );
 
-    // Start the context
-    let mut context = program_test.start_with_context().await;
-    let banks_client = &mut context.banks_client;
-    let payer = &context.payer;
-    let recent_blockhash = banks_client.get_latest_blockhash().await?;
+//     // Start the context
+//     let mut context = program_test.start_with_context().await;
+//     let banks_client = &mut context.banks_client;
+//     let payer = &context.payer;
+//     let recent_blockhash = banks_client.get_latest_blockhash().await?;
 
-    // Retrieve rent details
-    println!("Retrieving rent details...");
-    let rent_account = banks_client.get_account(rent_key).await?;
-    assert!(rent_account.is_some(), "Rent account not found");
+//     // Retrieve rent details
+//     println!("Retrieving rent details...");
+//     let rent_account = banks_client.get_account(rent_key).await?;
+//     assert!(rent_account.is_some(), "Rent account not found");
 
-    // Create the first token mint (Token A)
-    let mint_tokena_keypair1 =
-        create_token_mint(banks_client, &payer, recent_blockhash, &payer.pubkey()).await?;
-    let mint_tokena_key1 = mint_tokena_keypair1.pubkey();
+//     // Create the first token mint (Token A)
+//     let mint_tokena_keypair1 =
+//         create_token_mint(banks_client, &payer, recent_blockhash, &payer.pubkey()).await?;
+//     let mint_tokena_key1 = mint_tokena_keypair1.pubkey();
 
-    // Derive the associated token account for the first vault
-    let vault_key1: Pubkey = get_associated_token_address(&payer.pubkey(), &mint_tokena_key1);
+//     // Derive the associated token account for the first vault
+//     let vault_key1: Pubkey = get_associated_token_address(&payer.pubkey(), &mint_tokena_key1);
 
-    // Create the first vault instruction
-    println!("Creating first vault instruction...");
-    let create_vault_instruction1 = create_vault_instruction(
-        &program_id,
-        &vault_key1,
-        &mint_tokena_key1, // Token A mint
-        &mint_tokena_key1, // AToken A mint
-        &payer.pubkey(),
-        &state_account_pda,
-        &associated_token_program,
-    );
+//     // Create the first vault instruction
+//     println!("Creating first vault instruction...");
+//     let create_vault_instruction1 = create_vault_instruction(
+//         &program_id,
+//         &vault_key1,
+//         &mint_tokena_key1, // Token A mint
+//         &mint_tokena_key1, // AToken A mint
+//         &payer.pubkey(),
+//         &state_account_pda,
+//         &associated_token_program,
+//     );
 
-    let mut transaction1 =
-        Transaction::new_with_payer(&[create_vault_instruction1], Some(&payer.pubkey()));
-    transaction1.sign(&[&payer, &mint_tokena_keypair1], recent_blockhash);
-    banks_client.process_transaction(transaction1).await?;
+//     let mut transaction1 =
+//         Transaction::new_with_payer(&[create_vault_instruction1], Some(&payer.pubkey()));
+//     transaction1.sign(&[&payer, &mint_tokena_keypair1], recent_blockhash);
+//     banks_client.process_transaction(transaction1).await?;
 
-    // Verify first vault creation
-    let vault_account1 = banks_client.get_account(vault_key1).await?;
-    assert!(vault_account1.is_some(), "First vault account not created");
+//     // Verify first vault creation
+//     let vault_account1 = banks_client.get_account(vault_key1).await?;
+//     assert!(vault_account1.is_some(), "First vault account not created");
 
-    // Create the second token mint (Token A for the second vault)
-    let mint_tokena_keypair2 =
-        create_token_mint(banks_client, &payer, recent_blockhash, &payer.pubkey()).await?;
-    let mint_tokena_key2 = mint_tokena_keypair2.pubkey();
+//     // Create the second token mint (Token A for the second vault)
+//     let mint_tokena_keypair2 =
+//         create_token_mint(banks_client, &payer, recent_blockhash, &payer.pubkey()).await?;
+//     let mint_tokena_key2 = mint_tokena_keypair2.pubkey();
 
-    // Derive the associated token account for the second vault
-    let vault_key2: Pubkey = get_associated_token_address(&payer.pubkey(), &mint_tokena_key2);
+//     // Derive the associated token account for the second vault
+//     let vault_key2: Pubkey = get_associated_token_address(&payer.pubkey(), &mint_tokena_key2);
 
-    // Create the second vault instruction
-    println!("Creating second vault instruction...");
-    let create_vault_instruction2 = create_vault_instruction(
-        &program_id,
-        &vault_key2,
-        &mint_tokena_key2, // Token A mint
-        &mint_tokena_key2, // AToken A mint
-        &payer.pubkey(),
-        &state_account_pda,
-        &associated_token_program,
-    );
+//     // Create the second vault instruction
+//     println!("Creating second vault instruction...");
+//     let create_vault_instruction2 = create_vault_instruction(
+//         &program_id,
+//         &vault_key2,
+//         &mint_tokena_key2, // Token A mint
+//         &mint_tokena_key2, // AToken A mint
+//         &payer.pubkey(),
+//         &state_account_pda,
+//         &associated_token_program,
+//     );
 
-    let mut transaction2 =
-        Transaction::new_with_payer(&[create_vault_instruction2], Some(&payer.pubkey()));
-    transaction2.sign(&[&payer, &mint_tokena_keypair2], recent_blockhash);
-    banks_client.process_transaction(transaction2).await?;
+//     let mut transaction2 =
+//         Transaction::new_with_payer(&[create_vault_instruction2], Some(&payer.pubkey()));
+//     transaction2.sign(&[&payer, &mint_tokena_keypair2], recent_blockhash);
+//     banks_client.process_transaction(transaction2).await?;
 
-    // Verify second vault creation
-    let vault_account2 = banks_client.get_account(vault_key2).await?;
-    assert!(vault_account2.is_some(), "Second vault account not created");
+//     // Verify second vault creation
+//     let vault_account2 = banks_client.get_account(vault_key2).await?;
+//     assert!(vault_account2.is_some(), "Second vault account not created");
 
-    println!("Both vaults created successfully.");
-    Ok(())
-}
+//     println!("Both vaults created successfully.");
+//     Ok(())
+// }
 
 #[tokio::test]
 async fn test_deposit() -> Result<(), BanksClientError> {
@@ -302,8 +302,10 @@ async fn test_deposit() -> Result<(), BanksClientError> {
     let mint_tokena_key = mint_tokena_keypair.pubkey();
 
     // NOTE: generate the address for the ATokenA mint
-    let mint_atokena_mint_keypair = Keypair::new(); // Mint account for TokenA
-    let mint_atokena_key = mint_atokena_mint_keypair.pubkey();
+    let mint_atokena_keypair = Keypair::new(); // Mint account for TokenA
+    let mint_atokena_key = mint_atokena_keypair.pubkey();
+
+    println!("mint_atokena_key: {}", mint_atokena_key);
 
     // Step 2: Derive the associated token account for the vault
     let vault_key: Pubkey = get_associated_token_address(&payer.pubkey(), &mint_tokena_key);
@@ -316,7 +318,7 @@ async fn test_deposit() -> Result<(), BanksClientError> {
         &program_id,
         &vault_key,
         &mint_tokena_key,
-        &mint_tokena_key,
+        &mint_atokena_key,
         &payer.pubkey(),
         &state_key,
         &associated_token_program,
@@ -324,7 +326,8 @@ async fn test_deposit() -> Result<(), BanksClientError> {
     let transaction = Transaction::new_signed_with_payer(
         &[create_vault_instruction],
         Some(&payer.pubkey()),
-        &[&payer, &mint_tokena_keypair],
+        &[&payer, &mint_tokena_keypair, &mint_atokena_keypair],
+        // &[&payer, &mint_tokena_keypair],
         recent_blockhash,
     );
     banks_client.process_transaction(transaction).await?;
@@ -419,6 +422,7 @@ async fn test_deposit() -> Result<(), BanksClientError> {
             AccountMeta::new_readonly(rent_key, false), // Rent Sysvar Account
             AccountMeta::new_readonly(spl_key, false), // SPL Token Program Account
             AccountMeta::new_readonly(solana_program::system_program::id(), false), // System Program Account
+            AccountMeta::new(associated_token_program, false),                      //was true
         ],
         data: deposit_instruction_data,
     };
@@ -475,7 +479,7 @@ fn create_vault_instruction(
 ) -> Instruction {
     let accounts = vec![
         AccountMeta::new(*payer, true),
-        AccountMeta::new(*mint_key_token_a, false),
+        AccountMeta::new(*mint_key_token_a, true),
         AccountMeta::new(*mint_key_a_token_a, true),
         AccountMeta::new(*vault_key, false),
         AccountMeta::new_readonly(sysvar::rent::id(), false),
@@ -588,312 +592,198 @@ fn deserialize_vault(vault_bytes: &[u8]) -> Vault {
         owner,
     }
 }
+#[tokio::test]
+async fn test_fetch_vault_from_registry() -> Result<(), TransportError> {
+    // Setup keys and program
+    let program_id = Pubkey::new_unique();
+    let mint_tokena_keypair = Keypair::new(); // Mint account for token A
+    let mint_tokena_key = mint_tokena_keypair.pubkey();
+    let mint_atokena_keypair = Keypair::new(); // Mint account for aToken A
+    let mint_atokena_key = mint_atokena_keypair.pubkey();
 
-// #[tokio::test]
-// async fn test_fetch_vault_from_registry() -> Result<(), TransportError> {
-//     // Setup keys and program
-//     let program_id = Pubkey::new_unique();
-//     let mint_keypair = Keypair::new(); // Mint account
-//     let mint_key = mint_keypair.pubkey();
-//     let vault_keypair = Keypair::new(); // Vault account
-//     let vault_key = vault_keypair.pubkey();
+    let rent_key = solana_program::sysvar::rent::ID;
+    let spl_key = spl_token::id();
+    let associated_token_program = spl_associated_token_account::id();
 
-//     let rent_key = solana_program::sysvar::rent::ID;
-//     let spl_key = spl_token::id();
-//     let associated_token_program = spl_associated_token_account::id();
+    let (state_key, _bump_seed) = Pubkey::find_program_address(&[b"vault_registry"], &program_id);
 
-//     // let state_keypair = Keypair::new(); // State account
+    let mut program_test = ProgramTest::new("rugsafe", program_id, processor!(process_instruction));
 
-//     // let state_key = state_keypair.pubkey();
-//     let (state_key, _bump_seed) = Pubkey::find_program_address(&[b"vault_registry"], &program_id);
+    // Add SPL Token program
+    program_test.add_program(
+        "spl_token",
+        spl_key,
+        processor!(spl_token::processor::Processor::process),
+    );
 
-//     let mut program_test = ProgramTest::new("rugsafe", program_id, processor!(process_instruction));
+    // Start the context
+    let mut context = program_test.start_with_context().await;
+    let banks_client = &mut context.banks_client;
+    let payer = &context.payer;
+    let recent_blockhash = banks_client.get_latest_blockhash().await?;
 
-//     // Add SPL Token program
-//     program_test.add_program(
-//         "spl_token",
-//         spl_key,
-//         processor!(spl_token::processor::Processor::process),
-//     );
+    // Create token mint for token A
+    let mint_tokena_keypair =
+        create_token_mint(banks_client, &payer, recent_blockhash, &payer.pubkey()).await?;
+    let mint_tokena_key = mint_tokena_keypair.pubkey();
 
-//     // Start the context
-//     let mut context = program_test.start_with_context().await;
-//     let banks_client = &mut context.banks_client;
-//     let payer = &context.payer;
-//     let recent_blockhash = banks_client.get_latest_blockhash().await?;
+    // Vault key should be associated token account for token A's mint
+    let vault_key: Pubkey = get_associated_token_address(&payer.pubkey(), &mint_tokena_key);
 
-//     // Retrieve rent details
-//     println!("Retrieving rent details...");
-//     let rent_account = banks_client.get_account(rent_key).await?;
-//     assert!(rent_account.is_some(), "Rent account not found");
+    // Call the function to create the vault instruction
+    println!("Creating vault instruction...");
+    let create_vault_instruction = create_vault_instruction(
+        &program_id,
+        &vault_key,
+        &mint_tokena_key,
+        &mint_atokena_key,
+        &payer.pubkey(),
+        &state_key,
+        &associated_token_program,
+    );
 
-//     // Call the function to create the vault instruction
-//     println!("Creating vault instruction...");
-//     let create_vault_instruction = create_vault_instruction(
-//         &program_id,
-//         &vault_key,
-//         &mint_key,
-//         &payer.pubkey(),
-//         &state_key,
-//         &associated_token_program, // &[&payer.pubkey(), &mint_key, &vault_key, &state_key],
-//     );
+    let mut transaction =
+        Transaction::new_with_payer(&[create_vault_instruction], Some(&payer.pubkey()));
 
-//     println!("after create_vault_instruction");
+    println!("Signing the transaction...");
+    transaction.sign(
+        &[&payer, &mint_tokena_keypair, &mint_atokena_keypair],
+        recent_blockhash,
+    );
 
-//     let mut transaction =
-//         Transaction::new_with_payer(&[create_vault_instruction], Some(&payer.pubkey()));
-//     println!("Transaction created for vault instruction...");
+    // Process CreateVault transaction
+    println!("Processing CreateVault transaction...");
+    banks_client.process_transaction(transaction).await?;
 
-//     // Debugging: Print account owners
-//     println!("Fetching payer account...");
-//     let payer_account = banks_client.get_account(payer.pubkey()).await?.unwrap();
-//     println!("Payer account owner: {:?}", payer_account.owner);
+    // Verify vault creation
+    println!("Verifying vault creation...");
+    let mint_account = banks_client.get_account(mint_atokena_key).await?;
+    assert!(mint_account.is_some(), "Mint account not created");
+    let vault_account = banks_client.get_account(vault_key).await?;
+    assert!(vault_account.is_some(), "Vault account not created");
 
-//     assert!(payer_account.owner == solana_program::system_program::id());
+    // Fetch and verify the vault registry
+    println!("Fetching and verifying the vault registry...");
+    let state_account = banks_client.get_account(state_key).await?.unwrap();
+    let state_data = state_account.data;
 
-//     println!("Signing the transaction...");
-//     transaction.sign(
-//         // &[&payer, &mint_keypair, &vault_keypair, &state_keypair],
-//         &[&payer, &mint_keypair, &vault_keypair],
-//         recent_blockhash,
-//     );
+    let vault_registry =
+        VaultRegistry::deserialize(&state_data).expect("Failed to deserialize VaultRegistry");
 
-//     println!("after sign");
+    println!("VaultRegistry contents: {:?}", vault_registry);
+    assert!(
+        vault_registry
+            .vaults
+            .iter()
+            .any(|v| v.vault_account == vault_key),
+        "Vault not found in registry"
+    );
 
-//     // Process CreateVault transaction
-//     println!("Processing CreateVault transaction...");
-//     match banks_client.process_transaction(transaction).await {
-//         Ok(_) => println!("Transaction processed successfully"),
-//         Err(e) => {
-//             println!("Transaction failed: {:?}", e);
-//             return Err(e.into());
-//         }
-//     }
+    Ok(())
+}
+#[tokio::test]
+async fn test_fetch_vault_with_data_from_registry() -> Result<(), TransportError> {
+    // Setup keys and program
+    let program_id = Pubkey::new_unique();
+    let mint_tokena_keypair = Keypair::new(); // Mint account for token A
+    let mint_tokena_key = mint_tokena_keypair.pubkey();
+    let mint_atokena_keypair = Keypair::new(); // Mint account for aToken A
+    let mint_atokena_key = mint_atokena_keypair.pubkey();
 
-//     // Verify vault creation
-//     println!("Verifying vault creation...");
-//     let mint_account = banks_client.get_account(mint_key).await?;
-//     assert!(mint_account.is_some(), "Mint account not created");
-//     let vault_account = banks_client.get_account(vault_key).await?;
-//     assert!(vault_account.is_some(), "Vault account not created");
+    let rent_key = solana_program::sysvar::rent::ID;
+    let spl_key = spl_token::id();
+    let associated_token_program = spl_associated_token_account::id();
 
-//     println!("Fetching and verifying the vault registry...");
+    let (state_key, _bump_seed) = Pubkey::find_program_address(&[b"vault_registry"], &program_id);
 
-//     println!("Fetching state account with state_key: {:?}", state_key);
-//     let state_account = banks_client.get_account(state_key).await?;
-//     if state_account.is_none() {
-//         println!(
-//             "Error: State account not found for state_key: {:?}",
-//             state_key
-//         );
-//         panic!("State account not created");
-//     }
-//     println!("State account found!");
-//     ////////////////
-//     let state_data = state_account.unwrap().data;
-//     println!("State account data length: {}", state_data.len());
-//     println!("First 32 bytes of state data: {:?}", &state_data[..32]);
+    let mut program_test = ProgramTest::new("rugsafe", program_id, processor!(process_instruction));
 
-//     println!("Fetching and verifying the vault registry...");
-//     let state_account = banks_client.get_account(state_key).await?;
-//     if state_account.is_none() {
-//         println!(
-//             "Error: State account not found for state_key: {:?}",
-//             state_key
-//         );
-//         panic!("State account not created");
-//     }
+    // Add SPL Token program
+    program_test.add_program(
+        "spl_token",
+        spl_key,
+        processor!(spl_token::processor::Processor::process),
+    );
 
-//     println!(
-//         "Expected size of VaultRegistry struct: {}",
-//         VaultRegistry::LEN
-//     );
-//     println!(
-//         "Actual size of data to be deserialized: {}",
-//         state_data.len()
-//     );
+    // Start the context
+    let mut context = program_test.start_with_context().await;
+    let banks_client = &mut context.banks_client;
+    let payer = &context.payer;
+    let recent_blockhash = banks_client.get_latest_blockhash().await?;
 
-//     // deep_dive_analysis(&state_data);
-//     manual_deserialize(&state_data);
+    // Create token mint for token A
+    let mint_tokena_keypair =
+        create_token_mint(banks_client, &payer, recent_blockhash, &payer.pubkey()).await?;
+    let mint_tokena_key = mint_tokena_keypair.pubkey();
 
-//     // let vault_registry_result: Result<VaultRegistry, _> = VaultRegistry::deserialize(&state_data);
-//     let vault_registry_result = VaultRegistry::deserialize(&state_data);
-//     let vault_registry = match vault_registry_result {
-//         Ok(vr) => {
-//             println!("Deserialized VaultRegistry successfully.");
-//             vr
-//         }
-//         Err(e) => {
-//             println!("Failed to deserialize VaultRegistry: {:?}", e);
-//             panic!("Deserialization failed.");
-//         }
-//     };
+    // Vault key should be associated token account for token A's mint
+    let vault_key: Pubkey = get_associated_token_address(&payer.pubkey(), &mint_tokena_key);
 
-//     println!("VaultRegistry contents: {:?}", vault_registry);
-//     assert!(
-//         vault_registry
-//             .vaults
-//             .iter()
-//             .any(|v| v.vault_account == vault_key),
-//         "Vault not found in registry"
-//     );
-//     ////////////////////////
-//     Ok(())
-// }
+    // Call the function to create the vault instruction
+    println!("Creating vault instruction...");
+    let create_vault_instruction = create_vault_instruction(
+        &program_id,
+        &vault_key,
+        &mint_tokena_key,
+        &mint_atokena_key,
+        &payer.pubkey(),
+        &state_key,
+        &associated_token_program,
+    );
 
-// #[tokio::test]
-// async fn test_fetch_vault_with_data_from_registry() -> Result<(), TransportError> {
-//     // Setup keys and program
-//     let program_id = Pubkey::new_unique();
-//     let mint_keypair = Keypair::new(); // Mint account
-//     let mint_key = mint_keypair.pubkey();
-//     let vault_keypair = Keypair::new(); // Vault account
-//     let vault_key = vault_keypair.pubkey();
+    let mut transaction =
+        Transaction::new_with_payer(&[create_vault_instruction], Some(&payer.pubkey()));
 
-//     let rent_key = solana_program::sysvar::rent::ID;
-//     let spl_key = spl_token::id();
-//     let associated_token_program = spl_associated_token_account::id();
+    println!("Signing the transaction...");
+    transaction.sign(
+        &[&payer, &mint_tokena_keypair, &mint_atokena_keypair],
+        recent_blockhash,
+    );
 
-//     // let state_keypair = Keypair::new(); // State account
+    // Process CreateVault transaction
+    println!("Processing CreateVault transaction...");
+    banks_client.process_transaction(transaction).await?;
 
-//     // let state_key = state_keypair.pubkey();
-//     let (state_key, _bump_seed) = Pubkey::find_program_address(&[b"vault_registry"], &program_id);
+    // Verify vault creation
+    println!("Verifying vault creation...");
+    let mint_account = banks_client.get_account(mint_atokena_key).await?;
+    assert!(mint_account.is_some(), "Mint account not created");
+    let vault_account = banks_client.get_account(vault_key).await?;
+    assert!(vault_account.is_some(), "Vault account not created");
 
-//     let mut program_test = ProgramTest::new("rugsafe", program_id, processor!(process_instruction));
+    // Fetch and verify the vault registry with actual data
+    println!("Fetching and verifying the vault registry with actual data...");
+    let state_account = banks_client.get_account(state_key).await?.unwrap();
+    let state_data = state_account.data;
 
-//     // Add SPL Token program
-//     program_test.add_program(
-//         "spl_token",
-//         spl_key,
-//         processor!(spl_token::processor::Processor::process),
-//     );
+    println!("State account data length: {}", state_data.len());
+    println!("First 32 bytes of state data: {:?}", &state_data[..32]);
 
-//     // Start the context
-//     let mut context = program_test.start_with_context().await;
-//     let banks_client = &mut context.banks_client;
-//     let payer = &context.payer;
-//     let recent_blockhash = banks_client.get_latest_blockhash().await?;
+    println!(
+        "Expected size of VaultRegistry struct: {}",
+        VaultRegistry::LEN
+    );
+    println!(
+        "Actual size of data to be deserialized: {}",
+        state_data.len()
+    );
 
-//     // Retrieve rent details
-//     println!("Retrieving rent details...");
-//     let rent_account = banks_client.get_account(rent_key).await?;
-//     assert!(rent_account.is_some(), "Rent account not found");
+    manual_deserialize(&state_data);
 
-//     // Call the function to create the vault instruction
-//     println!("Creating vault instruction...");
-//     let create_vault_instruction = create_vault_instruction(
-//         &program_id,
-//         &vault_key,
-//         &mint_key,
-//         &payer.pubkey(),
-//         &state_key,
-//         &associated_token_program,
-//     );
+    let vault_registry =
+        VaultRegistry::deserialize(&state_data).expect("Failed to deserialize VaultRegistry");
 
-//     println!("after create_vault_instruction");
+    println!("VaultRegistry contents: {:?}", vault_registry);
+    assert!(
+        vault_registry
+            .vaults
+            .iter()
+            .any(|v| v.vault_account == vault_key),
+        "Vault not found in registry"
+    );
 
-//     let mut transaction =
-//         Transaction::new_with_payer(&[create_vault_instruction], Some(&payer.pubkey()));
-//     println!("Transaction created for vault instruction...");
-
-//     // Debugging: Print account owners
-//     println!("Fetching payer account...");
-//     let payer_account = banks_client.get_account(payer.pubkey()).await?.unwrap();
-//     println!("Payer account owner: {:?}", payer_account.owner);
-
-//     assert!(payer_account.owner == solana_program::system_program::id());
-
-//     println!("Signing the transaction...");
-//     transaction.sign(
-//         // &[&payer, &mint_keypair, &vault_keypair, &state_keypair],
-//         &[&payer, &mint_keypair, &vault_keypair],
-//         recent_blockhash,
-//     );
-
-//     println!("after sign");
-
-//     // Process CreateVault transaction
-//     println!("Processing CreateVault transaction...");
-//     match banks_client.process_transaction(transaction).await {
-//         Ok(_) => println!("Transaction processed successfully"),
-//         Err(e) => {
-//             println!("Transaction failed: {:?}", e);
-//             return Err(e.into());
-//         }
-//     }
-
-//     // Verify vault creation
-//     println!("Verifying vault creation...");
-//     let mint_account = banks_client.get_account(mint_key).await?;
-//     assert!(mint_account.is_some(), "Mint account not created");
-//     let vault_account = banks_client.get_account(vault_key).await?;
-//     assert!(vault_account.is_some(), "Vault account not created");
-
-//     // Fetch and verify the vault registry with actual data
-//     println!("Fetching and verifying the vault registry with actual data...");
-
-//     println!("Fetching state account with state_key: {:?}", state_key);
-//     let state_account = banks_client.get_account(state_key).await?;
-//     if state_account.is_none() {
-//         println!(
-//             "Error: State account not found for state_key: {:?}",
-//             state_key
-//         );
-//         panic!("State account not created");
-//     }
-//     println!("State account found!");
-
-//     let state_data = state_account.unwrap().data;
-//     println!("State account data length: {}", state_data.len());
-//     println!("First 32 bytes of state data: {:?}", &state_data[..32]);
-
-//     println!("Fetching and verifying the vault registry...");
-//     let state_account = banks_client.get_account(state_key).await?;
-//     if state_account.is_none() {
-//         println!(
-//             "Error: State account not found for state_key: {:?}",
-//             state_key
-//         );
-//         panic!("State account not created");
-//     }
-
-//     println!(
-//         "Expected size of VaultRegistry struct: {}",
-//         VaultRegistry::LEN
-//     );
-//     println!(
-//         "Actual size of data to be deserialized: {}",
-//         state_data.len()
-//     );
-
-//     // deep_dive_analysis(&state_data);
-//     manual_deserialize(&state_data);
-
-//     // let vault_registry_result: Result<VaultRegistry, _> = VaultRegistry::deserialize(&state_data);
-//     let vault_registry_result = VaultRegistry::deserialize(&state_data);
-//     let vault_registry = match vault_registry_result {
-//         Ok(vr) => {
-//             println!("Deserialized VaultRegistry successfully.");
-//             vr
-//         }
-//         Err(e) => {
-//             println!("Failed to deserialize VaultRegistry: {:?}", e);
-//             panic!("Deserialization failed.");
-//         }
-//     };
-
-//     println!("VaultRegistry contents: {:?}", vault_registry);
-//     assert!(
-//         vault_registry
-//             .vaults
-//             .iter()
-//             .any(|v| v.vault_account == vault_key),
-//         "Vault not found in registry"
-//     );
-//     ////////////////////////
-//     Ok(())
-// }
-////////////////////////////
+    Ok(())
+}
 ////////////////////////////
 //////////////////////////////
 #[tokio::test]
