@@ -75,8 +75,6 @@ async fn test_process_instruction() -> Result<(), TransportError> {
 async fn test_create_vault() -> Result<(), TransportError> {
     // Setup keys and program
     let program_id = Pubkey::new_unique();
-    let mint_atokena_keypair = Keypair::new(); // Mint account
-    let mint_atokena_key = mint_atokena_keypair.pubkey();
 
     let rent_key = solana_program::sysvar::rent::ID;
     let spl_key = spl_token::id();
@@ -107,10 +105,17 @@ async fn test_create_vault() -> Result<(), TransportError> {
     let rent_account = banks_client.get_account(rent_key).await?;
     assert!(rent_account.is_some(), "Rent account not found");
 
+    ////////////////////////
+    /// ///////////////// TODO
+    /// /////////////////////
     // Create token mint
     let mint_tokena_keypair =
         create_token_mint(banks_client, &payer, recent_blockhash, &payer.pubkey()).await?;
     let mint_tokena_key = mint_tokena_keypair.pubkey();
+
+    // NOTE: SHOULD THE A TOKEN MINT BE A NEW KEYPAIR?
+    let mint_atokena_keypair = Keypair::new(); // Mint account
+    let mint_atokena_key = mint_atokena_keypair.pubkey();
 
     // NOTE vault key should be associated token account for token a's mint
     // let vault_keypair = Keypair::new(); // Vault account
@@ -151,7 +156,7 @@ async fn test_create_vault() -> Result<(), TransportError> {
         recent_blockhash,
     );
 
-    println!("after sign");
+    // println!("after sign");
 
     // Process CreateVault transaction
     println!("Processing CreateVault transaction...");
@@ -388,22 +393,8 @@ async fn test_deposit() -> Result<(), BanksClientError> {
     println!("Creating associated token account for ATokenA...");
     let user_atoken_a_account = get_associated_token_address(&payer.pubkey(), &mint_atokena_key);
     println!("user_atoken_a_account: {}", user_atoken_a_account);
-    // let create_user_atoken_a_account_ix =
-    //     &spl_associated_token_account::instruction::create_associated_token_account(
-    //         &payer.pubkey(),   // Payer
-    //         &payer.pubkey(),   // Owner of the associated account
-    //         &mint_atokena_key, // Mint for ATokenA
-    //         &spl_token::id(),
-    //     );
 
-    // let transaction = Transaction::new_signed_with_payer(
-    //     &[create_user_atoken_a_account_ix.clone()],
-    //     Some(&payer.pubkey()),
-    //     &[payer],
-    //     recent_blockhash,
-    // );
-    // banks_client.process_transaction(transaction).await?;
-    println!("Associated token account for ATokenA created.");
+    // println!("Associated token account for ATokenA created.");
 
     // Step 6: Construct and send the deposit instruction
     println!("Constructing deposit instruction...");
@@ -464,7 +455,7 @@ async fn test_deposit() -> Result<(), BanksClientError> {
     assert_eq!(vault_token_a_balance, deposit_amount); // Vault should have 101 TokenA
     assert_eq!(user_a_token_a_balance, deposit_amount); // User should have 101 aTokenA
 
-    println!("Test passed successfully.");
+    // println!("Test passed successfully.");
     Ok(())
 }
 

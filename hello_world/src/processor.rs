@@ -95,7 +95,7 @@ impl Processor {
 
         let associated_token_program = next_account_info(account_info_iter)?;
 
-        msg!("Creating vault...");
+        // msg!("Creating vault...");
         msg!("payer account key: {:?}", payer_account.key);
         msg!("Mint account Token A key: {:?}", mint_account_token_a.key);
         msg!(
@@ -151,10 +151,10 @@ impl Processor {
         msg!("required_lamports: {}", required_lamports);
 
         //NOTE: ensure Token A mint is not empty
-        if mint_account_token_a.data_is_empty() {
-            msg!("ERROR: mint_account_token_a should not be empty at vault creation time");
-            return Err(ProgramError::Custom(99));
-        }
+        // if mint_account_token_a.data_is_empty() {
+        //     msg!("ERROR: mint_account_token_a should not be empty at vault creation time");
+        //     return Err(ProgramError::Custom(99));
+        // }
 
         // NOTE: check if ATokenA mint is empty, since we need to mint atokens
         if mint_account_a_token_a.data_is_empty() {
@@ -199,7 +199,7 @@ impl Processor {
             };
         }
 
-        msg!("after init mint, now lets create vault");
+        // msg!("after init mint, now lets create vault");
 
         //////////// NOTE DO WE MAKE A NEW VAULT ACCOUNT? or use an account
         // let vault_required_lamports = rent.minimum_balance(spl_token::state::Account::LEN);
@@ -460,10 +460,10 @@ impl Processor {
 
         // msg!("Vault account mint: {}", vault_account_info.mint);
 
-        // if user_token_account_info.mint != *mint_account.key {
-        //     msg!("Error: The mint associated with the user's TokenA account does not match the expected mint.");
-        //     return Err(ProgramError::InvalidAccountData);
-        // }
+        if user_token_account_info.mint != *mint_token_a_account.key {
+            msg!("Error: The mint associated with the user's TokenA account does not match the expected mint.");
+            return Err(ProgramError::InvalidAccountData);
+        }
 
         if user_token_account_info.owner != *payer_account.key {
             msg!("Error: Payer account does not own the user TokenA account.");
@@ -472,6 +472,17 @@ impl Processor {
 
         let user_atoken_account = next_account_info(account_info_iter)?; // User's aTokenA account
         msg!("User aTokenA account: {}", user_atoken_account.key);
+
+        // msg!("user_atoken_account.data: {}", user_atoken_account.data);
+        // let user_atoken_account_info = TokenAccount::unpack(&user_atoken_account.data.borrow())?;
+        // msg!(
+        //     "user_atoken_account_info: {}",
+        //     user_atoken_account_info.mint
+        // );
+        // if user_atoken_account_info.mint != *mint_atoken_a_account.key {
+        //     msg!("Error: The mint associated with the user's ATokenA account does not match the expected AtokenA mint.");
+        //     return Err(ProgramError::Custom(123));
+        // }
 
         let rent_account = next_account_info(account_info_iter)?; // Rent sysvar account
         msg!("Rent account: {}", rent_account.key);
@@ -488,49 +499,6 @@ impl Processor {
             associated_token_program.key
         );
 
-        // Verify that the user account is a signer
-        // if !payer_account.is_signer {
-        //     msg!("Error: Payer account is not a signer");
-        //     return Err(ProgramError::MissingRequiredSignature);
-        // }
-        // msg!("Payer account is a signer");
-
-        ////////////////////////////////
-        /// /////////////////////////////
-        // try to create in here
-        // msg!(
-        //     "user_token_a_account.lamports(): {}",
-        //     user_token_a_account.lamports()
-        // );
-
-        // NOTE: if the user token account is empty
-        // if user_token_a_account.lamports() == 0 {
-        //     msg!("ERROR: USER CANT DEPOSIT IF THEIR TOKEN A ACCOUNT ISNT ACTIVE lol");
-        //     return Err(ProgramError::Custom((101)));
-        // }
-
-        // Check if `user_atoken_account` is empty
-        // msg!(
-        //     "user_atoken_account.lamports(): {}",
-        //     user_atoken_account.lamports()
-        // );
-
-        // NOTE: check associated token address for mint a tokens
-        // let associated_token_address = spl_associated_token_account::get_associated_token_address(
-        //     payer_account.key,
-        //     mint_atoken_a_account.key,
-        // );
-        // msg!(
-        //     "Expected Associated Token Address: {}",
-        //     associated_token_address
-        // );
-        // msg!("Provided User AToken Address: {}", user_atoken_account.key);
-
-        // if associated_token_address != *user_atoken_account.key {
-        //     msg!("Error: Provided AToken account address does not match the expected associated token address");
-        //     return Err(ProgramError::InvalidAccountData.into());
-        // }
-
         // NOTE: if the users ATokenA account doesnt exist, then create one
         msg!(
             "user_atoken_account.lamports(): {}",
@@ -542,51 +510,6 @@ impl Processor {
 
             msg!("user_atoken_account.lamports() == 0");
 
-            // invoke(
-            //     &spl_associated_token_account::instruction::create_associated_token_account(
-            //         payer_account.key,
-            //         // user_atoken_account.key,
-            //         // user_atoken_account.key,
-            //         payer_account.key,
-            //         mint_atoken_a_account.key,
-            //         // &spl_token::id(), // Use the SPL Token program ID directly
-            //         associated_token_program.key,
-            //     ),
-            //     &[
-            //         payer_account.clone(),
-            //         user_atoken_account.clone(),
-            //         payer_account.clone(),
-            //         mint_atoken_a_account.clone(),
-            //         system_program.clone(),
-            //         spl_account.clone(),
-            //         associated_token_program.clone(),
-            //         // rent_account.clone(),
-            //         // associated_token_program.clone(),
-            //     ],
-            // )?;
-            // invoke(
-            //     &spl_associated_token_account::create_associated_token_account(
-            //         payer_account.key,
-            //         // user_atoken_account.key,
-            //         // user_atoken_account.key,
-            //         payer_account.key,
-            //         mint_atoken_a_account.key,
-            //         // &spl_token::id(), // Use the SPL Token program ID directly
-            //     ),
-            //     &[
-            //         payer_account.clone(),
-            //         // user_atoken_account.clone(),
-            //         payer_account.clone(),
-            //         mint_atoken_a_account.clone(),
-            //         // system_program.clone(),
-            //         // NOTE:
-            //         // spl_account.clone(),
-            //         // associated_token_program.clone(),
-            //         // rent_account.clone(),
-            //         // associated_token_program.clone(),
-            //         // associated_token_program.clone(),
-            //     ],
-            // )?;
             invoke(
                 &spl_associated_token_account::instruction::create_associated_token_account(
                     payer_account.key,

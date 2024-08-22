@@ -97,113 +97,88 @@ const VaultRegistrySchema = new Map([
 ]);
 
 export { Vault, VaultRegistry };
-
 export async function createVault(
     programId: PublicKey,
     wallet: WalletContextState,
     connection: Connection
 ) {
-    console.log("programId", programId);
-
-    const rent = new PublicKey("SysvarRent111111111111111111111111111111111");
-    const spl = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
-    (spl == TOKEN_PROGRAM_ID) ? console.log("t") : console.log('f');
-    (spl.toString() == TOKEN_PROGRAM_ID.toString()) ? console.log("t") : console.log('f');
-    console.log("SPL Token Program ID:", spl.toString());
-    console.log("TOKEN_PROGRAM_ID:", TOKEN_PROGRAM_ID.toString());
-
-    const mintKeypair = Keypair.generate();
-    
-    ////////////////
-    const vaultKeypair = Keypair.generate(); // Generate keypair for vault account
-    
-    // NOTE: the vault address is who recevies the fauceted tokens
-    const vaultTokenAccount = await getAssociatedTokenAddress(
-        // new PublicKey("3JR13Th4Lp7Y6nBhj2LP1mMciQG4ZJoT3t9rF2D5xjNq"),
-        new PublicKey("DG3jdET19heUQjp8fdL54FBvFd5oFWZZjCG8XgmFAHQJ"),
-        // wallet.publicKey
-        programId
-    );
-    console.log("vaultTokenAccount: ", vaultTokenAccount.toBase58());
-
-
-
-    const mintPubkey = mintKeypair.publicKey;
-    const ownerPubkey = wallet.publicKey as PublicKey;
-    
-    
-    // NOTE: this should be fromt he newly fetched token account for token a mint
-    // const vaultPubkey = vaultKeypair.publicKey;
-    const vaultPubkey = vaultTokenAccount;
-
-
-    console.log("ownerPubkey", ownerPubkey)
-    console.log("mintPubkey:", mintPubkey.toString());
-    
-    const [pda, bump] = await PublicKey.findProgramAddress([Buffer.from('vault_registry')], programId);
-    console.log("pda", pda)
-    console.log("bump", bump)
-
-    const createVaultInstructionData = Buffer.from([0]);
-    console.log("createVaultInstructionData", createVaultInstructionData)
-
-    // return;
-    const transaction = new Transaction().add(
-        new TransactionInstruction({
-            keys: [
-                { pubkey: wallet.publicKey as PublicKey, isSigner: true, isWritable: true },
-                { pubkey: mintPubkey, isSigner: true, isWritable: true },
-                // NOTE: should vault be signer?
-                // { pubkey: vaultPubkey, isSigner: true, isWritable: true }, // Add vault account
-                { pubkey: vaultPubkey, isSigner: false, isWritable: true }, // Add vault account
-                ///////////////////////
-                // { pubkey: vaultPubkey, isSigner: true, isWritable: true }
-                //////////////////////
-                { pubkey: rent, isSigner: false, isWritable: true },
-                { pubkey: spl, isSigner: false, isWritable: true },
-                { pubkey: SystemProgram.programId, isSigner: false, isWritable: true },
-                //pda
-                // { pubkey: Keypair.generate().publicKey, isSigner: true, isWritable: true }, // state_account
-                { pubkey: pda, isSigner: false, isWritable: true }, // Pass the PDA
-
-            ],
-            programId: programId,
-            data: createVaultInstructionData, // The instruction data
-        })
-    );
-
-
-    console.log("transaction msg", transaction);
     if (!wallet.publicKey) {
         throw new Error('Wallet not connected');
     }
 
-    // Get a recent blockhash from the connection
+    const rent = new PublicKey("SysvarRent111111111111111111111111111111111");
+    const spl = TOKEN_PROGRAM_ID;
+
+    // Generate keypair for Token A mint
+    // const mintTokenAKeypair = Keypair.generate();
+    // const mintTokenAPubkey = mintTokenAKeypair.publicKey;
+    const mintTokenAPubkey = new PublicKey("DG3jdET19heUQjp8fdL54FBvFd5oFWZZjCG8XgmFAHQJ");
+
+    // Generate keypair for AToken A mint
+    const mintATokenAKeypair = Keypair.generate();
+    const mintATokenAPubkey = mintATokenAKeypair.publicKey;
+
+    // Derive the associated token account for the vault (Token A)
+    // const vaultTokenAccount = await getAssociatedTokenAddress(
+    //     mintTokenAPubkey,
+    //     wallet.publicKey,
+    //     true,
+    //     TOKEN_PROGRAM_ID,
+    //     ASSOCIATED_TOKEN_PROGRAM_ID
+    // );
+
+    const vaultTokenAccount = await getAssociatedTokenAddress(
+        new PublicKey("DG3jdET19heUQjp8fdL54FBvFd5oFWZZjCG8XgmFAHQJ"), //mint
+        wallet.publicKey as PublicKey,
+        true,
+        TOKEN_PROGRAM_ID,
+        ASSOCIATED_TOKEN_PROGRAM_ID
+    )
+
+    // Derive the associated token account for ATokenA
+    const atokenaPubkey = await getAssociatedTokenAddress(
+        mintATokenAPubkey,
+        wallet.publicKey,
+        false,
+        TOKEN_PROGRAM_ID,
+        ASSOCIATED_TOKEN_PROGRAM_ID
+    );
+
+    const [pda, _bump] = await PublicKey.findProgramAddress([Buffer.from('vault_registry')], programId);
+
+    const createVaultInstructionData = Buffer.from([0]);
+
+    const transaction = new Transaction().add(
+        new TransactionInstruction({
+            keys: [
+                { pubkey: wallet.publicKey, isSigner: true, isWritable: true },
+                { pubkey: mintTokenAPubkey, isSigner: true, isWritable: true },
+                { pubkey: mintATokenAPubkey, isSigner: true, isWritable: true },
+                // { pubkey: atokenaPubkey, isSigner: false, isWritable: true },
+                { pubkey: vaultTokenAccount, isSigner: false, isWritable: true },
+                { pubkey: rent, isSigner: false, isWritable: false },
+                { pubkey: spl, isSigner: false, isWritable: false },
+                { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+                { pubkey: pda, isSigner: false, isWritable: true },
+                { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+            ],
+            programId: programId,
+            data: createVaultInstructionData,
+        })
+    );
+
     const { blockhash } = await connection.getRecentBlockhash();
     transaction.recentBlockhash = blockhash;
     transaction.feePayer = wallet.publicKey;
 
-    const ownerBalance = await connection.getBalance(ownerPubkey);
-    const mintBalance = await connection.getBalance(mintPubkey);
-    const walletBalance = await connection.getBalance(wallet.publicKey);
+    const signature = await wallet.sendTransaction(transaction, connection, { 
+        skipPreflight: true, 
+        preflightCommitment: 'processed', 
+        signers: [mintTokenAKeypair, mintATokenAKeypair]
+    });
 
-    console.log(`Owner balance: ${ownerBalance}`);
-    console.log(`Wallet balance: ${walletBalance}`);
-    console.log(`Mint balance: ${mintBalance}`);
-
-    // Sign and send the transaction using wallet adapter
-    // try {
-    const signature = await wallet.sendTransaction(transaction, 
-        connection, 
-        { 
-            skipPreflight: true, 
-            preflightCommitment: 'singleGossip', 
-            // signers: [mintKeypair, vaultKeypair]
-            signers: [mintKeypair]
-        });
     console.log('Transaction successful with signature:', signature);
     return signature;
-
 }
 
 export async function deposit(

@@ -103,7 +103,9 @@ const ListVaultsFromRegistry = () => {
 
                 // 
                 const userTokenAccountBalance2 = await connection.getTokenAccountBalance(new PublicKey(
-                    "3JR13Th4Lp7Y6nBhj2LP1mMciQG4ZJoT3t9rF2D5xjNq" // static account
+                    // "3JR13Th4Lp7Y6nBhj2LP1mMciQG4ZJoT3t9rF2D5xjNq" // static account
+                    // "3JR13Th4Lp7Y6nBhj2LP1mMciQG4ZJoT3t9rF2D5xjNq" // static account
+                    "DG3jdET19heUQjp8fdL54FBvFd5oFWZZjCG8XgmFAHQJ"
                 ));
 
                 
@@ -141,7 +143,7 @@ const ListVaultsFromRegistry = () => {
             // NOTE:  Generate key pairs for the user's token and aToken accounts
             // const userTokenAPubkey = Keypair.generate().publicKey;
             // const userTokenAPubkey = new PublicKey("3JR13Th4Lp7Y6nBhj2LP1mMciQG4ZJoT3t9rF2D5xjNq");
-            const userTokenAPubkey = new PublicKey("8r8vqPQAjG8MvL4uEgbLsD9ZYUHLSZp4GXHbtQ9MkY6Z");
+            const userTokenAPubkey = new PublicKey("DG3jdET19heUQjp8fdL54FBvFd5oFWZZjCG8XgmFAHQJ");
 
             // NOTE: THIS IS THE ACCOUNT THAT RECEIVES THE ANTICOINS -- WHICH SHOULD BE AN ACCOUNT FOR THE USER
             // const userATokenAPubkey = Keypair.generate();

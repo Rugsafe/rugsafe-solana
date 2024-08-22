@@ -1,8 +1,12 @@
 \documentclass{article}
 \usepackage{amsmath}
+\usepackage{graphicx} % Add this line
+\usepackage{xcolor}
+\pagecolor{black}
+\color{white}
 
 \title{Rugsafe: A Protocol for Protecting Digital Assets from Rug Pulls}
-\author{info@Rugsafe.org}
+\author{info@rugsafe.org}
 \date{v0.0.1 August 1, 2024}
 
 \begin{document}
@@ -49,6 +53,13 @@ At the time of vault creation, the protocol records the current price of the und
 
 As the price of $C_r$ fluctuates, the value of $C_a$ adjusts inversely, similar to an algorithmic stablecoin mechanism. This ensures that $C_a$ holders are protected against the devaluation of $C_r$.
 
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{images/2.png}
+\caption{The inverse logarithmic relationship between the price of the underlying rugged token $C_r$ and the amount of minted anticoins $C_a$. As the price of $C_r$ decreases, the amount of minted $C_a$ increases, providing stability and protection for holders.}
+\label{fig:minted_anticoins}
+\end{figure}
+
 \subsection{User Commitment and Signal to the Ecosystem}
 Depositing $C_r$ into a vault $V_c$ and receiving $C_a$ signals the user's belief that $C_r$ is a rugged token. To further reinforce this belief, users can burn their $C_a$ tokens, effectively removing them from circulation and indicating their strong commitment to the protocol's mission.
 
@@ -70,7 +81,7 @@ P(C_a) \propto \left(\text{Holdings}\right)^\lambda
 
 Where $\lambda > 1$ is a scaling factor that ensures the penalty increases non-linearly with the amount of $C_a$ held. This scaling penalty ensures that the system remains equitable and prevents disproportionate influence by large holders.
 
-\section{Conclusion}
+\section{Closing Remarks}
 Rugsafe presents a robust mathematical framework designed to protect against rug pulls in the DeFi space. By combining vault mechanisms, anticoin issuance, and incentive structures, it ensures a secure environment for digital asset management. The protocol's design not only protects users but also opens up new avenues for development and innovation in the DeFi ecosystem.
 
 \end{document}

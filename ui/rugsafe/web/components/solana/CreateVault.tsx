@@ -12,7 +12,7 @@ const CONTRACT_PROGRAM_ID = 'FobNvbQsK5BAniZC2oJhXakjcPiArpsthTGDnX9eHDVY'
 const CreateVault = () => {
     // const [mintPubkey, setMintPubkey] = useState<Keypair | null>(null);
     const [mintPubkey, setMintPubkey] = useState<PublicKey | null>(null);
-    const [balance, setBalance] = useState(0);
+    const [balance, setBalance] = useState("-");
 
     const wallet = useWallet();
     const connection = new Connection(LOCALHOST_URL, 'confirmed');
@@ -23,7 +23,8 @@ const CreateVault = () => {
         if (!mintPubkey) {
             // Generate a new mint public key if it hasn't been set
             // const newMintKeypair = Keypair.generate();
-            const newMintKeypair = new PublicKey("3JR13Th4Lp7Y6nBhj2LP1mMciQG4ZJoT3t9rF2D5xjNq");
+            // const newMintKeypair = new PublicKey("3JR13Th4Lp7Y6nBhj2LP1mMciQG4ZJoT3t9rF2D5xjNq");
+            const newMintKeypair = new PublicKey("DG3jdET19heUQjp8fdL54FBvFd5oFWZZjCG8XgmFAHQJ");
             setMintPubkey(newMintKeypair);
             console.log('Generated new mint public key:', newMintKeypair.toBase58());
         }
