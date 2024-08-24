@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.4.1)  22 AUG 2024 01:39
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.4.1)  24 AUG 2024 15:25
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -186,24 +186,26 @@ e
 <images/2.png, id=14, 865.7946pt x 453.49425pt>
 File: images/2.png Graphic file (type png)
 <use images/2.png>
-Package pdftex.def Info: images/2.png  used on input line 58.
+Package pdftex.def Info: images/2.png  used on input line 76.
 (pdftex.def)             Requested size: 276.00105pt x 144.56754pt.
 
-[2 <./images/2.png>] [3] (./paper.aux)
+[2 <./images/2.png>]
+<images/3.png, id=23, 867.24pt x 453.49425pt>
+File: images/3.png Graphic file (type png)
+<use images/3.png>
+Package pdftex.def Info: images/3.png  used on input line 92.
+(pdftex.def)             Requested size: 276.00105pt x 144.32535pt.
+ [3 <./images/3.png>] [4] (./paper.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-02-20>
  ***********
-
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
  ) 
 Here is how much of TeX's memory you used:
- 2510 strings out of 474116
- 37429 string characters out of 5743683
+ 2518 strings out of 474116
+ 37583 string characters out of 5743683
  1932187 words of memory out of 5000000
- 24878 multiletter control sequences out of 15000+600000
+ 24886 multiletter control sequences out of 15000+600000
  563751 words of font info for 56 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  57i,7n,65p,703b,235s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -218,10 +220,10 @@ l/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/
 texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/tex
 live/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texliv
 e/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb>
-Output written on paper.pdf (3 pages, 246350 bytes).
+Output written on paper.pdf (4 pages, 355714 bytes).
 PDF statistics:
- 72 PDF objects out of 1000 (max. 8388607)
- 42 compressed objects within 1 object stream
+ 77 PDF objects out of 1000 (max. 8388607)
+ 44 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
- 6 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 11 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -26,6 +26,10 @@ Rugsafe introduces a novel protocol designed to mitigate the risks associated wi
 
 The Rugsafe protocol enables users who hold rugged tokens, denoted as $C_r$, to deposit these tokens into a specialized vault $V_c$ and receive an equal amount of anticoin tokens, $C_a$, which are pegged to the inverse price movement of $C_r$.
 
+
+%%%%%%%%%%%%%%%%%%%%%%
+
+
 \subsection{Vault Creation and Anticoin Issuance}
 When a vault $V_c$ is created for a rugged token $C_r$, users can deposit $C_r$ into this vault. Upon deposit, the protocol mints an equal amount of $C_a$, which is credited to the user's balance.
 
@@ -35,6 +39,10 @@ C_a = C_r
 
 The vaults are held in a central vault registry, ensuring that all interactions with rugged tokens are tracked and managed within the system.
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 \subsection{Withdrawal Penalty Mechanism}
 If a user decides to withdraw their original rugged tokens $C_r$ by depositing back their $C_a$, a penalty is incurred. A portion of the $C_a$ tokens are deducted from the user's balance, and these penalized tokens are distributed among the remaining $C_a$ holders.
 
@@ -43,6 +51,16 @@ C_{r,\text{withdrawn}} = C_{r,\text{deposited}} - P(C_a)
 \end{equation}
 
 Where $P(C_a)$ represents the penalty, which scales according to the amount of $C_r$ originally deposited. The penalty mechanism incentivizes holding $C_a$ longer, as the remaining holders benefit from these penalties.
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
 
 \subsection{Anticoin Pricing and Pegging Mechanism}
 At the time of vault creation, the protocol records the current price of the underlying rugged token $C_r$. This price is used as a reference for all future transactions involving $C_a$.
@@ -67,10 +85,38 @@ Depositing $C_r$ into a vault $V_c$ and receiving $C_a$ signals the user's belie
 \text{Signal} = \text{Burn}(C_a)
 \end{equation}
 
-This burning mechanism enhances the credibility of the user's claim that $C_r$ is a rugged token and provides additional confidence to other participants in the ecosystem.
+This burning mechanism not only signals the user's conviction but also impacts the market by reducing the circulating supply of $C_a$. As $C_a$ tokens are burned, the inverse relationship between the price of $C_a$ and $C_r$ continues to hold, but with a nuanced adjustment reflecting the decreased supply of $C_a$.
 
-\subsection{Opportunities for New Developments}
-The Rugsafe protocol's structure opens up opportunities for developers to build applications that cater to the needs of rug pull victims. By establishing a market for anticoin tokens $C_a$, new financial products and services can be developed to support users who have suffered losses from rug pulls.
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{images/3.png}
+\caption{The adjusted inverse logarithmic relationship between the price of the underlying rugged token $C_r$ and the amount of burned anticoins $C_a$. As the price of $C_r$ decreases, the amount of burned $C_a$ decreases, further solidifying the protective mechanism for holders.}
+\label{fig:burned_anticoins}
+\end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+\subsection{Opportunities for New Ecosystems}
+The Rugsafe protocol's structure opens up opportunities for developers to build applications that cater to the needs of rug pull victims. By establishing a market for anticoin tokens $C_a$, new financial products and services can be developed to support users who have suffered losses from rug pulls. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 \subsection{Whale Penalty Mechanism}
 To prevent large holders (whales) from gaming the system, the penalty for withdrawing $C_r$ scales with the amount of $C_a$ held. Inspired by quadratic voting schemes, the penalty increases progressively as the whale's holdings increase, ensuring fairness and preventing manipulation.
