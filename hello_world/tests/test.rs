@@ -827,10 +827,10 @@ async fn test_fetch_vault_with_data_from_registry() -> Result<(), TransportError
     println!("State account data length: {}", state_data.len());
     println!("First 32 bytes of state data: {:?}", &state_data[..32]);
 
-    println!(
-        "Expected size of VaultRegistry struct: {}",
-        VaultRegistry::LEN
-    );
+    // println!(
+    //     "Expected size of VaultRegistry struct: {}",
+    //     VaultRegistry::LEN
+    // );
     println!(
         "Actual size of data to be deserialized: {}",
         state_data.len()

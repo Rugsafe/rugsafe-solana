@@ -237,7 +237,8 @@ impl Processor {
         // Check if state account is empty and initialize it
         if state_account.data_is_empty() {
             // Correctly calculate the required size of the state account
-            let state_account_size = VaultRegistry::LEN;
+            let mut vault_registry = VaultRegistry::new();
+            let state_account_size = vault_registry.len();
             let state_account_required_lamports = rent.minimum_balance(state_account_size);
 
             // Create the state account
@@ -262,7 +263,7 @@ impl Processor {
             )?;
 
             // Initialize VaultRegistry and serialize it into the state account's data
-            let mut vault_registry = VaultRegistry { vaults: Vec::new() };
+            // let mut vault_registry = VaultRegistry { vaults: Vec::new() };
 
             let new_vault = Vault {
                 vault_account: *vault_account.key,
@@ -282,17 +283,17 @@ impl Processor {
             msg!("Number of vaults after addition: {}", number_of_vaults);
 
             // Debug: Print the vault registry state before serialization
-            msg!("VaultRegistry before serialization: {:?}", vault_registry);
+            // msg!("VaultRegistry before serialization: {:?}", vault_registry);
 
             let mut state_data = state_account.data.borrow_mut();
 
             // Perform serialization with error handling
             let serialized_data = vault_registry.serialize();
 
-            if serialized_data.len() != VaultRegistry::LEN {
+            if serialized_data.len() != vault_registry.len() {
                 msg!(
                     "Serialized length mismatch: expected {}, got {}",
-                    VaultRegistry::LEN,
+                    vault_registry.len(),
                     serialized_data.len()
                 );
                 return Err(ProgramError::Custom(1));
@@ -300,7 +301,7 @@ impl Processor {
 
             // Verify length of serialized data
             let serialized_length = state_data.len();
-            let expected_length = VaultRegistry::LEN;
+            let expected_length = vault_registry.len();
 
             // Log the serialized and expected length
 
@@ -309,10 +310,10 @@ impl Processor {
             msg!("Expected length: {}", expected_length);
             msg!("actual_serialized_length: {}", actual_serialized_length);
 
-            if serialized_data.len() != VaultRegistry::LEN {
+            if serialized_data.len() != vault_registry.len() {
                 msg!(
                     "Serialized length mismatch: expected {}, got {}",
-                    VaultRegistry::LEN,
+                    vault_registry.len(),
                     serialized_data.len()
                 );
                 return Err(ProgramError::Custom(1));
@@ -326,7 +327,7 @@ impl Processor {
                 &state_data[..64]
             );
 
-            state_data[..VaultRegistry::LEN].copy_from_slice(&serialized_data);
+            state_data[..vault_registry.len()].copy_from_slice(&serialized_data);
 
             let deserialized_vault_registry = VaultRegistry::deserialize(&state_data[..]);
 
@@ -371,10 +372,10 @@ impl Processor {
 
             // Step 3: Serialize the updated vault registry back into the state account
             let serialized_data = vault_registry.serialize();
-            if serialized_data.len() != VaultRegistry::LEN {
+            if serialized_data.len() != vault_registry.len() {
                 msg!(
                     "Serialized length mismatch: expected {}, got {}",
-                    VaultRegistry::LEN,
+                    vault_registry.len(),
                     serialized_data.len()
                 );
                 return Err(ProgramError::Custom(1));
@@ -404,8 +405,7 @@ impl Processor {
         ////////////////////////////////////
         /// ////////////////////////////////
         /// //////////////////////////////
-
-        msg!("Vault created successfully");
+        // msg!("Vault created successfully");
         Ok(())
     }
 

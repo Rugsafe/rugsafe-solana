@@ -91,6 +91,7 @@ const ListVaultsFromRegistry = () => {
         for (const vault of vaults) {
             try {
                 console.log(`vault ${vault}`);
+                console.log(vault)
                 console.log(`Fetching balances for vault ${vault.vaultAccount}`);
                 console.log(`Vault Account: ${vault.vaultAccount}`);
     
@@ -100,10 +101,32 @@ const ListVaultsFromRegistry = () => {
                 //     continue; // Skip this vault and move on to the next
                 // }
     
-                const userTokenAccountBalance = await connection.getTokenAccountBalance(new PublicKey("43MJ8hVyFQBoNw2Qm8WnYVfrZkfEVjGUNnRDuBjTj9kg"));
-                // const userATokenAccountBalance = await connection.getTokenAccountBalance(new PublicKey(vault.userATokenAccount));
+                // Generate associated token account addresses dynamically 
+                // const userTokenAccount = await getAssociatedTokenAddress(new PublicKey(vault.mintTokenAAccount), wallet.publicKey as PublicKey);
+                // const userTokenAccount = await getAssociatedTokenAddress(new PublicKey(wallet.publicKey as PublicKey), wallet.publicKey as PublicKey);
+                const userTokenAccount = new PublicKey("43MJ8hVyFQBoNw2Qm8WnYVfrZkfEVjGUNnRDuBjTj9kg")
+
+
+                const userATokenAccount = await getAssociatedTokenAddress(new PublicKey(vault.mintATokenAAccount), wallet.publicKey as PublicKey);
+                // window.alert(userTokenAccount)
+                // window.alert(userATokenAccount)
+
+                
+                // v1
+                console.log("DEV: userTokenAccount:", userTokenAccount.toBase58())
+                console.log("DEV: userATokenAccount:", userATokenAccount.toBase58())
+                // const userTokenAccountBalance = await connection.getTokenAccountBalance(new PublicKey("43MJ8hVyFQBoNw2Qm8WnYVfrZkfEVjGUNnRDuBjTj9kg"));
+                // const userATokenAccountBalance = await connection.getTokenAccountBalance(new PublicKey("FuR8C3cwrmdUnV3r4KcGNxNzvdFvfaYZKxasCw1szbCf"));
+
+                // v2
+                const userTokenAccountBalance = await connection.getTokenAccountBalance(new PublicKey(userTokenAccount));
+                const userATokenAccountBalance = await connection.getTokenAccountBalance(new PublicKey(userATokenAccount));
+
                 // TODO: SHOULD BE VAULT ACCOUNT - Vault Account: Dof5p3fEhZhXttrPeEPiKwLoac5ftRyJJnma24ZYF4qZ
-                const vaultTokenAccountBalance = await connection.getTokenAccountBalance(new PublicKey("Dof5p3fEhZhXttrPeEPiKwLoac5ftRyJJnma24ZYF4qZ"));
+                // const vaultTokenAccountBalance = await connection.getTokenAccountBalance(new PublicKey("Dof5p3fEhZhXttrPeEPiKwLoac5ftRyJJnma24ZYF4qZ"));
+                const vaultTokenAccountBalance = await connection.getTokenAccountBalance(new PublicKey(vault.vaultAccount));
+
+
 
                 console.log(`userTokenAccountBalance: ${userTokenAccountBalance.value.uiAmount}`);
                 console.log(`vaultTokenAccountBalance: ${userTokenAccountBalance.value.uiAmount}`);
@@ -123,7 +146,7 @@ const ListVaultsFromRegistry = () => {
 
                 newBalances[vault.vaultAccount] = {
                     userTokenBalance: userTokenAccountBalance.value.amount,
-                    // userATokenBalance: userATokenAccountBalance.value.amount,
+                    userATokenBalance: userATokenAccountBalance.value.amount,
                     vaultTokenBalance: vaultTokenAccountBalance.value.amount,
                 };
             } catch (error) {
