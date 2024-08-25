@@ -102,6 +102,7 @@ const ListVaultsFromRegistry = () => {
     
                 const userTokenAccountBalance = await connection.getTokenAccountBalance(new PublicKey("43MJ8hVyFQBoNw2Qm8WnYVfrZkfEVjGUNnRDuBjTj9kg"));
                 // const userATokenAccountBalance = await connection.getTokenAccountBalance(new PublicKey(vault.userATokenAccount));
+                // TODO: SHOULD BE VAULT ACCOUNT - Vault Account: Dof5p3fEhZhXttrPeEPiKwLoac5ftRyJJnma24ZYF4qZ
                 const vaultTokenAccountBalance = await connection.getTokenAccountBalance(new PublicKey("Dof5p3fEhZhXttrPeEPiKwLoac5ftRyJJnma24ZYF4qZ"));
 
                 console.log(`userTokenAccountBalance: ${userTokenAccountBalance.value.uiAmount}`);
