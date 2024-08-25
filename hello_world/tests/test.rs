@@ -279,6 +279,64 @@ async fn test_create_two_vaults() -> Result<(), TransportError> {
     let vault_account2 = banks_client.get_account(vault_key2).await?;
     assert!(vault_account2.is_some(), "Second vault account not created");
 
+    //assertions
+
+    // Fetch and verify the state account (VaultRegistry)
+    let state_account = banks_client.get_account(state_account_pda).await?;
+    assert!(state_account.is_some(), "State account not found");
+    let state_data = state_account.unwrap().data;
+
+    // Deserialize the VaultRegistry
+    let vault_registry =
+        VaultRegistry::deserialize(&state_data).expect("Failed to deserialize VaultRegistry");
+
+    // Ensure the vault registry contains two vaults
+    assert_eq!(
+        vault_registry.vaults.len(),
+        2,
+        "Vault registry should contain exactly two vaults"
+    );
+
+    // Verify the first vault's details
+    let first_vault = &vault_registry.vaults[0];
+    assert_eq!(
+        first_vault.vault_account, vault_key1,
+        "First vault account mismatch"
+    );
+    assert_eq!(
+        first_vault.mint_token_a, mint_tokena_key1,
+        "First mint_token_a mismatch"
+    );
+    assert_eq!(
+        first_vault.mint_a_token_a, mint_atokena_key1,
+        "First mint_a_token_a mismatch"
+    );
+    assert_eq!(
+        first_vault.owner,
+        payer.pubkey(),
+        "First vault owner mismatch"
+    );
+
+    // Verify the second vault's details
+    let second_vault = &vault_registry.vaults[1];
+    assert_eq!(
+        second_vault.vault_account, vault_key2,
+        "Second vault account mismatch"
+    );
+    assert_eq!(
+        second_vault.mint_token_a, mint_tokena_key2,
+        "Second mint_token_a mismatch"
+    );
+    assert_eq!(
+        second_vault.mint_a_token_a, mint_atokena_key2,
+        "Second mint_a_token_a mismatch"
+    );
+    assert_eq!(
+        second_vault.owner,
+        payer.pubkey(),
+        "Second vault owner mismatch"
+    );
+
     println!("Both vaults created successfully.");
     Ok(())
 }
@@ -497,6 +555,7 @@ fn create_vault_instruction(
         data: vec![0], // Add any additional data if needed
     }
 }
+
 async fn create_token_mint(
     banks_client: &mut BanksClient,
     payer: &Keypair,
@@ -578,6 +637,7 @@ fn manual_deserialize(state_data: &[u8]) -> Vec<Vault> {
 }
 
 // Refactored vault deserialization function
+// Refactored vault deserialization function
 fn deserialize_vault(vault_bytes: &[u8]) -> Vault {
     let (vault_account_bytes, vault_bytes) = vault_bytes.split_at(32);
     let vault_account = Pubkey::new_from_array(vault_account_bytes.try_into().unwrap());
@@ -585,13 +645,17 @@ fn deserialize_vault(vault_bytes: &[u8]) -> Vault {
     let (mint_account_bytes, vault_bytes) = vault_bytes.split_at(32);
     let mint_account = Pubkey::new_from_array(mint_account_bytes.try_into().unwrap());
 
+    let (mint_atoken_account_bytes, vault_bytes) = vault_bytes.split_at(32);
+    let mint_atoken_account = Pubkey::new_from_array(mint_atoken_account_bytes.try_into().unwrap());
+
     let (owner_bytes, _vault_bytes) = vault_bytes.split_at(32);
     let owner = Pubkey::new_from_array(owner_bytes.try_into().unwrap());
 
     Vault {
-        vault_account,
-        mint_account,
-        owner,
+        vault_account: vault_account,
+        mint_token_a: mint_account,
+        mint_a_token_a: mint_atoken_account, // Include the new field
+        owner: owner,
     }
 }
 #[tokio::test]

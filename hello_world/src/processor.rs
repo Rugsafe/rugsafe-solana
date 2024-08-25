@@ -203,10 +203,9 @@ impl Processor {
 
         //////////// NOTE DO WE MAKE A NEW VAULT ACCOUNT? or use an account
         // let vault_required_lamports = rent.minimum_balance(spl_token::state::Account::LEN);
-        msg!("Creating vault account");
         if vault_account.data_is_empty() {
             // associated attempt
-            msg!("Actually Creating Associated Token vault account");
+            // msg!("Actually Creating Associated Token vault account");
 
             invoke(
                 &spl_associated_token_account::instruction::create_associated_token_account(
@@ -242,7 +241,7 @@ impl Processor {
             let state_account_required_lamports = rent.minimum_balance(state_account_size);
 
             // Create the state account
-            msg!("about to create state cuz its empty");
+            // msg!("about to create state cuz its empty");
 
             // invoke(
             invoke_signed(
@@ -265,9 +264,10 @@ impl Processor {
             // Initialize VaultRegistry and serialize it into the state account's data
             let mut vault_registry = VaultRegistry { vaults: Vec::new() };
 
-            let new_vault: Vault = Vault {
+            let new_vault = Vault {
                 vault_account: *vault_account.key,
-                mint_account: *mint_account_a_token_a.key,
+                mint_token_a: *mint_account_token_a.key,
+                mint_a_token_a: *mint_account_a_token_a.key,
                 owner: *payer_account.key,
             };
 
@@ -342,7 +342,7 @@ impl Processor {
                 return Err(ProgramError::Custom(2));
             }
 
-            msg!("State account initialized successfully");
+            // msg!("State account initialized successfully");
         } else {
             msg!("State account is already initialized");
 
@@ -359,7 +359,8 @@ impl Processor {
             // Step 2: Add the new vault to the registry
             let new_vault = Vault {
                 vault_account: *vault_account.key,
-                mint_account: *mint_account_a_token_a.key,
+                mint_token_a: *mint_account_token_a.key,
+                mint_a_token_a: *mint_account_a_token_a.key,
                 owner: *payer_account.key,
             };
 
@@ -387,7 +388,7 @@ impl Processor {
                 &state_data[..64]
             );
 
-            msg!("VaultRegistry updated successfully");
+            // msg!("VaultRegistry updated successfully");
 
             // Log the number of vaults in the registry after the update
             let vault_count = vault_registry.vault_count();
@@ -460,6 +461,7 @@ impl Processor {
 
         // msg!("Vault account mint: {}", vault_account_info.mint);
 
+        // SAYING: is the users account mint, is not
         if user_token_account_info.mint != *mint_token_a_account.key {
             msg!("Error: The mint associated with the user's TokenA account does not match the expected mint.");
             return Err(ProgramError::InvalidAccountData);

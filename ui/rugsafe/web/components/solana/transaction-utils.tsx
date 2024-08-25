@@ -23,26 +23,28 @@ import BN from 'bn.js';
 // Define Vault and VaultRegistry classes
 class Vault {
     vaultAccount: PublicKey;
-    mintAccount: PublicKey;
+    mintTokenA: PublicKey;
+    mintATokenA: PublicKey;
     owner: PublicKey;
 
-    static LEN: number = 32 * 3;
+    static LEN: number = 32 * 4; // Updated to include 4 Pubkeys
 
-    constructor(fields: { vaultAccount: Uint8Array; mintAccount: Uint8Array; owner: Uint8Array }) {
+    constructor(fields: { vaultAccount: Uint8Array; mintTokenA: Uint8Array; mintATokenA: Uint8Array; owner: Uint8Array }) {
         this.vaultAccount = new PublicKey(fields.vaultAccount);
-        this.mintAccount = new PublicKey(fields.mintAccount);
+        this.mintTokenA = new PublicKey(fields.mintTokenA);
+        this.mintATokenA = new PublicKey(fields.mintATokenA);
         this.owner = new PublicKey(fields.owner);
     }
 
     static deserialize(input: Uint8Array): Vault {
         return new Vault({
             vaultAccount: input.slice(0, 32),
-            mintAccount: input.slice(32, 64),
-            owner: input.slice(64, 96),
+            mintTokenA: input.slice(32, 64),
+            mintATokenA: input.slice(64, 96),
+            owner: input.slice(96, 128),
         });
     }
 }
-
 
 class VaultRegistry {
     vaults: Vault[];
@@ -65,7 +67,6 @@ class VaultRegistry {
         return new VaultRegistry(vaults);
     }
 }
-
 
 Vault.LEN = 96; // 32 * 5 bytes for each Pubkey
 
@@ -182,101 +183,185 @@ export async function createVault(
     return signature;
 }
 
+// export async function deposit(
+//     programId: PublicKey,
+//     mintPubkey: PublicKey,
+//     vaultPubkey: PublicKey,
+//     userTokenAPubkey: PublicKey,
+//     // userATokenAPubkey: Keypair,
+//     userATokenAPubkey: PublicKey,
+//     depositAmount: number,
+//     wallet: WalletContextState,
+//     connection: Connection
+// ) {
+
+//     const rentPubkey = new PublicKey("SysvarRent111111111111111111111111111111111");
+//     const splPubkey = TOKEN_PROGRAM_ID;
+
+//     console.log("programId", programId.toString())
+//     console.log("mintPubkey", mintPubkey.toString())
+//     console.log("vaultPubkey", vaultPubkey.toString())
+//     console.log("userTokenAPubkey", userTokenAPubkey.toString())
+//     console.log("userATokenAPubkey", userATokenAPubkey.toString())
+//     console.log("depositAmount", depositAmount)
+    
+//     // Prepare deposit instruction data
+//     // let depositInstructionData = Buffer.alloc(32);
+//     // depositInstructionData.writeUInt8(1, 0); // Instruction ID for "Deposit"
+//     // depositInstructionData.writeBigUInt64LE(BigInt(depositAmount), 1);
+
+    
+
+//     // console.log("depositInstructionData", depositInstructionData)
+//     const [stateAccountPDA, bump] = await PublicKey.findProgramAddress([Buffer.from('vault_registry')], programId);
+//     console.log("stateAccountPDA", stateAccountPDA)
+//     console.log("bump", bump)
+    
+//     // const amount = 1;
+//     // const data = Buffer.from([1, ...new Uint8Array(new BN(amount).toArray('le', 8))]);
+//     const amount = 10;
+//     const data = Buffer.from([1, ...new Uint8Array(new BN(amount).toArray('le', 8))]);
+
+
+//     const depositInstruction = new TransactionInstruction({
+//         programId,
+//         keys: [
+//             { pubkey: wallet.publicKey as PublicKey, isSigner: true, isWritable: true }, // Payer
+//             { pubkey: mintPubkey, isSigner: false, isWritable: true }, // Mint account
+//             { pubkey: vaultPubkey, isSigner: false, isWritable: true }, // Vault account
+//             { pubkey: userTokenAPubkey, isSigner: false, isWritable: true }, // User's Token account
+//             // { pubkey: userATokenAPubkey.publicKey, isSigner: false, isWritable: true }, // User's aToken account
+//             { pubkey: userATokenAPubkey, isSigner: false, isWritable: true }, // User's aToken account
+//             { pubkey: rentPubkey, isSigner: false, isWritable: true }, // Rent sysvar
+//             { pubkey: splPubkey, isSigner: false, isWritable: true }, // SPL Token Program
+//             { pubkey: SystemProgram.programId, isSigner: false, isWritable: true }, // System Program
+//             { pubkey: stateAccountPDA, isSigner: false, isWritable: true }, 
+
+//         ],
+//         // data: depositInstructionData,
+//         // data: Buffer.from([1, 100]),
+//         data,
+//     });
+
+//     console.log("depositInstruction")
+//     console.log(depositInstruction)
+
+//     const transaction = new Transaction().add(depositInstruction);
+//     console.log(transaction)
+//     try {
+//         const { blockhash } = await connection.getRecentBlockhash();
+//         transaction.recentBlockhash = blockhash;
+//         transaction.feePayer = wallet.publicKey as PublicKey;
+
+//         // Sign the transaction with wallet
+//         // const signature = await wallet.sendTransaction(transaction, connection, {
+//         //     skipPreflight: false,
+//         //     preflightCommitment: 'confirmed',
+//         // });
+
+//         const signature = await wallet.sendTransaction(
+//             transaction, 
+//             connection, 
+//             { 
+//                 skipPreflight: true, 
+//                 preflightCommitment: 'singleGossip', 
+//                 // signers: [mintKeypair, userTokenAccount]
+//                 // signers: [wallet, mintKeypair, userTokenAccount]
+//                 // signers: [userATokenAPubkey]
+//                 signers: []
+
+//             });
+
+//         // Confirm the transaction
+//         await connection.confirmTransaction(signature, 'confirmed');
+//         console.log('Transaction successful with signature:', signature);
+//         return signature;
+//     } catch (error) {
+//         console.error('Transaction failed', error);
+//         throw error;
+//     }
+// }
+
 export async function deposit(
     programId: PublicKey,
-    mintPubkey: PublicKey,
+    mintTokenAPubkey: PublicKey,
+    mintATokenAPubkey: PublicKey,
+    // mintATokenAPubkey: Keypair,
     vaultPubkey: PublicKey,
     userTokenAPubkey: PublicKey,
-    // userATokenAPubkey: Keypair,
     userATokenAPubkey: PublicKey,
     depositAmount: number,
     wallet: WalletContextState,
     connection: Connection
 ) {
-
     const rentPubkey = new PublicKey("SysvarRent111111111111111111111111111111111");
     const splPubkey = TOKEN_PROGRAM_ID;
 
-    console.log("programId", programId.toString())
-    console.log("mintPubkey", mintPubkey.toString())
-    console.log("vaultPubkey", vaultPubkey.toString())
-    console.log("userTokenAPubkey", userTokenAPubkey.toString())
-    console.log("userATokenAPubkey", userATokenAPubkey.toString())
-    console.log("depositAmount", depositAmount)
-    
-    // Prepare deposit instruction data
-    // let depositInstructionData = Buffer.alloc(32);
-    // depositInstructionData.writeUInt8(1, 0); // Instruction ID for "Deposit"
-    // depositInstructionData.writeBigUInt64LE(BigInt(depositAmount), 1);
+    console.log("programId", programId.toString());
+    console.log("mintTokenAPubkey", mintTokenAPubkey.toString());
+    console.log("mintATokenAPubkey", mintATokenAPubkey.toString());
+    console.log("vaultPubkey", vaultPubkey.toString());
+    console.log("userTokenAPubkey", userTokenAPubkey.toString());
+    console.log("userATokenAPubkey", userATokenAPubkey.toString());
+    console.log("depositAmount", depositAmount);
 
-    
+    // Find the PDA for the state account
+    const [stateAccountPDA, bump] = await PublicKey.findProgramAddress(
+        [Buffer.from('vault_registry')],
+        programId
+    );
+    console.log("stateAccountPDA", stateAccountPDA.toString());
+    console.log("bump", bump);
 
-    // console.log("depositInstructionData", depositInstructionData)
-    const [stateAccountPDA, bump] = await PublicKey.findProgramAddress([Buffer.from('vault_registry')], programId);
-    console.log("stateAccountPDA", stateAccountPDA)
-    console.log("bump", bump)
-    
-    // const amount = 1;
-    // const data = Buffer.from([1, ...new Uint8Array(new BN(amount).toArray('le', 8))]);
-    const amount = 10;
-    const data = Buffer.from([1, ...new Uint8Array(new BN(amount).toArray('le', 8))]);
-
+    // Prepare the instruction data
+    const data = Buffer.from([1, ...new Uint8Array(new BN(depositAmount).toArray('le', 8))]);
 
     const depositInstruction = new TransactionInstruction({
         programId,
         keys: [
             { pubkey: wallet.publicKey as PublicKey, isSigner: true, isWritable: true }, // Payer
-            { pubkey: mintPubkey, isSigner: false, isWritable: true }, // Mint account
+            { pubkey: mintTokenAPubkey, isSigner: false, isWritable: true }, // TokenA Mint account
+            { pubkey: mintATokenAPubkey, isSigner: false, isWritable: true }, // aTokenA Mint account
+            // { pubkey: mintATokenAPubkey.publicKey, isSigner: false, isWritable: true }, // aTokenA Mint account
             { pubkey: vaultPubkey, isSigner: false, isWritable: true }, // Vault account
-            { pubkey: userTokenAPubkey, isSigner: false, isWritable: true }, // User's Token account
-            // { pubkey: userATokenAPubkey.publicKey, isSigner: false, isWritable: true }, // User's aToken account
-            { pubkey: userATokenAPubkey, isSigner: false, isWritable: true }, // User's aToken account
-            { pubkey: rentPubkey, isSigner: false, isWritable: true }, // Rent sysvar
-            { pubkey: splPubkey, isSigner: false, isWritable: true }, // SPL Token Program
-            { pubkey: SystemProgram.programId, isSigner: false, isWritable: true }, // System Program
-            { pubkey: stateAccountPDA, isSigner: false, isWritable: true }, 
-
+            { pubkey: userTokenAPubkey, isSigner: false, isWritable: true }, // User's TokenA account
+            { pubkey: userATokenAPubkey, isSigner: false, isWritable: true }, // User's aTokenA account
+            { pubkey: rentPubkey, isSigner: false, isWritable: false }, // Rent sysvar
+            { pubkey: splPubkey, isSigner: false, isWritable: false }, // SPL Token Program
+            { pubkey: SystemProgram.programId, isSigner: false, isWritable: false }, // System Program
+            // { pubkey: stateAccountPDA, isSigner: false, isWritable: true }, // State account PDA
+            { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: true }, // State account PDA
         ],
-        // data: depositInstructionData,
-        // data: Buffer.from([1, 100]),
         data,
     });
 
-    console.log("depositInstruction")
-    console.log(depositInstruction)
+    console.log("depositInstruction:", depositInstruction);
 
     const transaction = new Transaction().add(depositInstruction);
-    console.log(transaction)
+    console.log("Transaction:", transaction);
+
     try {
         const { blockhash } = await connection.getRecentBlockhash();
         transaction.recentBlockhash = blockhash;
         transaction.feePayer = wallet.publicKey as PublicKey;
 
-        // Sign the transaction with wallet
-        // const signature = await wallet.sendTransaction(transaction, connection, {
-        //     skipPreflight: false,
-        //     preflightCommitment: 'confirmed',
-        // });
-
+        // Sign and send the transaction
         const signature = await wallet.sendTransaction(
-            transaction, 
-            connection, 
-            { 
-                skipPreflight: true, 
-                preflightCommitment: 'singleGossip', 
-                // signers: [mintKeypair, userTokenAccount]
-                // signers: [wallet, mintKeypair, userTokenAccount]
-                // signers: [userATokenAPubkey]
-                signers: []
-
-            });
+            transaction,
+            connection,
+            {
+                skipPreflight: true,
+                preflightCommitment: 'singleGossip',
+                signers: [] // No additional signers needed since wallet is signing
+            }
+        );
 
         // Confirm the transaction
         await connection.confirmTransaction(signature, 'confirmed');
         console.log('Transaction successful with signature:', signature);
         return signature;
     } catch (error) {
-        console.error('Transaction failed', error);
+        console.error('Transaction failed:', error);
         throw error;
     }
 }
