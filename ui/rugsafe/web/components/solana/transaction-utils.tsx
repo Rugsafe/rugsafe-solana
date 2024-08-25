@@ -152,7 +152,7 @@ export async function createVault(
         new TransactionInstruction({
             keys: [
                 { pubkey: wallet.publicKey, isSigner: true, isWritable: true },
-                { pubkey: mintTokenAPubkey, isSigner: true, isWritable: true },
+                { pubkey: mintTokenAPubkey, isSigner: false, isWritable: true },
                 { pubkey: mintATokenAPubkey, isSigner: true, isWritable: true },
                 // { pubkey: atokenaPubkey, isSigner: false, isWritable: true },
                 { pubkey: vaultTokenAccount, isSigner: false, isWritable: true },
@@ -174,7 +174,8 @@ export async function createVault(
     const signature = await wallet.sendTransaction(transaction, connection, { 
         skipPreflight: true, 
         preflightCommitment: 'processed', 
-        signers: [mintTokenAKeypair, mintATokenAKeypair]
+        // signers: [mintTokenAPubkey, mintATokenAKeypair]
+        signers: [mintATokenAKeypair]
     });
 
     console.log('Transaction successful with signature:', signature);

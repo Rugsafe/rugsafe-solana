@@ -125,6 +125,8 @@ const ListVaultsFromRegistry = () => {
             }
         }
     
+        window.alert("setting balances")
+        console.log("newBalances:", newBalances)
         setBalances(newBalances);
     };
     

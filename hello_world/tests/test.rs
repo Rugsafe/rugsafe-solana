@@ -152,7 +152,8 @@ async fn test_create_vault() -> Result<(), TransportError> {
     transaction.sign(
         // &[&payer, &mint_keypair, &vault_keypair, &state_keypair],
         // &[&payer, &mint_keypair, &vault_keypair],
-        &[&payer, &mint_tokena_keypair, &mint_atokena_keypair],
+        // &[&payer, &mint_tokena_keypair, &mint_atokena_keypair],
+        &[&payer, &mint_atokena_keypair],
         recent_blockhash,
     );
 
@@ -217,6 +218,10 @@ async fn test_create_two_vaults() -> Result<(), TransportError> {
         create_token_mint(banks_client, &payer, recent_blockhash, &payer.pubkey()).await?;
     let mint_tokena_key1 = mint_tokena_keypair1.pubkey();
 
+    // Create a new keypair for AToken A
+    let mint_atokena_keypair1 = Keypair::new();
+    let mint_atokena_key1 = mint_atokena_keypair1.pubkey();
+
     // Derive the associated token account for the first vault
     let vault_key1: Pubkey = get_associated_token_address(&payer.pubkey(), &mint_tokena_key1);
 
@@ -225,8 +230,8 @@ async fn test_create_two_vaults() -> Result<(), TransportError> {
     let create_vault_instruction1 = create_vault_instruction(
         &program_id,
         &vault_key1,
-        &mint_tokena_key1, // Token A mint
-        &mint_tokena_key1, // AToken A mint
+        &mint_tokena_key1,  // Token A mint
+        &mint_atokena_key1, // AToken A mint
         &payer.pubkey(),
         &state_account_pda,
         &associated_token_program,
@@ -234,7 +239,7 @@ async fn test_create_two_vaults() -> Result<(), TransportError> {
 
     let mut transaction1 =
         Transaction::new_with_payer(&[create_vault_instruction1], Some(&payer.pubkey()));
-    transaction1.sign(&[&payer, &mint_tokena_keypair1], recent_blockhash);
+    transaction1.sign(&[&payer, &mint_atokena_keypair1], recent_blockhash);
     banks_client.process_transaction(transaction1).await?;
 
     // Verify first vault creation
@@ -246,6 +251,10 @@ async fn test_create_two_vaults() -> Result<(), TransportError> {
         create_token_mint(banks_client, &payer, recent_blockhash, &payer.pubkey()).await?;
     let mint_tokena_key2 = mint_tokena_keypair2.pubkey();
 
+    // Create a new keypair for AToken A for the second vault
+    let mint_atokena_keypair2 = Keypair::new();
+    let mint_atokena_key2 = mint_atokena_keypair2.pubkey();
+
     // Derive the associated token account for the second vault
     let vault_key2: Pubkey = get_associated_token_address(&payer.pubkey(), &mint_tokena_key2);
 
@@ -254,8 +263,8 @@ async fn test_create_two_vaults() -> Result<(), TransportError> {
     let create_vault_instruction2 = create_vault_instruction(
         &program_id,
         &vault_key2,
-        &mint_tokena_key2, // Token A mint
-        &mint_tokena_key2, // AToken A mint
+        &mint_tokena_key2,  // Token A mint
+        &mint_atokena_key2, // AToken A mint
         &payer.pubkey(),
         &state_account_pda,
         &associated_token_program,
@@ -263,7 +272,7 @@ async fn test_create_two_vaults() -> Result<(), TransportError> {
 
     let mut transaction2 =
         Transaction::new_with_payer(&[create_vault_instruction2], Some(&payer.pubkey()));
-    transaction2.sign(&[&payer, &mint_tokena_keypair2], recent_blockhash);
+    transaction2.sign(&[&payer, &mint_atokena_keypair2], recent_blockhash);
     banks_client.process_transaction(transaction2).await?;
 
     // Verify second vault creation
@@ -332,8 +341,9 @@ async fn test_deposit() -> Result<(), BanksClientError> {
     let transaction = Transaction::new_signed_with_payer(
         &[create_vault_instruction],
         Some(&payer.pubkey()),
-        &[&payer, &mint_tokena_keypair, &mint_atokena_keypair],
+        // &[&payer, &mint_tokena_keypair, &mint_atokena_keypair],
         // &[&payer, &mint_tokena_keypair],
+        &[&payer, &mint_atokena_keypair],
         recent_blockhash,
     );
     banks_client.process_transaction(transaction).await?;
@@ -471,7 +481,7 @@ fn create_vault_instruction(
 ) -> Instruction {
     let accounts = vec![
         AccountMeta::new(*payer, true),
-        AccountMeta::new(*mint_key_token_a, true),
+        AccountMeta::new(*mint_key_token_a, false),
         AccountMeta::new(*mint_key_a_token_a, true),
         AccountMeta::new(*vault_key, false),
         AccountMeta::new_readonly(sysvar::rent::id(), false),
@@ -639,7 +649,8 @@ async fn test_fetch_vault_from_registry() -> Result<(), TransportError> {
 
     println!("Signing the transaction...");
     transaction.sign(
-        &[&payer, &mint_tokena_keypair, &mint_atokena_keypair],
+        // &[&payer, &mint_tokena_keypair, &mint_atokena_keypair],
+        &[&payer, &mint_atokena_keypair],
         recent_blockhash,
     );
 
@@ -728,7 +739,8 @@ async fn test_fetch_vault_with_data_from_registry() -> Result<(), TransportError
 
     println!("Signing the transaction...");
     transaction.sign(
-        &[&payer, &mint_tokena_keypair, &mint_atokena_keypair],
+        // &[&payer, &mint_tokena_keypair, &mint_atokena_keypair],
+        &[&payer, &mint_atokena_keypair],
         recent_blockhash,
     );
 
