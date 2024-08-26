@@ -176,6 +176,41 @@ async fn test_create_vault() -> Result<(), TransportError> {
     let vault_account = banks_client.get_account(vault_key).await?;
     assert!(vault_account.is_some(), "Vault account not created");
 
+    // assertions
+    let state_account = banks_client.get_account(state_key).await?;
+    assert!(state_account.is_some(), "State account not found");
+    let state_data = state_account.unwrap().data;
+
+    // Deserialize the VaultRegistry
+    let vault_registry =
+        VaultRegistry::deserialize(&state_data).expect("Failed to deserialize VaultRegistry");
+
+    // Ensure the vault registry contains two vaults
+    assert_eq!(
+        vault_registry.vaults.len(),
+        1,
+        "Vault registry should contain exactly one vault"
+    );
+
+    let first_vault = &vault_registry.vaults[0];
+    assert_eq!(
+        first_vault.vault_account, vault_key,
+        "First vault account mismatch"
+    );
+    assert_eq!(
+        first_vault.mint_token_a, mint_tokena_key,
+        "First mint_token_a mismatch"
+    );
+    assert_eq!(
+        first_vault.mint_a_token_a, mint_atokena_key,
+        "First mint_a_token_a mismatch"
+    );
+    assert_eq!(
+        first_vault.owner,
+        payer.pubkey(),
+        "First vault owner mismatch"
+    );
+
     println!("Test completed successfully.");
     Ok(())
 }

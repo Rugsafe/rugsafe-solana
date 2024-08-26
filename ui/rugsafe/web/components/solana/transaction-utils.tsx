@@ -20,14 +20,22 @@ import { getAssociatedTokenAddress,
 import BN from 'bn.js';
 
 
-// Define Vault and VaultRegistry classes
+
+
+
+
+///////////////////////////////////////////////
+
+
+
+
 class Vault {
     vaultAccount: PublicKey;
     mintTokenA: PublicKey;
     mintATokenA: PublicKey;
     owner: PublicKey;
 
-    static LEN: number = 32 * 4; // Updated to include 4 Pubkeys
+    static LEN: number = 128; // 32 bytes * 4 Pubkeys
 
     constructor(fields: { vaultAccount: Uint8Array; mintTokenA: Uint8Array; mintATokenA: Uint8Array; owner: Uint8Array }) {
         this.vaultAccount = new PublicKey(fields.vaultAccount);
@@ -37,6 +45,13 @@ class Vault {
     }
 
     static deserialize(input: Uint8Array): Vault {
+        // Logging each part of the slice to validate
+        console.log("Raw input:", input);
+        console.log("VaultAccount slice:", input.slice(0, 32));
+        console.log("MintTokenA slice:", input.slice(32, 64));
+        console.log("MintATokenA slice:", input.slice(64, 96));
+        console.log("Owner slice:", input.slice(96, 128));
+        
         return new Vault({
             vaultAccount: input.slice(0, 32),
             mintTokenA: input.slice(32, 64),
@@ -56,10 +71,14 @@ class VaultRegistry {
     static deserialize(data: Uint8Array): VaultRegistry {
         const vaults: Vault[] = [];
         const vaultCount = new DataView(data.buffer).getUint32(0, true); // Read the vault count (4 bytes)
-        let offset = 4;
+        let offset = 16; // Start after the count
+
+        console.log(`Vault count: ${vaultCount}`);
 
         for (let i = 0; i < vaultCount; i++) {
             const vault = Vault.deserialize(data.slice(offset, offset + Vault.LEN));
+            console.log(`Deserialized Vault #${i + 1}:`, vault);
+            console.log(`mintATokenA for Vault #${i + 1}:`, vault.mintATokenA.toString());
             vaults.push(vault);
             offset += Vault.LEN;
         }
@@ -68,34 +87,51 @@ class VaultRegistry {
     }
 }
 
-Vault.LEN = 96; // 32 * 5 bytes for each Pubkey
+Vault.LEN = 128; // 32 * 4 bytes for each Pubkey
 
 
-const VaultSchema = new Map([
-    [
-        Vault,
-        {
-            kind: 'struct',
-            fields: [
-                ['vaultAccount', [32]],
-                ['mintAccount', [32]],
-                ['owner', [32]],
-            ],
-        },
-    ],
-]);
 
-const VaultRegistrySchema = new Map([
-    [
-        VaultRegistry,
-        {
-            kind: 'struct',
-            fields: [
-                ['vaults', [Vault]],
-            ],
-        },
-    ],
-]);
+
+////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// const VaultSchema = new Map([
+//     [
+//         Vault,
+//         {
+//             kind: 'struct',
+//             fields: [
+//                 ['vaultAccount', [32]],
+//                 ['mintAccount', [32]],
+//                 ['owner', [32]],
+//             ],
+//         },
+//     ],
+// ]);
+
+// const VaultRegistrySchema = new Map([
+//     [
+//         VaultRegistry,
+//         {
+//             kind: 'struct',
+//             fields: [
+//                 ['vaults', [Vault]],
+//             ],
+//         },
+//     ],
+// ]);
 
 export { Vault, VaultRegistry };
 export async function createVault(
@@ -137,13 +173,13 @@ export async function createVault(
     )
 
     // Derive the associated token account for ATokenA
-    const atokenaPubkey = await getAssociatedTokenAddress(
-        mintATokenAPubkey,
-        wallet.publicKey,
-        false,
-        TOKEN_PROGRAM_ID,
-        ASSOCIATED_TOKEN_PROGRAM_ID
-    );
+    // const atokenaPubkey = await getAssociatedTokenAddress(
+    //     mintATokenAPubkey,
+    //     wallet.publicKey,
+    //     false,
+    //     TOKEN_PROGRAM_ID,
+    //     ASSOCIATED_TOKEN_PROGRAM_ID
+    // );
 
     const [pda, _bump] = await PublicKey.findProgramAddress([Buffer.from('vault_registry')], programId);
 
