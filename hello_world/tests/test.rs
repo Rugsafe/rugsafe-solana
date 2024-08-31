@@ -914,7 +914,8 @@ async fn test_faucet() -> Result<(), Box<dyn std::error::Error>> {
 
     //////////////////////////////
     // Create user token account keypair
-    let user_token_keypair: Keypair = Keypair::new();
+    // let user_token_keypair: Keypair = Keypair::new();
+    let user_token_account = get_associated_token_address(&payer.pubkey(), &mint_pubkey);
 
     // Prepare the faucet instruction
     let amount: u64 = 1000;
@@ -925,7 +926,10 @@ async fn test_faucet() -> Result<(), Box<dyn std::error::Error>> {
         program_id,
         accounts: vec![
             AccountMeta::new(payer.pubkey(), true),
-            AccountMeta::new(user_token_keypair.pubkey(), true),
+            //
+            // AccountMeta::new(user_token_keypair.pubkey(), true),
+            AccountMeta::new(user_token_account, false),
+            //
             AccountMeta::new(mint_pubkey, false), // Use derived mint pubkey
             AccountMeta::new_readonly(spl_token::id(), false),
             AccountMeta::new_readonly(solana_program::sysvar::rent::ID, false),
@@ -938,10 +942,11 @@ async fn test_faucet() -> Result<(), Box<dyn std::error::Error>> {
     let faucet_tx = Transaction::new_signed_with_payer(
         &[faucet_ix],
         Some(&payer.pubkey()),
-        &[&payer, &user_token_keypair], // No mint keypair, backend handles mint creation
         // &[&payer, &mint_keypair, &user_token_keypair],
         // &[&payer, mint_pubkey],
         // &[&payer],
+        // &[&payer, &user_token_keypair], // No mint keypair, backend handles mint creation
+        &[&payer],
         recent_blockhash,
     );
     banks_client.process_transaction(faucet_tx).await?;
@@ -949,7 +954,8 @@ async fn test_faucet() -> Result<(), Box<dyn std::error::Error>> {
     // Verify the user token account balance
     println!("Verifying user token account balance...");
     let user_token_account = banks_client
-        .get_account(user_token_keypair.pubkey())
+        // .get_account(user_token_keypair.pubkey())
+        .get_account(user_token_account)
         .await?
         .expect("user_token_account not found");
 

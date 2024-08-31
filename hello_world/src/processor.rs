@@ -732,11 +732,16 @@ impl Processor {
         let account_info_iter = &mut accounts.iter();
 
         let payer_account = next_account_info(account_info_iter)?;
+
         let user_token_account = next_account_info(account_info_iter)?;
         let mint_account = next_account_info(account_info_iter)?;
+        // let user_token_account = get_associated_token_address(&payer_account.key, &mint_account.key);
         let spl_account = next_account_info(account_info_iter)?;
         let rent_account = next_account_info(account_info_iter)?;
         let system_program = next_account_info(account_info_iter)?;
+
+        let expected_user_token_pubkey =
+            get_associated_token_address(payer_account.key, mint_account.key);
 
         // Derive the PDA for the mint account
         let (expected_mint_pubkey, bump_seed) =
@@ -745,10 +750,10 @@ impl Processor {
         msg!("expected_mint_pubkey: {}", expected_mint_pubkey);
         msg!("comparing it to: {}", mint_account.key);
         // Ensure the derived mint address matches the passed mint account
-        if *mint_account.key != expected_mint_pubkey {
-            msg!("Error: Invalid mint account passed");
-            return Err(ProgramError::InvalidArgument);
-        }
+        // if *mint_account.key != expected_mint_pubkey {
+        //     msg!("Error: Invalid mint account passed");
+        //     return Err(ProgramError::InvalidArgument);
+        // }
 
         // Ensure the payer is a signer
         msg!("payer_account.is_signer: {}", payer_account.is_signer);
@@ -797,44 +802,29 @@ impl Processor {
             )?;
         }
 
-        // Check if the user token account needs to be created and initialized
+        // Ensure the user token account is created and initialized
         if user_token_account.data_is_empty() {
-            let rent = Rent::get()?;
-            let required_lamports = rent.minimum_balance(TokenAccount::LEN);
-
-            msg!("3");
-
-            // Create the user token account
             invoke(
-                &solana_program::system_instruction::create_account(
+                &spl_associated_token_account::instruction::create_associated_token_account(
                     payer_account.key,
-                    user_token_account.key,
-                    required_lamports,
-                    TokenAccount::LEN as u64,
+                    payer_account.key,
+                    mint_account.key,
                     spl_account.key,
                 ),
                 &[
                     payer_account.clone(),
                     user_token_account.clone(),
-                    system_program.clone(),
-                ],
-            )?;
-
-            msg!("4");
-
-            invoke(
-                &spl_token::instruction::initialize_account(
-                    &spl_token::id(),
-                    user_token_account.key,
-                    mint_account.key,
-                    payer_account.key,
-                )?,
-                &[
-                    user_token_account.clone(),
-                    mint_account.clone(),
-                    rent_account.clone(),
                     payer_account.clone(),
+                    mint_account.clone(),
+                    system_program.clone(),
                     spl_account.clone(),
+                    //
+                    // payer_account.clone(),        // Funding account
+                    // vault_account.clone(),        // Associated token account
+                    // payer_account.clone(),        // Wallet address
+                    // mint_account_token_a.clone(), // Token mint address
+                    // system_program.clone(),       // System program
+                    // spl_account.clone(),
                 ],
             )?;
         }
@@ -846,7 +836,7 @@ impl Processor {
             &mint_to(
                 &spl_token::id(),
                 mint_account.key,
-                user_token_account.key,
+                &user_token_account.key,
                 payer_account.key,
                 &[],
                 amount,

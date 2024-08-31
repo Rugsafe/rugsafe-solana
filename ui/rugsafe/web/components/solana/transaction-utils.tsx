@@ -165,8 +165,14 @@ export async function createVault(
     // );
 
     const vaultTokenAccount = await getAssociatedTokenAddress(
-        new PublicKey("DG3jdET19heUQjp8fdL54FBvFd5oFWZZjCG8XgmFAHQJ"), //mint
-        wallet.publicKey as PublicKey,
+        mintTokenAPubkey, //mint
+
+        // note: here, we dont get a associated address for the wallet, but for the program
+        // to decide what is the unique vault address that will hole tokens
+        // wallet.publicKey as PublicKey,
+        programId,
+        
+        
         true,
         TOKEN_PROGRAM_ID,
         ASSOCIATED_TOKEN_PROGRAM_ID
@@ -453,10 +459,20 @@ export const callFaucet = async (
     //     ],
     //     TOKEN_PROGRAM_ID
     // );
-    const userTokenKeypair = Keypair.generate();
-    const userTokenAccount = userTokenKeypair.publicKey;
 
+    // v1
+    // const userTokenKeypair = Keypair.generate();
+    // const userTokenAccount = userTokenKeypair.publicKey;
 
+    const userTokenAccount = await getAssociatedTokenAddress(
+        mintPublicKey,           // Mint address
+        wallet.publicKey,        // Owner of the associated token account
+        false,                   // Allow owner off curve
+        TOKEN_PROGRAM_ID,        // Token program ID
+        ASSOCIATED_TOKEN_PROGRAM_ID // Associated token program ID
+    );
+
+        window.alert(userTokenAccount)
     console.log("Generated user token account:", userTokenAccount.toString());
     console.log("Mint Public Key:", mintPublicKey.toBase58());
     console.log("User Token Account:", userTokenAccount.toBase58());
@@ -475,7 +491,7 @@ export const callFaucet = async (
         new TransactionInstruction({
             keys: [
                 { pubkey: wallet.publicKey, isSigner: true, isWritable: true },
-                { pubkey: userTokenAccount, isSigner: true, isWritable: true }, // PDA, not signed
+                { pubkey: userTokenAccount, isSigner: false, isWritable: true }, // PDA, not signed
                 { pubkey: mintPublicKey, isSigner: false, isWritable: true },
                 { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
                 { pubkey: rent, isSigner: false, isWritable: false },
@@ -499,7 +515,8 @@ export const callFaucet = async (
                 preflightCommitment: 'singleGossip', 
                 // signers: [mintKeypair, userTokenAccount]
                 // signers: [wallet, mintKeypair, userTokenAccount]
-                signers: [userTokenKeypair]
+                // signers: [userTokenKeypair]
+                signers: []
 
             });
 
@@ -509,6 +526,103 @@ export const callFaucet = async (
         throw error;
     }
 };
+
+
+// export const callFaucet = async (
+//     programId: PublicKey,
+//     wallet: any,
+//     connection: Connection
+// ) => {
+//     if (!wallet.publicKey) {
+//         throw new Error('Wallet not connected');
+//     }
+
+//     console.log("Program ID:", programId.toBase58());
+
+//     // Derive the mint PDA
+//     const [mintPublicKey] = await PublicKey.findProgramAddress(
+//         [Buffer.from("mint")],
+//         programId
+//     );
+
+//     const rent = new PublicKey("SysvarRent111111111111111111111111111111111");
+
+//     // Derive the associated token account (ATA) for the user
+//     const userTokenAccount = await PublicKey.createWithSeed(
+//         wallet.publicKey,
+//         "token_account",
+//         TOKEN_PROGRAM_ID
+//     );
+
+//     console.log("Derived user token ATA:", userTokenAccount.toString());
+//     console.log("Mint Public Key:", mintPublicKey.toBase58());
+
+//     const amount = 1000;
+//     const data = Buffer.from([4, ...new Uint8Array(new BN(amount).toArray('le', 8))]);
+
+//     const transaction = new Transaction();
+
+//     // Check if the ATA exists, if not, create it
+//     const userTokenAccountInfo = await connection.getAccountInfo(userTokenAccount);
+
+//     if (!userTokenAccountInfo) {
+//         transaction.add(
+//             createAssociatedTokenAccountInstruction(
+//                 ASSOCIATED_TOKEN_PROGRAM_ID, // Associated token program ID
+//                 TOKEN_PROGRAM_ID,            // Token program ID
+//                 mintPublicKey,               // Mint address
+//                 userTokenAccount,            // Associated token account address
+//                 wallet.publicKey,            // Owner of the associated token account
+//                 wallet.publicKey             // Payer of the transaction
+//             )
+//         );
+//         console.log("ATA created:", userTokenAccount.toBase58());
+//     } else {
+//         console.log("ATA already exists:", userTokenAccount.toBase58());
+//     }
+
+//     // Add the faucet instruction
+//     transaction.add(
+//         new TransactionInstruction({
+//             keys: [
+//                 { pubkey: wallet.publicKey, isSigner: true, isWritable: true },
+//                 { pubkey: userTokenAccount, isSigner: false, isWritable: true }, // ATA, not signed
+//                 { pubkey: mintPublicKey, isSigner: false, isWritable: true },
+//                 { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+//                 { pubkey: rent, isSigner: false, isWritable: false },
+//                 { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+//             ],
+//             programId,
+//             data: data,
+//         })
+//     );
+
+//     try {
+//         const { blockhash } = await connection.getRecentBlockhash();
+//         transaction.recentBlockhash = blockhash;
+//         transaction.feePayer = wallet.publicKey;
+
+//         const signature = await wallet.sendTransaction(
+//             transaction, 
+//             connection, 
+//             { 
+//                 skipPreflight: true, 
+//                 preflightCommitment: 'singleGossip'
+//             }
+//         );
+
+//         return signature;
+//     } catch (error) {
+//         console.error("Error in callFaucet:", error);
+//         throw error;
+//     }
+// };
+
+
+
+
+
+
 
 
 export const getTokenBalance = async (
