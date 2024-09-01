@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.4.1)  31 AUG 2024 15:50
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.4.1)  1 SEP 2024 12:26
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -183,7 +183,7 @@ e
 [1
 
 {/usr/local/texlive/2024/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-Overfull \hbox (36.61153pt too wide) detected at line 67
+Overfull \hbox (36.61153pt too wide) detected at line 64
 [] \OT1/cmr/m/n/10 = [] \OMS/cmsy/m/n/10 ! []
  []
 
@@ -191,14 +191,10 @@ Overfull \hbox (36.61153pt too wide) detected at line 67
 <images/5.png, id=19, 722.7pt x 433.62pt>
 File: images/5.png Graphic file (type png)
 <use images/5.png>
-Package pdftex.def Info: images/5.png  used on input line 156.
+Package pdftex.def Info: images/5.png  used on input line 153.
 (pdftex.def)             Requested size: 345.0pt x 206.9972pt.
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-[3] [4 <./images/5.png>] [5]
-Overfull \hbox (17.63953pt too wide) in paragraph at lines 251--252
+ [3] [4 <./images/5.png>] [5]
+Overfull \hbox (17.63953pt too wide) in paragraph at lines 248--249
 \OT1/cmr/m/n/10 tem|such as their use as col-lat-eral, in trad-ing pairs, or in
  yield farm-ing|contributes
  []
@@ -207,15 +203,19 @@ Overfull \hbox (17.63953pt too wide) in paragraph at lines 251--252
 <images/6.png, id=47, 462.528pt x 346.896pt>
 File: images/6.png Graphic file (type png)
 <use images/6.png>
-Package pdftex.def Info: images/6.png  used on input line 411.
+Package pdftex.def Info: images/6.png  used on input line 408.
 (pdftex.def)             Requested size: 345.0pt x 258.76335pt.
- [9 <./images/6.png>]
-Overfull \hbox (4.54868pt too wide) in paragraph at lines 425--425
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+Overfull \hbox (4.54868pt too wide) in paragraph at lines 422--422
 []\OT1/cmr/bx/n/12 Rugsafe To-ken Emis-sions and Pa-ram-e-ter-ized Re-wards
  []
 
-[10] [11]
-Overfull \hbox (13.27843pt too wide) in paragraph at lines 518--519
+[9] [10 <./images/6.png>] [11]
+Overfull \hbox (13.27843pt too wide) in paragraph at lines 515--516
 []\OT1/cmr/m/n/10 By im-ple-ment-ing this mech-a-nism, the Rugsafe chain of-fer
 s a ro-bust, community-
  []
@@ -233,7 +233,7 @@ Here is how much of TeX's memory you used:
  24895 multiletter control sequences out of 15000+600000
  564563 words of font info for 60 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 57i,7n,65p,725b,235s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 57i,7n,65p,1122b,235s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 ></usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
 </usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></
@@ -251,7 +251,7 @@ ve/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/
 /texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2024/t
 exmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/texlive/2024/te
 xmf-dist/fonts/type1/public/amsfonts/cm/cmtt8.pfb>
-Output written on paper.pdf (12 pages, 292152 bytes).
+Output written on paper.pdf (12 pages, 293882 bytes).
 PDF statistics:
  133 PDF objects out of 1000 (max. 8388607)
  80 compressed objects within 1 object stream
