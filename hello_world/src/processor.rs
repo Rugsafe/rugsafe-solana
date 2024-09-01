@@ -740,6 +740,8 @@ impl Processor {
         let rent_account = next_account_info(account_info_iter)?;
         let system_program = next_account_info(account_info_iter)?;
 
+        let associated_token_program = next_account_info(account_info_iter)?; // System program account
+
         let expected_user_token_pubkey =
             get_associated_token_address(payer_account.key, mint_account.key);
 
@@ -783,7 +785,7 @@ impl Processor {
                 &[&[b"mint".as_ref(), &[bump_seed]]],
             )?;
 
-            // msg!("2");
+            msg!("2");
 
             // // Initialize the mint account
             invoke(
@@ -797,10 +799,12 @@ impl Processor {
                 &[
                     mint_account.clone(),
                     rent_account.clone(),
-                    // payer_account.clone(),
+                    payer_account.clone(),
                 ],
             )?;
         }
+
+        msg!("3");
 
         // Ensure the user token account is created and initialized
         if user_token_account.data_is_empty() {
@@ -825,6 +829,15 @@ impl Processor {
                     // mint_account_token_a.clone(), // Token mint address
                     // system_program.clone(),       // System program
                     // spl_account.clone(),
+                    /*
+                    payer_account.clone(),        // Funding account
+                    vault_account.clone(),        // Associated token account
+                    payer_account.clone(),        // Wallet address
+                    mint_account_token_a.clone(), // Token mint address
+                    system_program.clone(),       // System program
+                    // NOTE: spl or associated
+                    spl_account.clone(),
+                    */
                 ],
             )?;
         }

@@ -30,7 +30,7 @@ Rugsafe introduces a comprehensive protocol aimed at mitigating the risks of rug
 
 %\clearpage
 
-%\tableofcontents
+\tableofcontents
 
 %\twocolumn
 
@@ -368,12 +368,8 @@ Rugsafe vaults act as decentralized oracles, providing reliable data on the exis
 
 
 
-
-
 \subsection{Whale Penalty Mechanism}
-To prevent large holders (whales) from gaming the system, the penalty for withdrawing rugged tokens $C_r$ scales with the amount of $C_a$ held. This mechanism is inspired by quadratic voting schemes, where the penalty increases progressively as the holder's balance of $C_a$ tokens grows, ensuring fairness and preventing manipulation.
-
-The penalty $P(C_a)$ for withdrawing rugged tokens is mathematically represented as:
+To prevent large holders (whales) from gaming the system, the penalty for withdrawing rugged tokens $C_r$ scales with the amount of $C_a$ held. this mechanism is inspired by quadratic voting schemes, where the penalty increases progressively as the holder's balance of $C_a$ tokens grows, ensuring fairness and preventing manipulation. The penalty $P(C_a)$ for withdrawing rugged tokens is mathematically represented as:
 
 \[
 P(C_a) \propto \left(H_{C_a}\right)^\lambda
@@ -381,37 +377,53 @@ P(C_a) \propto \left(H_{C_a}\right)^\lambda
 
 where $\lambda > 1$ is a scaling factor that ensures the penalty increases non-linearly with the amount of $C_a$ held.
 
-\subsubsection{Impact on Regular Users vs. Whales}
+\subsubsection{Impact on regular users vs. whales}
 
-For regular users, who typically hold smaller amounts of $C_a$, the penalty remains relatively low, as the function’s exponent $\lambda$ ensures that the penalty grows slowly with their holdings:
+for regular users, who typically hold smaller amounts of $C_a$, the penalty remains relatively low, as the function’s exponent $\lambda$ ensures that the penalty grows slowly with their holdings:
 
 \[
 P_{\text{regular}}(C_a) = k \cdot \left(H_{C_a}\right)^\lambda \quad \text{with} \quad \lambda > 1 \quad \text{and} \quad H_{C_a} \text{ small}
 \]
 
-where $k$ is a proportionality constant. For these users, the impact of the penalty is minimal, allowing them to interact with the protocol without significant costs, thus promoting fairness and inclusivity.
+Where $k$ is a proportionality constant. for these users, the impact of the penalty is minimal, allowing them to interact with the protocol without significant costs, thus promoting fairness and inclusivity.
 
-For whales, however, the penalty increases significantly due to their large holdings of $C_a$. As the amount of $C_a$ held by a whale increases, the penalty grows more steeply:
+For whales, however, the penalty increases significantly due to their large holdings of $C_a$. as the amount of $C_a$ held by a whale increases, the penalty grows more steeply:
 
 \[
 P_{\text{whale}}(C_a) = k \cdot \left(H_{C_a}\right)^\lambda \quad \text{with} \quad \lambda > 1 \quad \text{and} \quad H_{C_a} \text{ large}
 \]
 
-This non-linear increase in penalty serves two purposes. First, it deters whales from attempting to manipulate the system by accumulating and withdrawing large amounts of $C_r$. Second, it ensures that whales, who may also be regular users of the protocol, are subject to the same rules but with penalties that reflect their larger influence on the system.
+This non-linear increase in penalty serves two purposes. first, it deters whales from attempting to manipulate the system by accumulating and withdrawing large amounts of $C_r$. second, it ensures that whales, who may also be regular users of the protocol, are subject to the same rules but with penalties that reflect their larger influence on the system.
 
-\subsubsection{Equitable System Design}
+\subsubsection{equitable system design}
 
-By scaling the penalty non-linearly with the amount of $C_a$ held, as in figure \ref{fig:whale_penalty}, the system remains equitable for all users, regardless of their holdings. Regular users are protected from disproportionate penalties, while whales, whose actions could have a more significant impact on the system, face penalties commensurate with their holdings. This design discourages potential manipulation by large holders and promotes a more balanced and fair ecosystem for all participants.
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=\textwidth]{images/6.png}
-\caption{The impact of the whale penalty mechanism based on varying scaling factors $\lambda$. As $\lambda$ increases, the penalty for holding larger amounts of $C_a$ grows exponentially, particularly affecting whales with significant holdings.}
+\caption{the impact of the whale penalty mechanism based on varying scaling factors $\lambda$. as $\lambda$ increases, the penalty for holding larger amounts of $C_a$ grows exponentially, particularly affecting whales with significant holdings.}
 \label{fig:whale_penalty}
 \end{figure}
 
 
+By scaling the penalty non-linearly with the amount of $C_a$ held, as in figure \ref{fig:whale_penalty}, the system remains equitable for all users, regardless of their holdings. regular users are protected from disproportionate penalties, while whales, whose actions could have a more significant impact on the system, face penalties commensurate with their holdings. this design discourages potential manipulation by large holders and promotes a more balanced and fair ecosystem for all participants.
 
+\subsubsection{cumulative penalty mechanism}
+
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{images/9.png}
+\caption{the impact of the cumulative penalty mechanism on sybil attack attempts. the more accounts a whale creates to split their holdings, the higher the cumulative penalty becomes, discouraging such behavior.}
+\label{fig:cumulative_penalty}
+\end{figure}
+
+
+To further enhance the protocol's defense against potential sybil attacks, a cumulative penalty mechanism has been introduced. this mechanism accumulates penalties progressively with each withdrawal attempt, particularly when a whale attempts to split their holdings across multiple accounts to evade higher penalties.
+
+In this approach, the cumulative penalty is applied on a per-account basis but is aggregated across all related accounts. as illustrated in figure \ref{fig:cumulative_penalty}, the more accounts a whale creates to distribute their holdings, the more significant the overall penalty becomes. this cumulative effect discourages sybil attacks by ensuring that the total penalty incurred across all accounts exceeds what would have been paid if the whale had used a single account.
+
+This combined system of both the original non-linear penalty and the cumulative penalty ensures that whales are doubly incentivized to avoid manipulative behaviors. they face increasing penalties for holding large amounts of $C_a$ and additional cumulative penalties if they attempt to circumvent the system through sybil attacks.
 
 
 

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.4.1)  1 SEP 2024 12:26
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.4.1)  1 SEP 2024 14:25
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -180,20 +180,28 @@ Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
 e
 ))
-[1
+(./paper.toc [1
 
-{/usr/local/texlive/2024/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
+{/usr/local/texlive/2024/texmf-var/fonts/map/pdftex/updmap/pdftex.map}])
+\tf@toc=\write3
+\openout3 = `paper.toc'.
+
+
 Overfull \hbox (36.61153pt too wide) detected at line 64
 [] \OT1/cmr/m/n/10 = [] \OMS/cmsy/m/n/10 ! []
  []
 
-[2]
-<images/5.png, id=19, 722.7pt x 433.62pt>
+[2] [3]
+<images/5.png, id=22, 722.7pt x 433.62pt>
 File: images/5.png Graphic file (type png)
 <use images/5.png>
 Package pdftex.def Info: images/5.png  used on input line 153.
 (pdftex.def)             Requested size: 345.0pt x 206.9972pt.
- [3] [4 <./images/5.png>] [5]
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+[4] [5 <./images/5.png>]
 Overfull \hbox (17.63953pt too wide) in paragraph at lines 248--249
 \OT1/cmr/m/n/10 tem|such as their use as col-lat-eral, in trad-ing pairs, or in
  yield farm-ing|contributes
@@ -203,37 +211,47 @@ Overfull \hbox (17.63953pt too wide) in paragraph at lines 248--249
 <images/6.png, id=47, 462.528pt x 346.896pt>
 File: images/6.png Graphic file (type png)
 <use images/6.png>
-Package pdftex.def Info: images/6.png  used on input line 408.
+Package pdftex.def Info: images/6.png  used on input line 403.
 (pdftex.def)             Requested size: 345.0pt x 258.76335pt.
+ [9]
+<images/9.png, id=51, 722.7pt x 433.62pt>
+File: images/9.png Graphic file (type png)
+<use images/9.png>
+Package pdftex.def Info: images/9.png  used on input line 416.
+(pdftex.def)             Requested size: 345.0pt x 206.9972pt.
 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-
-Overfull \hbox (4.54868pt too wide) in paragraph at lines 422--422
+[10 <./images/6.png>]
+Overfull \hbox (4.54868pt too wide) in paragraph at lines 434--434
 []\OT1/cmr/bx/n/12 Rugsafe To-ken Emis-sions and Pa-ram-e-ter-ized Re-wards
  []
 
-[9] [10 <./images/6.png>] [11]
-Overfull \hbox (13.27843pt too wide) in paragraph at lines 515--516
+[11 <./images/9.png>] [12]
+Overfull \hbox (13.27843pt too wide) in paragraph at lines 527--528
 []\OT1/cmr/m/n/10 By im-ple-ment-ing this mech-a-nism, the Rugsafe chain of-fer
 s a ro-bust, community-
  []
 
-[12] (./paper.aux)
+[13] [14] (./paper.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-02-20>
  ***********
+
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
  ) 
 Here is how much of TeX's memory you used:
- 2530 strings out of 474116
- 37762 string characters out of 5743683
- 1934187 words of memory out of 5000000
- 24895 multiletter control sequences out of 15000+600000
+ 2545 strings out of 474116
+ 38000 string characters out of 5743683
+ 1935187 words of memory out of 5000000
+ 24907 multiletter control sequences out of 15000+600000
  564563 words of font info for 60 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 57i,7n,65p,1122b,235s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 57i,7n,65p,1122b,237s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 ></usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
 </usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></
@@ -251,10 +269,10 @@ ve/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/
 /texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2024/t
 exmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/texlive/2024/te
 xmf-dist/fonts/type1/public/amsfonts/cm/cmtt8.pfb>
-Output written on paper.pdf (12 pages, 293882 bytes).
+Output written on paper.pdf (14 pages, 333036 bytes).
 PDF statistics:
- 133 PDF objects out of 1000 (max. 8388607)
- 80 compressed objects within 1 object stream
+ 142 PDF objects out of 1000 (max. 8388607)
+ 85 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
- 11 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 16 words of extra memory for PDF output out of 10000 (max. 10000000)
 

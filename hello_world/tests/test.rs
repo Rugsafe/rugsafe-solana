@@ -78,7 +78,7 @@ async fn test_create_vault() -> Result<(), TransportError> {
 
     let rent_key = solana_program::sysvar::rent::ID;
     let spl_key = spl_token::id();
-    let associated_token_program = spl_associated_token_account::id();
+    let associated_token_program: Pubkey = spl_associated_token_account::id();
 
     // let state_keypair = Keypair::new(); // State account
 
@@ -917,6 +917,8 @@ async fn test_faucet() -> Result<(), Box<dyn std::error::Error>> {
     // let user_token_keypair: Keypair = Keypair::new();
     let user_token_account = get_associated_token_address(&payer.pubkey(), &mint_pubkey);
 
+    let associated_token_program: Pubkey = spl_associated_token_account::id();
+
     // Prepare the faucet instruction
     let amount: u64 = 1000;
     let mut data = vec![4]; // Instruction ID
@@ -934,6 +936,7 @@ async fn test_faucet() -> Result<(), Box<dyn std::error::Error>> {
             AccountMeta::new_readonly(spl_token::id(), false),
             AccountMeta::new_readonly(solana_program::sysvar::rent::ID, false),
             AccountMeta::new_readonly(solana_program::system_program::id(), false),
+            AccountMeta::new(spl_associated_token_account::id(), false),
         ],
         data, // Construct data manually here
     };
