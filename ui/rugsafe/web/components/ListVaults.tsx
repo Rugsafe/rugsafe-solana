@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { PublicKey, Connection } from '@solana/web3.js';
-import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { deposit } from './solana/transaction-utils'; // Adjust the import path accordingly
-
+import { getAssociatedTokenAddress, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID} from '@solana/spl-token';
 const LOCALHOST_URL = 'http://127.0.0.1:8899';
 const CONTRACT_PROGRAM_ID = 'AVFEXtCiwxuBHuMUsnFGoFB44ymVAbMn3QsN6f6pw5yA';
 
@@ -70,23 +69,59 @@ const ListVaults = () => {
         return 'USER_ATOKEN_ACCOUNT'; // Replace with actual logic to extract this
     };
 
-    const handleDeposit = async (vault: {pubkey: string, mint: string, userTokenAccount: string, userATokenAccount: string}) => {
+    const handleDeposit = async (vault: {
+        mintTokenAAccount: string, 
+        mintATokenAAccount: string, 
+        owner: string, 
+        vaultAccount: string}) => {
         try {
-            console.log('Vault Pubkey:', vault.pubkey);
-            console.log('Mint Pubkey:', vault.mint);
-            console.log('User Token Account Pubkey:', vault.userTokenAccount);
-            console.log('User aToken Account Pubkey:', vault.userATokenAccount);
+            console.log("vault")
+            console.log(vault)
+
     
             const programId = new PublicKey(CONTRACT_PROGRAM_ID);
-            const vaultPubkey = new PublicKey(vault.pubkey);
-            const userTokenAPubkey = new PublicKey(vault.userTokenAccount);
-            const userATokenAPubkey = new PublicKey(vault.userATokenAccount);
-            const mintPubkey = new PublicKey(vault.mint);
+            const mintTokenAPubkey = new PublicKey(vault.mintTokenAAccount);
+            const mintATokenAPubkey = new PublicKey(vault.mintATokenAAccount);
+            
+            // const vaultPubkey = new PublicKey("nBzomwsoJpu8CiRL5f7iJkN5cLJryMeTwPC8nNJciqr");
+            const vaultPubkey = await getAssociatedTokenAddress(
+                mintTokenAPubkey,           // Mint address
+                programId,        // Owner of the associated token account
+                false,                   // Allow owner off curve
+                TOKEN_PROGRAM_ID,        // Token program ID
+                ASSOCIATED_TOKEN_PROGRAM_ID // Associated token program ID
+            );
+            
+            console.log(`vaultPubkey: ${vaultPubkey}`)
+            
+            // const userTokenAPubkey = new PublicKey("Dof5p3fEhZhXttrPeEPiKwLoac5ftRyJJnma24ZYF4qZ");
+            const userTokenAPubkey = await getAssociatedTokenAddress(
+                mintTokenAPubkey,           // Mint address
+                wallet.publicKey as PublicKey,        // Owner of the associated token account
+                false,                   // Allow owner off curve
+                TOKEN_PROGRAM_ID,        // Token program ID
+                ASSOCIATED_TOKEN_PROGRAM_ID // Associated token program ID
+            );
+            
+            console.log(`userTokenAPubkey: ${userTokenAPubkey}`)
+
+            // const userATokenAPubkey = new PublicKey(vault.mint);
+            const userATokenAPubkey = await getAssociatedTokenAddress(
+                mintATokenAPubkey,           // Mint address
+                wallet.publicKey as PublicKey,        // Owner of the associated token account
+                false,                   // Allow owner off curve
+                TOKEN_PROGRAM_ID,        // Token program ID
+                ASSOCIATED_TOKEN_PROGRAM_ID // Associated token program ID
+            );
+
+            console.log(`userATokenAPubkey: ${userATokenAPubkey}`)
+
             const depositAmount = 100; // Example deposit amount
     
             const signature = await deposit(
                 programId,
-                mintPubkey,
+                mintTokenAPubkey,
+                mintATokenAPubkey,
                 vaultPubkey,
                 userTokenAPubkey,
                 userATokenAPubkey,

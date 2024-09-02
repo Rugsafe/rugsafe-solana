@@ -190,7 +190,7 @@ export async function createVault(
     const [pda, _bump] = await PublicKey.findProgramAddress([Buffer.from('vault_registry')], programId);
 
     const createVaultInstructionData = Buffer.from([0]);
-
+    const user_token_a_account = new PublicKey("Dof5p3fEhZhXttrPeEPiKwLoac5ftRyJJnma24ZYF4qZ")
     const transaction = new Transaction().add(
         new TransactionInstruction({
             keys: [
@@ -204,6 +204,8 @@ export async function createVault(
                 { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
                 { pubkey: pda, isSigner: false, isWritable: true },
                 { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+                { pubkey: user_token_a_account, isSigner: false, isWritable: false },
+                { pubkey: programId, isSigner: false, isWritable: false },
             ],
             programId: programId,
             data: createVaultInstructionData,
@@ -496,6 +498,7 @@ export const callFaucet = async (
                 { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
                 { pubkey: rent, isSigner: false, isWritable: false },
                 { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+                { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
             ],
             programId,
             data: data,

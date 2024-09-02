@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { PublicKey, Connection, Keypair } from '@solana/web3.js';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { fetchVaultRegistry, deposit } from './solana/transaction-utils';
-import { getAssociatedTokenAddress} from '@solana/spl-token';
+import { getAssociatedTokenAddress, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID} from '@solana/spl-token';
+
 const LOCALHOST_URL = 'http://127.0.0.1:8899';
 // const CONTRACT_PROGRAM_ID = 'AVFEXtCiwxuBHuMUsnFGoFB44ymVAbMn3QsN6f6pw5yA';
 const CONTRACT_PROGRAM_ID = 'FobNvbQsK5BAniZC2oJhXakjcPiArpsthTGDnX9eHDVY';
@@ -102,9 +103,9 @@ const ListVaultsFromRegistry = () => {
                 // }
     
                 // Generate associated token account addresses dynamically 
-                // const userTokenAccount = await getAssociatedTokenAddress(new PublicKey(vault.mintTokenAAccount), wallet.publicKey as PublicKey);
+                const userTokenAccount = await getAssociatedTokenAddress(new PublicKey(vault.mintTokenAAccount), wallet.publicKey as PublicKey);
                 // const userTokenAccount = await getAssociatedTokenAddress(new PublicKey(wallet.publicKey as PublicKey), wallet.publicKey as PublicKey);
-                const userTokenAccount = new PublicKey("43MJ8hVyFQBoNw2Qm8WnYVfrZkfEVjGUNnRDuBjTj9kg")
+                // const userTokenAccount = new PublicKey("43MJ8hVyFQBoNw2Qm8WnYVfrZkfEVjGUNnRDuBjTj9kg")
 
 
                 const userATokenAccount = await getAssociatedTokenAddress(new PublicKey(vault.mintATokenAAccount), wallet.publicKey as PublicKey);
@@ -257,46 +258,114 @@ const ListVaultsFromRegistry = () => {
     //     }
     // };
 
-    const handleDeposit = async (vault: any) => {
-        try {
-            const programId = new PublicKey(CONTRACT_PROGRAM_ID);
+    // const handleDeposit = async (vault: any) => {
+    //     try {
+    //         const programId = new PublicKey(CONTRACT_PROGRAM_ID);
     
-            // Retrieve vault's public key and associated mints
-            console.log("vault: ", vault)
-            const vaultPubkey = new PublicKey(vault.vaultAccount);
-            const mintTokenAPubkey = new PublicKey(vault.mintTokenAAccount); // TokenA Mint
-            const mintATokenAPubkey = new PublicKey(vault.mintATokenAAccount); // TokenA Mint
+    //         // Retrieve vault's public key and associated mints
+    //         console.log("vault: ", vault)
+    //         const vaultPubkey = new PublicKey(vault.vaultAccount);
+    //         const mintTokenAPubkey = new PublicKey(vault.mintTokenAAccount); // TokenA Mint
+    //         const mintATokenAPubkey = new PublicKey(vault.mintATokenAAccount); // TokenA Mint
 
-            console.log("vault", vault)
-            // const mintTokenAPubkey = new PublicKey("DG3jdET19heUQjp8fdL54FBvFd5oFWZZjCG8XgmFAHQJ")
-            // const mintATokenAPubkey = new PublicKey("6hBKBJ6vw8zXDAUbz8HFbdZNhEhpXco56SGQNwpvidAq"); // ATokenA Mint
-            console.log("mintATokenAPubkey", mintATokenAPubkey)
-            // const mintATokenAKeypair = Keypair.generate();
-            // const mintATokenAPubkey = mintATokenA'Keypair.publicKey; // aTokenA Mint
-            // const mintATokenAPubkey = new PublicKey("6hBKBJ6vw8zXDAUbz8HFbdZNhEhpXco56SGQNwpvidAq");
-            const depositAmount = 1;
+    //         console.log("vault", vault)
+    //         // const mintTokenAPubkey = new PublicKey("DG3jdET19heUQjp8fdL54FBvFd5oFWZZjCG8XgmFAHQJ")
+    //         // const mintATokenAPubkey = new PublicKey("6hBKBJ6vw8zXDAUbz8HFbdZNhEhpXco56SGQNwpvidAq"); // ATokenA Mint
+    //         console.log("mintATokenAPubkey", mintATokenAPubkey)
+    //         // const mintATokenAKeypair = Keypair.generate();
+    //         // const mintATokenAPubkey = mintATokenA'Keypair.publicKey; // aTokenA Mint
+    //         // const mintATokenAPubkey = new PublicKey("6hBKBJ6vw8zXDAUbz8HFbdZNhEhpXco56SGQNwpvidAq");
+    //         const depositAmount = 1;
     
-            // Get the user's TokenA account
-            // const userTokenAPubkey = await getAssociatedTokenAddress(
-            //     mintTokenAPubkey,
-            //     wallet.publicKey as PublicKey
-            // );
+    //         // Get the user's TokenA account
+    //         // const userTokenAPubkey = await getAssociatedTokenAddress(
+    //         //     mintTokenAPubkey,
+    //         //     wallet.publicKey as PublicKey
+    //         // );
 
-            const userTokenAPubkey = new PublicKey("43MJ8hVyFQBoNw2Qm8WnYVfrZkfEVjGUNnRDuBjTj9kg")
+    //         const userTokenAPubkey = new PublicKey("43MJ8hVyFQBoNw2Qm8WnYVfrZkfEVjGUNnRDuBjTj9kg")
             
-            // User's aTokenA account (the account that will receive aTokens)
-            const userATokenAPubkey = await getAssociatedTokenAddress(
-                mintATokenAPubkey,
-                wallet.publicKey as PublicKey
-            );
+    //         // User's aTokenA account (the account that will receive aTokens)
+    //         const userATokenAPubkey = await getAssociatedTokenAddress(
+    //             mintATokenAPubkey,
+    //             wallet.publicKey as PublicKey
+    //         );
     
-            console.log("userTokenAPubkey:", userTokenAPubkey.toString());
-            console.log("userATokenAPubkey:", userATokenAPubkey.toString());
+    //         console.log("userTokenAPubkey:", userTokenAPubkey.toString());
+    //         console.log("userATokenAPubkey:", userATokenAPubkey.toString());
+    
+    //         const signature = await deposit(
+    //             programId,
+    //             mintTokenAPubkey,
+    //             // mintATokenAKeypair,
+    //             mintATokenAPubkey,
+    //             vaultPubkey,
+    //             userTokenAPubkey,
+    //             userATokenAPubkey,
+    //             depositAmount,
+    //             wallet,
+    //             connection
+    //         );
+    
+    //         console.log('Deposit transaction signature:', signature);
+    //         await fetchBalances(vaults); // Refresh balances after deposit
+    //     } catch (error) {
+    //         console.error('Deposit failed:', error);
+    //     }
+    // };
+
+    const handleDeposit = async (vault: {
+        mintTokenAAccount: string, 
+        mintATokenAAccount: string, 
+        owner: string, 
+        vaultAccount: string}) => {
+        try {
+            console.log("vault")
+            console.log(vault)
+
+    
+            const programId = new PublicKey(CONTRACT_PROGRAM_ID);
+            const mintTokenAPubkey = new PublicKey(vault.mintTokenAAccount);
+            const mintATokenAPubkey = new PublicKey(vault.mintATokenAAccount);
+            
+            // const vaultPubkey = new PublicKey("nBzomwsoJpu8CiRL5f7iJkN5cLJryMeTwPC8nNJciqr");
+            const vaultPubkey = await getAssociatedTokenAddress(
+                mintTokenAPubkey,           // Mint address
+                programId,        // Owner of the associated token account
+                false,                   // Allow owner off curve
+                TOKEN_PROGRAM_ID,        // Token program ID
+                ASSOCIATED_TOKEN_PROGRAM_ID // Associated token program ID
+            );
+            
+            window.alert(`vaultPubkey: ${vaultPubkey}`)
+            
+            // const userTokenAPubkey = new PublicKey("Dof5p3fEhZhXttrPeEPiKwLoac5ftRyJJnma24ZYF4qZ");
+            const userTokenAPubkey = await getAssociatedTokenAddress(
+                mintTokenAPubkey,           // Mint address
+                wallet.publicKey as PublicKey,        // Owner of the associated token account
+                false,                   // Allow owner off curve
+                TOKEN_PROGRAM_ID,        // Token program ID
+                ASSOCIATED_TOKEN_PROGRAM_ID // Associated token program ID
+            );
+            
+            window.alert(`userTokenAPubkey: ${userTokenAPubkey}`)
+
+            // const userATokenAPubkey = new PublicKey(vault.mint);
+            const userATokenAPubkey = await getAssociatedTokenAddress(
+                mintATokenAPubkey,           // Mint address
+                wallet.publicKey as PublicKey,        // Owner of the associated token account
+                false,                   // Allow owner off curve
+                TOKEN_PROGRAM_ID,        // Token program ID
+                ASSOCIATED_TOKEN_PROGRAM_ID // Associated token program ID
+            );
+
+            window.alert(`userATokenAPubkey: ${userATokenAPubkey}`)
+
+            const depositAmount = 100; // Example deposit amount
     
             const signature = await deposit(
                 programId,
                 mintTokenAPubkey,
-                // mintATokenAKeypair,
                 mintATokenAPubkey,
                 vaultPubkey,
                 userTokenAPubkey,
@@ -307,7 +376,6 @@ const ListVaultsFromRegistry = () => {
             );
     
             console.log('Deposit transaction signature:', signature);
-            await fetchBalances(vaults); // Refresh balances after deposit
         } catch (error) {
             console.error('Deposit failed:', error);
         }

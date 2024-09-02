@@ -120,7 +120,9 @@ async fn test_create_vault() -> Result<(), TransportError> {
     // NOTE vault key should be associated token account for token a's mint
     // let vault_keypair = Keypair::new(); // Vault account
     // let vault_key = vault_keypair.pubkey();
-    let vault_key: Pubkey = get_associated_token_address(&payer.pubkey(), &mint_tokena_key);
+    // let vault_key: Pubkey = get_associated_token_address(&payer.pubkey(), &mint_tokena_key);
+    let vault_key: Pubkey = get_associated_token_address(&program_id, &mint_tokena_key); //associated address for programid and tokenamint
+    let user_token_a_key: Pubkey = get_associated_token_address(&payer.pubkey(), &mint_tokena_key);
 
     // Call the function to create the vault instruction
     println!("Creating vault instruction...");
@@ -132,6 +134,7 @@ async fn test_create_vault() -> Result<(), TransportError> {
         &payer.pubkey(),
         &state_key,
         &associated_token_program,
+        &user_token_a_key,
         // &[&payer.pubkey(), &mint_key, &vault_key, &state_key],
     );
 
@@ -258,7 +261,8 @@ async fn test_create_two_vaults() -> Result<(), TransportError> {
     let mint_atokena_key1 = mint_atokena_keypair1.pubkey();
 
     // Derive the associated token account for the first vault
-    let vault_key1: Pubkey = get_associated_token_address(&payer.pubkey(), &mint_tokena_key1);
+    let vault_key1: Pubkey = get_associated_token_address(&program_id, &mint_tokena_key1);
+    let user_token_a: Pubkey = get_associated_token_address(&payer.pubkey(), &mint_tokena_key1);
 
     // Create the first vault instruction
     println!("Creating first vault instruction...");
@@ -270,6 +274,7 @@ async fn test_create_two_vaults() -> Result<(), TransportError> {
         &payer.pubkey(),
         &state_account_pda,
         &associated_token_program,
+        &user_token_a,
     );
 
     let mut transaction1 =
@@ -291,7 +296,7 @@ async fn test_create_two_vaults() -> Result<(), TransportError> {
     let mint_atokena_key2 = mint_atokena_keypair2.pubkey();
 
     // Derive the associated token account for the second vault
-    let vault_key2: Pubkey = get_associated_token_address(&payer.pubkey(), &mint_tokena_key2);
+    let vault_key2: Pubkey = get_associated_token_address(&program_id, &mint_tokena_key2);
 
     // Create the second vault instruction
     println!("Creating second vault instruction...");
@@ -303,6 +308,7 @@ async fn test_create_two_vaults() -> Result<(), TransportError> {
         &payer.pubkey(),
         &state_account_pda,
         &associated_token_program,
+        &user_token_a,
     );
 
     let mut transaction2 =
@@ -416,7 +422,9 @@ async fn test_deposit() -> Result<(), BanksClientError> {
     println!("mint_atokena_key: {}", mint_atokena_key);
 
     // Step 2: Derive the associated token account for the vault
-    let vault_key: Pubkey = get_associated_token_address(&payer.pubkey(), &mint_tokena_key);
+    let vault_key: Pubkey = get_associated_token_address(&program_id, &mint_tokena_key);
+    let user_token_a_account: Pubkey =
+        get_associated_token_address(&payer.pubkey(), &mint_tokena_key);
 
     // Step 3: Create the vault using the create_vault functionality
     println!("Creating vault...");
@@ -430,6 +438,7 @@ async fn test_deposit() -> Result<(), BanksClientError> {
         &payer.pubkey(),
         &state_key,
         &associated_token_program,
+        &user_token_a_account,
     );
     let transaction = Transaction::new_signed_with_payer(
         &[create_vault_instruction],
@@ -570,6 +579,7 @@ fn create_vault_instruction(
     payer: &Pubkey,
     state: &Pubkey,
     associated_token: &Pubkey,
+    user_token_a: &Pubkey,
     // signer_keys: &[&Pubkey],
 ) -> Instruction {
     let accounts = vec![
@@ -582,6 +592,8 @@ fn create_vault_instruction(
         AccountMeta::new_readonly(solana_program::system_program::id(), false),
         AccountMeta::new(*state, false),            //was true
         AccountMeta::new(*associated_token, false), //was true
+        AccountMeta::new(*user_token_a, false),
+        AccountMeta::new(*program_id, false),
     ];
 
     Instruction {
@@ -729,7 +741,9 @@ async fn test_fetch_vault_from_registry() -> Result<(), TransportError> {
     let mint_tokena_key = mint_tokena_keypair.pubkey();
 
     // Vault key should be associated token account for token A's mint
-    let vault_key: Pubkey = get_associated_token_address(&payer.pubkey(), &mint_tokena_key);
+    let vault_key: Pubkey = get_associated_token_address(&program_id, &mint_tokena_key);
+    let user_token_a_account: Pubkey =
+        get_associated_token_address(&payer.pubkey(), &mint_tokena_key);
 
     // Call the function to create the vault instruction
     println!("Creating vault instruction...");
@@ -741,6 +755,7 @@ async fn test_fetch_vault_from_registry() -> Result<(), TransportError> {
         &payer.pubkey(),
         &state_key,
         &associated_token_program,
+        &user_token_a_account,
     );
 
     let mut transaction =
@@ -819,7 +834,9 @@ async fn test_fetch_vault_with_data_from_registry() -> Result<(), TransportError
     let mint_tokena_key = mint_tokena_keypair.pubkey();
 
     // Vault key should be associated token account for token A's mint
-    let vault_key: Pubkey = get_associated_token_address(&payer.pubkey(), &mint_tokena_key);
+    let vault_key: Pubkey = get_associated_token_address(&program_id, &mint_tokena_key);
+    let user_token_a_account: Pubkey =
+        get_associated_token_address(&payer.pubkey(), &mint_tokena_key);
 
     // Call the function to create the vault instruction
     println!("Creating vault instruction...");
@@ -831,6 +848,7 @@ async fn test_fetch_vault_with_data_from_registry() -> Result<(), TransportError
         &payer.pubkey(),
         &state_key,
         &associated_token_program,
+        &user_token_a_account,
     );
 
     let mut transaction =

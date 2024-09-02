@@ -13,6 +13,7 @@ use solana_program::{
     sysvar::rent::Rent,
 };
 use spl_associated_token_account::get_associated_token_address;
+// use spl_associated_token_account::instruction::create_associated_token_account;
 use spl_associated_token_account::{self, instruction};
 
 // use solana_sdk::program::invoke_signed;
@@ -94,6 +95,8 @@ impl Processor {
         }
 
         let associated_token_program = next_account_info(account_info_iter)?;
+        let user_token_a_account = next_account_info(account_info_iter)?;
+        let program_id_account = next_account_info(account_info_iter)?;
 
         // msg!("Creating vault...");
         msg!("payer account key: {:?}", payer_account.key);
@@ -105,7 +108,8 @@ impl Processor {
         msg!("Vault account key: {:?}", vault_account.key);
         msg!("Rent account key: {:?}", rent_account.key);
         msg!("State account key: {:?}", state_account.key);
-        msg!("SPL: {}", spl_token::id());
+        msg!("SPL: {}", spl_account.key);
+        msg!("user_token_a_account: {}", user_token_a_account.key);
 
         // NOTE: two mint types
         // msg!("Mint account balance: {:?}", mint_account.lamports());
@@ -125,6 +129,10 @@ impl Processor {
         msg!(
             "associated token account balance: {:?}",
             associated_token_program.lamports()
+        );
+        msg!(
+            "user token a account: {:?}",
+            user_token_a_account.lamports()
         );
 
         msg!("state account balance: {:?}", state_account.lamports());
@@ -205,16 +213,16 @@ impl Processor {
         // let vault_required_lamports = rent.minimum_balance(spl_token::state::Account::LEN);
         if vault_account.data_is_empty() {
             // associated attempt
-            // msg!("Actually Creating Associated Token vault account");
+            msg!("Actually Creating Associated Token vault account");
 
             invoke(
                 &spl_associated_token_account::instruction::create_associated_token_account(
                     payer_account.key,
-                    payer_account.key,
+                    program_id_account.key,
                     mint_account_token_a.key, // the mint this associated account should be for is the token a mint
                     // NOTE:
-                    &spl_token::id(), // SPL Token program ID is needed here
-                                      // associated_token_program.key,
+                    spl_account.key, // SPL Token program ID is needed here
+                                     // associated_token_program.key,
                 ),
                 &[
                     payer_account.clone(),        // Funding account
@@ -224,6 +232,7 @@ impl Processor {
                     system_program.clone(),       // System program
                     // NOTE: spl or associated
                     spl_account.clone(), // SPL Token program
+
                                          // associated_token_program.clone(), // associated_token_program.clone(),
                 ],
             )?;
@@ -231,6 +240,7 @@ impl Processor {
             msg!("Associated Token vault account is NOT EMPTY");
         }
 
+        msg!("about to check if state_account is empty");
         //////////////////////////////////////////
         /// ////////////////////////////////////////////
         /// ////////////////////////////////////
@@ -242,7 +252,7 @@ impl Processor {
             let state_account_required_lamports = rent.minimum_balance(state_account_size);
 
             // Create the state account
-            // msg!("about to create state cuz its empty");
+            msg!("about to create state cuz its empty");
 
             // invoke(
             invoke_signed(
