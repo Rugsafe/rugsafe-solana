@@ -369,17 +369,18 @@ Rugsafe vaults act as decentralized oracles, providing reliable data on the exis
 
 
 \subsection{Whale Penalty Mechanism}
-To prevent large holders (whales) from gaming the system, the penalty for withdrawing rugged tokens $C_r$ scales with the amount of $C_a$ held. this mechanism is inspired by quadratic voting schemes, where the penalty increases progressively as the holder's balance of $C_a$ tokens grows, ensuring fairness and preventing manipulation. The penalty $P(C_a)$ for withdrawing rugged tokens is mathematically represented as:
+To prevent large holders (whales) from gaming the system, the penalty for withdrawing rugged tokens $C_r$ scales with the amount of $C_a$ held. This mechanism is inspired by quadratic voting schemes, where the penalty increases progressively as the holder's balance of $C_a$ tokens grows, ensuring fairness and preventing manipulation. the penalty $P(C_a)$ for withdrawing rugged tokens is mathematically represented as:
+
 
 \[
 P(C_a) \propto \left(H_{C_a}\right)^\lambda
 \]
 
-where $\lambda > 1$ is a scaling factor that ensures the penalty increases non-linearly with the amount of $C_a$ held.
+Where $\lambda > 1$ is a scaling factor that ensures the penalty increases non-linearly with the amount of $C_a$ held.
 
 \subsubsection{Impact on regular users vs. whales}
 
-for regular users, who typically hold smaller amounts of $C_a$, the penalty remains relatively low, as the function’s exponent $\lambda$ ensures that the penalty grows slowly with their holdings:
+For regular users, who typically hold smaller amounts of $C_a$, the penalty remains relatively low, as the function’s exponent $\lambda$ ensures that the penalty grows slowly with their holdings:
 
 \[
 P_{\text{regular}}(C_a) = k \cdot \left(H_{C_a}\right)^\lambda \quad \text{with} \quad \lambda > 1 \quad \text{and} \quad H_{C_a} \text{ small}
@@ -393,10 +394,9 @@ For whales, however, the penalty increases significantly due to their large hold
 P_{\text{whale}}(C_a) = k \cdot \left(H_{C_a}\right)^\lambda \quad \text{with} \quad \lambda > 1 \quad \text{and} \quad H_{C_a} \text{ large}
 \]
 
-This non-linear increase in penalty serves two purposes. first, it deters whales from attempting to manipulate the system by accumulating and withdrawing large amounts of $C_r$. second, it ensures that whales, who may also be regular users of the protocol, are subject to the same rules but with penalties that reflect their larger influence on the system.
+This non-linear increase in penalty serves two purposes. first, it deters whales from attempting to manipulate the system by accumulating and withdrawing large amounts of $C_r$. Second, it ensures that whales, who may also be regular users of the protocol, are subject to the same rules but with penalties that reflect their larger influence on the system.
 
 \subsubsection{equitable system design}
-
 
 \begin{figure}[h]
 \centering
@@ -406,10 +406,9 @@ This non-linear increase in penalty serves two purposes. first, it deters whales
 \end{figure}
 
 
-By scaling the penalty non-linearly with the amount of $C_a$ held, as in figure \ref{fig:whale_penalty}, the system remains equitable for all users, regardless of their holdings. regular users are protected from disproportionate penalties, while whales, whose actions could have a more significant impact on the system, face penalties commensurate with their holdings. this design discourages potential manipulation by large holders and promotes a more balanced and fair ecosystem for all participants.
+By scaling the penalty non-linearly with the amount of $C_a$ held, as in figure \ref{fig:whale_penalty}, the system remains equitable for all users, regardless of their holdings. Regular users are protected from disproportionate penalties, while whales, whose actions could have a more significant impact on the system, face penalties commensurate with their holdings. This design discourages potential manipulation by large holders and promotes a more balanced and fair ecosystem for all participants.
 
 \subsubsection{cumulative penalty mechanism}
-
 
 \begin{figure}[h]
 \centering
@@ -419,11 +418,81 @@ By scaling the penalty non-linearly with the amount of $C_a$ held, as in figure 
 \end{figure}
 
 
-To further enhance the protocol's defense against potential sybil attacks, a cumulative penalty mechanism has been introduced. this mechanism accumulates penalties progressively with each withdrawal attempt, particularly when a whale attempts to split their holdings across multiple accounts to evade higher penalties.
+To further enhance the protocol's defense against potential sybil attacks, a cumulative penalty mechanism has been introduced. This mechanism accumulates penalties progressively with each withdrawal attempt, particularly when a whale attempts to split their holdings across multiple accounts to evade higher penalties.
 
-In this approach, the cumulative penalty is applied on a per-account basis but is aggregated across all related accounts. as illustrated in figure \ref{fig:cumulative_penalty}, the more accounts a whale creates to distribute their holdings, the more significant the overall penalty becomes. this cumulative effect discourages sybil attacks by ensuring that the total penalty incurred across all accounts exceeds what would have been paid if the whale had used a single account.
+In this approach, the cumulative penalty is applied on a per-account basis but is aggregated across all related accounts. As illustrated in figure \ref{fig:cumulative_penalty}, the more accounts a whale creates to distribute their holdings, the more significant the overall penalty becomes. This cumulative effect discourages sybil attacks by ensuring that the total penalty incurred across all accounts exceeds what would have been paid if the whale had used a single account.
 
-This combined system of both the original non-linear penalty and the cumulative penalty ensures that whales are doubly incentivized to avoid manipulative behaviors. they face increasing penalties for holding large amounts of $C_a$ and additional cumulative penalties if they attempt to circumvent the system through sybil attacks.
+\[
+P_{\text{cumulative}}(C_a) = P(C_a) \times \text{number of withdrawals}
+\]
+
+This means that while the whale may try to avoid the higher penalties by splitting their holdings across multiple accounts, the total cumulative penalty across those accounts will still be greater than the penalty they would have faced had they withdrawn the entire amount in a single transaction.
+
+This can be seen in the plot below, where splitting across more accounts results in steeper cumulative penalties. the yellow and purple lines represent penalties for whales trying to split their holdings across 4 and 10 accounts, respectively.
+
+
+
+%%%%%%
+
+
+
+
+
+\subsubsection{Combining both mechanisms}
+
+By combining the original non-linear penalty mechanism (which targets large holdings) with the cumulative penalty mechanism (which penalizes sybil attack attempts), the protocol ensures that whales are doubly disincentivized from trying to game the system. 
+
+Whales face increasing penalties for holding large amounts of $C_a$. They also face additional cumulative penalties if they attempt to circumvent the system through sybil attacks by distributing their holdings across multiple accounts.
+
+To formally prove that a whale attempting to split their holdings across multiple accounts incurs a higher penalty than withdrawing the entire amount in one transaction, consider the following:
+
+\subsubsection{One-time withdrawal}
+
+For a whale holding $H_{total}$ tokens, the penalty for a single withdrawal is:
+
+\[
+P_{\text{one-time}} = H_{total} \times \gamma
+\]
+
+Where $\gamma$ is the penalty rate (e.g., 10\%).
+
+\subsubsection{Sybil withdrawal}
+
+If the whale splits $H_{total}$ into $n$ accounts, the penalty for each account is given by:
+
+\[
+P_{\text{split}} = \left(\frac{H_{total}}{n}\right) \times \gamma
+\]
+
+The cumulative penalty is the sum of penalties across all $n$ accounts:
+
+\[
+P_{\text{cumulative}} = \sum_{i=1}^{n} \left( \frac{H_{total}}{n} \times \left( \gamma + \Delta \gamma \times i \right) \right)
+\]
+
+Where $\Delta \gamma$ is the incremental penalty applied to each subsequent withdrawal (i.e., cumulative penalty mechanism).
+
+Simplifying this expression:
+
+\[
+P_{\text{cumulative}} = H_{total} \times \gamma + \frac{H_{total} \times \Delta \gamma \times n}{2}
+\]
+
+This expression shows that the cumulative penalty grows with both the number of splits $n$ and the incremental penalty $\Delta \gamma$, resulting in a total penalty that is higher than the one-time withdrawal penalty:
+
+\[
+P_{\text{cumulative}} > P_{\text{one-time}}
+\]
+
+Therefore, attempting to game the system through sybil attacks (splitting tokens across multiple accounts) leads to a higher overall penalty, as the cumulative penalty mechanism introduces increasing costs with each additional withdrawal.
+
+This combined system ensures the integrity of the protocol by preventing manipulative behaviors and promoting fairness for all participants.
+
+
+
+
+
+
 
 
 

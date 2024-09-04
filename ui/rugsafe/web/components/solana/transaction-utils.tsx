@@ -190,7 +190,10 @@ export async function createVault(
     const [pda, _bump] = await PublicKey.findProgramAddress([Buffer.from('vault_registry')], programId);
 
     const createVaultInstructionData = Buffer.from([0]);
-    const user_token_a_account = new PublicKey("Dof5p3fEhZhXttrPeEPiKwLoac5ftRyJJnma24ZYF4qZ")
+    // TODOD, switch out for
+    // const user_token_a_account = new PublicKey("Dof5p3fEhZhXttrPeEPiKwLoac5ftRyJJnma24ZYF4qZ")
+    const user_token_a_account = await getAssociatedTokenAddress(new PublicKey(mintTokenAPubkey), wallet.publicKey as PublicKey);
+
     const transaction = new Transaction().add(
         new TransactionInstruction({
             keys: [

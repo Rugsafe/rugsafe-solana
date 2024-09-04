@@ -14,10 +14,13 @@
 \contentsline {subsubsection}{\numberline {2.11.1}Impact on regular users vs. whales}{9}{}%
 \contentsline {subsubsection}{\numberline {2.11.2}equitable system design}{10}{}%
 \contentsline {subsubsection}{\numberline {2.11.3}cumulative penalty mechanism}{10}{}%
-\contentsline {subsection}{\numberline {2.12}Rugsafe Token Emissions and Parameterized Rewards Mechanism}{11}{}%
-\contentsline {subsection}{\numberline {2.13}Rugproof Mechanism}{12}{}%
-\contentsline {subsubsection}{\numberline {2.13.1}Token Issuance and Bonding Mechanism}{12}{}%
-\contentsline {subsubsection}{\numberline {2.13.2}Claim and Challenge Process}{12}{}%
-\contentsline {subsubsection}{\numberline {2.13.3}Outcome of the Challenge Period}{13}{}%
-\contentsline {subsubsection}{\numberline {2.13.4}Incentives and Protection}{13}{}%
-\contentsline {section}{\numberline {3}Closing Remarks}{14}{}%
+\contentsline {subsubsection}{\numberline {2.11.4}Combining both mechanisms}{11}{}%
+\contentsline {subsubsection}{\numberline {2.11.5}One-time withdrawal}{12}{}%
+\contentsline {subsubsection}{\numberline {2.11.6}Sybil withdrawal}{12}{}%
+\contentsline {subsection}{\numberline {2.12}Rugsafe Token Emissions and Parameterized Rewards Mechanism}{13}{}%
+\contentsline {subsection}{\numberline {2.13}Rugproof Mechanism}{13}{}%
+\contentsline {subsubsection}{\numberline {2.13.1}Token Issuance and Bonding Mechanism}{13}{}%
+\contentsline {subsubsection}{\numberline {2.13.2}Claim and Challenge Process}{14}{}%
+\contentsline {subsubsection}{\numberline {2.13.3}Outcome of the Challenge Period}{14}{}%
+\contentsline {subsubsection}{\numberline {2.13.4}Incentives and Protection}{15}{}%
+\contentsline {section}{\numberline {3}Closing Remarks}{15}{}%
