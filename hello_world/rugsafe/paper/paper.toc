@@ -12,8 +12,8 @@
 \contentsline {subsection}{\numberline {2.10}Rugsafe Vaults as Oracles}{9}{}%
 \contentsline {subsection}{\numberline {2.11}Whale Penalty Mechanism}{9}{}%
 \contentsline {subsubsection}{\numberline {2.11.1}Impact on regular users vs. whales}{9}{}%
-\contentsline {subsubsection}{\numberline {2.11.2}equitable system design}{10}{}%
-\contentsline {subsubsection}{\numberline {2.11.3}cumulative penalty mechanism}{10}{}%
+\contentsline {subsubsection}{\numberline {2.11.2}Equitable system design}{10}{}%
+\contentsline {subsubsection}{\numberline {2.11.3}Cumulative penalty mechanism}{10}{}%
 \contentsline {subsubsection}{\numberline {2.11.4}Combining both mechanisms}{11}{}%
 \contentsline {subsubsection}{\numberline {2.11.5}One-time withdrawal}{12}{}%
 \contentsline {subsubsection}{\numberline {2.11.6}Sybil withdrawal}{12}{}%
