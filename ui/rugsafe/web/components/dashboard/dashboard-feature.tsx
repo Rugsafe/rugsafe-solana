@@ -20,10 +20,10 @@ const links: { label: string; href: string }[] = [
 export default function DashboardFeature() {
   return (
     <div>
-      <AppHero title="RugSafe" subtitle="Deposit Rugged Tokens into Vault" />
-      <div className="max-w-xl mx-auto py-6 sm:px-6 lg:px-8 text-center">
-        xyz
-      </div>
+      {/* <AppHero title="RugSafe" subtitle="Deposit Rugged Tokens into Vault" /> */}
+      {/* <div className="max-w-xl mx-auto py-6 sm:px-6 lg:px-8 text-center">
+        Create a vault, or faucet tokens to test
+      </div> */}
       <CreateVault /> {/* Add the CreateVault component here */}
       {/* <ListVaults /> */}
       <ListVaultsFromRegistry />

@@ -440,7 +440,7 @@ impl Processor {
         let account_info_iter = &mut accounts.iter();
 
         // Accounts required for the deposit process
-        msg!("Getting account info for the deposit process...");
+        // msg!("Getting account info for the deposit process...");
         let payer_account = next_account_info(account_info_iter)?; // Payer account
         msg!("Payer account: {}", payer_account.key);
 
@@ -520,7 +520,7 @@ impl Processor {
             // let rent = &Rent::from_account_info(rent_account)?;
             // let required_lamports = rent.minimum_balance(TokenAccount::LEN);
 
-            msg!("user_atoken_account.lamports() == 0");
+            // msg!("user_atoken_account.lamports() == 0");
 
             invoke(
                 &spl_associated_token_account::instruction::create_associated_token_account(
@@ -549,7 +549,7 @@ impl Processor {
         /// //////////WORKED!!
         /// ////////////////////////////
         // Log balances before transfer
-        msg!("Log balances before transfer");
+        // msg!("Log balances before transfer");
         let user_token_a_balance_before =
             TokenAccount::unpack(&user_token_a_account.try_borrow_data()?)?.amount;
         let vault_token_a_balance_before =
@@ -587,7 +587,7 @@ impl Processor {
                 payer_account.clone(),
             ],
         )?;
-        msg!("Transfer completed");
+        // msg!("Transfer completed");
 
         // Log balances after transfer
         let user_token_a_balance_after =
@@ -622,7 +622,7 @@ impl Processor {
                 payer_account.clone(),
             ],
         )?;
-        msg!("Minting completed");
+        // msg!("Minting completed");
 
         // Log balances after minting
         let user_atoken_balance_after =
@@ -632,7 +632,7 @@ impl Processor {
             user_atoken_balance_after
         );
 
-        msg!("Deposit process completed successfully");
+        // msg!("Deposit process completed successfully");
         Ok(())
     }
 

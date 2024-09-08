@@ -85,19 +85,26 @@ const CreateVault = () => {
     }, [wallet.connected, mintPubkey]);
 
     return (
-        <div>
-            <button className="btn" onClick={handleCreateVault} disabled={!wallet.connected}>
+        <div className="bg-gray-800 p-6 rounded-lg shadow-lg max-w-lg mx-auto mt-6">
+            <h2 className="text-xl font-bold mb-4 text-gray-200">Manage Vault</h2>
+            <button
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-md transition mb-4 w-full"
+                onClick={handleCreateVault}
+                disabled={!wallet.connected}
+            >
                 Create Vault
             </button>
-            <button className="btn" onClick={handleFaucet} disabled={!wallet.connected}>
+            <button
+                className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md transition w-full"
+                onClick={handleFaucet}
+                disabled={!wallet.connected}
+            >
                 Get Tokens from Faucet
             </button>
-            <div>
-                <h3>Your Token Balance: {balance}</h3>
-                {mintPubkey && (
-                    <p>Mint Public Key: {mintPubkey.toBase58()}</p>
-                )}
-            </div>
+            {/* <div className="mt-6 text-gray-200">
+                <h3 className="text-lg">Your Token Balance: {balance}</h3>
+                {mintPubkey && <p>Mint Public Key: {mintPubkey.toBase58()}</p>}
+            </div> */}
         </div>
     );
 };

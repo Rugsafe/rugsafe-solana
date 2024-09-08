@@ -387,31 +387,59 @@ const ListVaultsFromRegistry = () => {
     };
 
     return (
-        <div>
-            <div className="vault-cards">
-            {vaults.map((vault, index) => (
-                <div key={index} className="vault-card" style={{ border: '1px solid #ccc', padding: '20px', marginBottom: '10px', borderRadius: '5px' }}>
-                    <h3>Vault #{index + 1}</h3>
-                    <p>Vault Account: {vault.vaultAccount}</p>
-                    <p>Mint Token A Account: {vault.mintTokenAAccount}</p> {/* Updated field name */}
-                    <p>Mint AToken A Account: {vault.mintATokenAAccount}</p> {/* Updated field name */}
-                    <p>Owner: {vault.owner}</p>
-                    <p>User Token Balance: {balances[vault.vaultAccount]?.userTokenBalance || '-'}</p>
-                    <p>User aToken Balance: {balances[vault.vaultAccount]?.userATokenBalance || '-'}</p>
-                    <p>Vault Token Balance: {balances[vault.vaultAccount]?.vaultTokenBalance || '-'}</p>
-                    <div className="button-group" style={{ display: 'flex', gap: '10px' }}>
-                        <button className="btn" onClick={() => handleDeposit(vault)}>
-                            Deposit
-                        </button>
-                        <button className="btn" onClick={() => handleWithdraw(vault.vaultAccount)}>
-                            Withdraw
-                        </button>
+        <div className="max-w-6xl mx-auto mt-12">
+            <h2 className="text-3xl font-bold text-center text-white mb-10">Vaults</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {vaults.map((vault, index) => (
+                    <div
+                        key={index}
+                        className="bg-gray-800 shadow-lg rounded-lg p-6 transition-transform transform hover:scale-105"
+                        style={{ minWidth: '320px', maxWidth: '100%' }} // Adjust min-width if necessary and limit max-width
+                    >
+                        <h3 className="text-xl font-semibold text-white mb-4">Vault #{index + 1}</h3>
+                        <div className="overflow-x-auto whitespace-nowrap">
+                            <p className="text-gray-400 mb-2">
+                                <strong className="text-white">Vault Account:</strong> {vault.vaultAccount}
+                            </p>
+                            <p className="text-gray-400 mb-2">
+                                <strong className="text-white">Mint Token A Account:</strong> {vault.mintTokenAAccount}
+                            </p>
+                            <p className="text-gray-400 mb-2">
+                                <strong className="text-white">Mint AToken A Account:</strong> {vault.mintATokenAAccount}
+                            </p>
+                            <p className="text-gray-400 mb-2">
+                                <strong className="text-white">Owner:</strong> {vault.owner}
+                            </p>
+                            <p className="text-gray-400 mb-2">
+                                <strong className="text-white">User Token Balance:</strong> {balances[vault.vaultAccount]?.userTokenBalance || '-'}
+                            </p>
+                            <p className="text-gray-400 mb-2">
+                                <strong className="text-white">User aToken Balance:</strong> {balances[vault.vaultAccount]?.userATokenBalance || '-'}
+                            </p>
+                            <p className="text-gray-400 mb-2">
+                                <strong className="text-white">Vault Token Balance:</strong> {balances[vault.vaultAccount]?.vaultTokenBalance || '-'}
+                            </p>
+                        </div>
+                        <div className="flex justify-between mt-4">
+                            <button
+                                className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md transition w-full mr-2"
+                                onClick={() => handleDeposit(vault)}
+                            >
+                                Deposit
+                            </button>
+                            <button
+                                className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md transition w-full ml-2"
+                                onClick={() => handleWithdraw(vault.vaultAccount)}
+                            >
+                                Withdraw
+                            </button>
+                        </div>
                     </div>
-                </div>
-            ))}
+                ))}
             </div>
         </div>
     );
+    
 };
 
 export default ListVaultsFromRegistry;
