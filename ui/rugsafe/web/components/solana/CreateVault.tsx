@@ -85,26 +85,27 @@ const CreateVault = () => {
     }, [wallet.connected, mintPubkey]);
 
     return (
-        <div className="bg-gray-800 p-6 rounded-lg shadow-lg max-w-lg mx-auto mt-6">
-            <h2 className="text-xl font-bold mb-4 text-gray-200">Manage Vault</h2>
-            <button
-                className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-md transition mb-4 w-full"
-                onClick={handleCreateVault}
-                disabled={!wallet.connected}
-            >
-                Create Vault
-            </button>
-            <button
-                className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md transition w-full"
-                onClick={handleFaucet}
-                disabled={!wallet.connected}
-            >
-                Get Tokens from Faucet
-            </button>
-            {/* <div className="mt-6 text-gray-200">
-                <h3 className="text-lg">Your Token Balance: {balance}</h3>
-                {mintPubkey && <p>Mint Public Key: {mintPubkey.toBase58()}</p>}
-            </div> */}
+        <div className="flex flex-col justify-start" style={{ width: '100%', maxWidth: '400px' }}>
+            <div className="bg-gray-800 p-6 rounded-lg shadow-lg w-full">
+                <h2 className="text-xl font-bold mb-4 text-gray-200">Manage Vaults</h2>
+
+                <div className="flex justify-between">
+                    <button
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-md w-full mr-2"
+                        onClick={handleCreateVault}
+                        disabled={!wallet.connected}
+                    >
+                        Create Vault
+                    </button>
+                    <button
+                        className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md w-full ml-2"
+                        onClick={handleFaucet}
+                        disabled={!wallet.connected}
+                    >
+                        Faucet
+                    </button>
+                </div>
+            </div>
         </div>
     );
 };

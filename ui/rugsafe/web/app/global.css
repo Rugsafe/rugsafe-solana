@@ -2,9 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
-html,
-body {
-  height: 100%;
+html, body {
+  background-color: #000;
+  /* background-color: hsl(var(--color-neutral-100)/var(--tw-bg-opacity)); */
+  color: #fff; /* White text for better contrast */
+  min-height: 100vh; /* Ensure full viewport height */
+  margin: 0; /* Remove default margin */
+  display: flex;
+  justify-content: center; /* Center the content horizontally */
+  align-items: center; /* Center the content vertically */
+  /* font-size: 12px; */
+  width: 100%;
+  
 }
 
 .wallet-adapter-button-trigger {
@@ -108,7 +117,7 @@ body {
 .vault-card {
   background: #1a202c;
   color: white;
-  border: 1px solid #ccc;
+  border: 0px solid #ccc;
   border-radius: 8px;
   padding: 20px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.3); /* Shadow for better visibility */
@@ -159,7 +168,8 @@ body {
 
 /* Vault card specific styling */
 .bg-gray-800 {
-  background-color: #2d3748; /* Tailwind CSS gray-800 */
+  /* background-color: #2d3748; */
+  /* background-color: #000; */
 }
 
 .shadow-lg {
@@ -232,3 +242,50 @@ body {
 .w-full {
   width: 100%; /* Full width */
 }
+
+
+
+.hero {
+  /* background-color: #000;  */
+}
+
+.hero-content {
+  /* background-color: rgba(255, 255, 255, 0.05);  */
+  backdrop-filter: blur(10px); 
+  /* border: 1px solid rgba(255, 255, 255, 0.2); */
+  height: 30vh;
+  margin: 1%;
+}
+
+.shadow-2xl {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* Stronger shadow to enhance the 3D floating effect */
+}
+
+.rounded-lg {
+  border-radius: 1rem; /* Increase border radius for a smoother rounded look */
+}
+
+.text-white {
+  color: #fff; /* White text for better readability */
+}
+
+@media (min-width: 768px) {
+  .hero-content {
+    padding: 20px; /* Adequate padding for larger screens */
+  }
+}
+
+
+
+.gradient-bg {
+  background: linear-gradient(to right, #4b0082, #c71585); /* Dark purple to dark pink gradient */
+}
+
+.rounded-xl {
+  border-radius: 1rem; /* Rounded corners with 1rem radius */
+}
+
+.vault-registry {
+  border: 0px solid green;
+}
+

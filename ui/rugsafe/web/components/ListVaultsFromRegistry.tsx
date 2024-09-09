@@ -161,158 +161,6 @@ const ListVaultsFromRegistry = () => {
     };
     
 
-    // const handleDepositx = async (vault: any) => {
-    //     try {
-    //         const programId = new PublicKey(CONTRACT_PROGRAM_ID);
-
-    //         // NOTE: needs to receive token a (the fauceted accounts) - so needs to be a token account for the token a mint
-    //         const vaultPubkey = new PublicKey(vault.vaultAccount);
-
-    //         const mintPubkey = new PublicKey(vault.mintAccount);
-    //         // const mintPubkey = new PublicKey("DG3jdET19heUQjp8fdL54FBvFd5oFWZZjCG8XgmFAHQJ")
-    //         const depositAmount = 1;
-
-    //         // NOTE:  Generate key pairs for the user's token and aToken accounts
-    //         // const userTokenAPubkey = Keypair.generate().publicKey;
-    //         // const userTokenAPubkey = new PublicKey("3JR13Th4Lp7Y6nBhj2LP1mMciQG4ZJoT3t9rF2D5xjNq");
-    //         const userTokenAPubkey = new PublicKey("DG3jdET19heUQjp8fdL54FBvFd5oFWZZjCG8XgmFAHQJ");
-
-    //         // NOTE: THIS IS THE ACCOUNT THAT RECEIVES THE ANTICOINS -- WHICH SHOULD BE AN ACCOUNT FOR THE USER
-    //         // const userATokenAPubkey = Keypair.generate();
-    //         const userATokenAPubkey = await getAssociatedTokenAddress(
-    //             mintPubkey,
-    //             wallet.publicKey as PublicKey
-    //         );
-
-    //         console.log("userATokenAPubkey:,", userATokenAPubkey)
-            
-            
-    //         // debugger;
-            
-            
-    //         // const signature = await deposit(
-    //         //     programId,
-    //         //     mintPubkey,
-    //         //     vaultPubkey,
-    //         //     userTokenAPubkey,
-    //         //     userATokenAPubkey,
-    //         //     depositAmount,
-    //         //     wallet,
-    //         //     connection
-    //         // );
-
-    //         // console.log('Deposit transaction signature:', signature);
-    //         // await fetchBalances(vaults); // Refresh balances after deposit
-    //     } catch (error) {
-    //         console.error('Deposit failed:', error);
-    //     }
-    // };
-
-    // const handleDepositxx = async (vault: any) => {
-    //     try {
-    //         const programId = new PublicKey(CONTRACT_PROGRAM_ID);
-    
-    //         // Retrieve vault's public key and associated mints
-    //         const vaultPubkey = new PublicKey(vault.vaultAccount);
-    //         const mintTokenAPubkey = new PublicKey(vault.mintAccount); // TokenA Mint
-
-    //         // Generate a new key pair for the aTokenA mint
-    //         // const mintATokenAPubkey = new PublicKey("FSrN9rrZNvrtr8163PhZxSzYq7utytPKsVTH3Ph5LoD7"); // Replace with the actual aTokenA mint address
-    //         const mintATokenAKeypair = Keypair.generate();
-    //         const mintATokenAPubkey = mintATokenAKeypair.publicKey; // aTokenA Mint
-
-    //         const depositAmount = 1;
-    
-    //         // User's TokenA account (the account holding the token the user is depositing)
-    //         // const userTokenAPubkey = new PublicKey("DG3jdET19heUQjp8fdL54FBvFd5oFWZZjCG8XgmFAHQJ"); // Replace with the actual user's TokenA account
-    //         const userTokenAPubkey = new PublicKey("5Wb8FXJ5PPe8GDb1us3XEXGzTFTW4MnDrMBKHK36RhAE")
-    //         // const userTokenAPubkey = new PublicKey("6hBKBJ6vw8zXDAUbz8HFbdZNhEhpXco56SGQNwpvidAq")
-            
-    //         // User's aTokenA account (the account that will receive aTokens)
-    //         const userATokenAPubkey = await getAssociatedTokenAddress(
-    //             mintATokenAPubkey,
-    //             wallet.publicKey as PublicKey
-    //         );
-    
-    //         console.log("userATokenAPubkey:", userATokenAPubkey.toString());
-    
-    //         const signature = await deposit(
-    //             programId,
-    //             mintTokenAPubkey,
-
-    //             // mintATokenAPubkey,
-    //             mintATokenAKeypair,
-
-    //             vaultPubkey,
-    //             userTokenAPubkey,
-    //             userATokenAPubkey,
-    //             depositAmount,
-    //             wallet,
-    //             connection
-    //         );
-    
-    //         console.log('Deposit transaction signature:', signature);
-    //         await fetchBalances(vaults); // Refresh balances after deposit
-    //     } catch (error) {
-    //         console.error('Deposit failed:', error);
-    //     }
-    // };
-
-    // const handleDeposit = async (vault: any) => {
-    //     try {
-    //         const programId = new PublicKey(CONTRACT_PROGRAM_ID);
-    
-    //         // Retrieve vault's public key and associated mints
-    //         console.log("vault: ", vault)
-    //         const vaultPubkey = new PublicKey(vault.vaultAccount);
-    //         const mintTokenAPubkey = new PublicKey(vault.mintTokenAAccount); // TokenA Mint
-    //         const mintATokenAPubkey = new PublicKey(vault.mintATokenAAccount); // TokenA Mint
-
-    //         console.log("vault", vault)
-    //         // const mintTokenAPubkey = new PublicKey("DG3jdET19heUQjp8fdL54FBvFd5oFWZZjCG8XgmFAHQJ")
-    //         // const mintATokenAPubkey = new PublicKey("6hBKBJ6vw8zXDAUbz8HFbdZNhEhpXco56SGQNwpvidAq"); // ATokenA Mint
-    //         console.log("mintATokenAPubkey", mintATokenAPubkey)
-    //         // const mintATokenAKeypair = Keypair.generate();
-    //         // const mintATokenAPubkey = mintATokenA'Keypair.publicKey; // aTokenA Mint
-    //         // const mintATokenAPubkey = new PublicKey("6hBKBJ6vw8zXDAUbz8HFbdZNhEhpXco56SGQNwpvidAq");
-    //         const depositAmount = 1;
-    
-    //         // Get the user's TokenA account
-    //         // const userTokenAPubkey = await getAssociatedTokenAddress(
-    //         //     mintTokenAPubkey,
-    //         //     wallet.publicKey as PublicKey
-    //         // );
-
-    //         const userTokenAPubkey = new PublicKey("43MJ8hVyFQBoNw2Qm8WnYVfrZkfEVjGUNnRDuBjTj9kg")
-            
-    //         // User's aTokenA account (the account that will receive aTokens)
-    //         const userATokenAPubkey = await getAssociatedTokenAddress(
-    //             mintATokenAPubkey,
-    //             wallet.publicKey as PublicKey
-    //         );
-    
-    //         console.log("userTokenAPubkey:", userTokenAPubkey.toString());
-    //         console.log("userATokenAPubkey:", userATokenAPubkey.toString());
-    
-    //         const signature = await deposit(
-    //             programId,
-    //             mintTokenAPubkey,
-    //             // mintATokenAKeypair,
-    //             mintATokenAPubkey,
-    //             vaultPubkey,
-    //             userTokenAPubkey,
-    //             userATokenAPubkey,
-    //             depositAmount,
-    //             wallet,
-    //             connection
-    //         );
-    
-    //         console.log('Deposit transaction signature:', signature);
-    //         await fetchBalances(vaults); // Refresh balances after deposit
-    //     } catch (error) {
-    //         console.error('Deposit failed:', error);
-    //     }
-    // };
 
     const handleDeposit = async (vault: {
         mintTokenAAccount: string, 
@@ -387,55 +235,189 @@ const ListVaultsFromRegistry = () => {
     };
 
     return (
-        <div className="max-w-6xl mx-auto mt-12">
-            <h2 className="text-3xl font-bold text-center text-white mb-10">Vaults</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {vaults.map((vault, index) => (
-                    <div
-                        key={index}
-                        className="bg-gray-800 shadow-lg rounded-lg p-6 transition-transform transform hover:scale-105"
-                        style={{ minWidth: '320px', maxWidth: '100%' }} // Adjust min-width if necessary and limit max-width
-                    >
-                        <h3 className="text-xl font-semibold text-white mb-4">Vault #{index + 1}</h3>
-                        <div className="overflow-x-auto whitespace-nowrap">
-                            <p className="text-gray-400 mb-2">
-                                <strong className="text-white">Vault Account:</strong> {vault.vaultAccount}
-                            </p>
-                            <p className="text-gray-400 mb-2">
-                                <strong className="text-white">Mint Token A Account:</strong> {vault.mintTokenAAccount}
-                            </p>
-                            <p className="text-gray-400 mb-2">
-                                <strong className="text-white">Mint AToken A Account:</strong> {vault.mintATokenAAccount}
-                            </p>
-                            <p className="text-gray-400 mb-2">
-                                <strong className="text-white">Owner:</strong> {vault.owner}
-                            </p>
-                            <p className="text-gray-400 mb-2">
-                                <strong className="text-white">User Token Balance:</strong> {balances[vault.vaultAccount]?.userTokenBalance || '-'}
-                            </p>
-                            <p className="text-gray-400 mb-2">
-                                <strong className="text-white">User aToken Balance:</strong> {balances[vault.vaultAccount]?.userATokenBalance || '-'}
-                            </p>
-                            <p className="text-gray-400 mb-2">
-                                <strong className="text-white">Vault Token Balance:</strong> {balances[vault.vaultAccount]?.vaultTokenBalance || '-'}
-                            </p>
+        <div className="vault-registry max-w-12xl mx-auto mt-0">
+            {/* <h2 className="text-3xl font-bold text-center text-white mb-10">Vaults</h2> */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" style={{ border: "0px solid red"}}>
+                
+                {
+                    vaults.map((vault, index) => ( 
+                        <div
+                            key={index}
+                            className="bg-gray-800 shadow-lg rounded-lg p-6 transition-transform transform hover:scale-105"
+                            style={{ minWidth: '320px', maxWidth: '100%' }} // Adjust min-width if necessary and limit max-width
+                        >
+                            <div className="flex items-center mb-4">
+                                {/* Circular chain logo */}
+                                <img
+                                    src="assets/img/solana.png"
+                                    alt="Chain Logo"
+                                    className="w-10 h-10 rounded-full mr-4" 
+                                />
+                                <h3 className="text-xl font-semibold text-white mb-4">Vault #{index + 1}</h3>
+                            </div>
+                            <div className="overflow-x-auto whitespace-nowrap">
+                                <p className="text-gray-400 mb-2">
+                                    <strong className="text-white">Vault Account:</strong> {vault.vaultAccount}
+                                </p>
+                                <p className="text-gray-400 mb-2">
+                                    <strong className="text-white">Mint Token A Account:</strong> {vault.mintTokenAAccount}
+                                </p>
+                                <p className="text-gray-400 mb-2">
+                                    <strong className="text-white">Mint AToken A Account:</strong> {vault.mintATokenAAccount}
+                                </p>
+                                <p className="text-gray-400 mb-2">
+                                    <strong className="text-white">Owner:</strong> {vault.owner}
+                                </p>
+                                <p className="text-gray-400 mb-2">
+                                    <strong className="text-white">User Token Balance:</strong> {balances[vault.vaultAccount]?.userTokenBalance || '-'}
+                                </p>
+                                <p className="text-gray-400 mb-2">
+                                    <strong className="text-white">User aToken Balance:</strong> {balances[vault.vaultAccount]?.userATokenBalance || '-'}
+                                </p>
+                                <p className="text-gray-400 mb-2">
+                                    <strong className="text-white">Vault Token Balance:</strong> {balances[vault.vaultAccount]?.vaultTokenBalance || '-'}
+                                </p>
+                            </div>
+                            <div className="flex justify-between mt-4">
+                                <button
+                                    className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md transition w-full mr-2"
+                                    onClick={() => handleDeposit(vault)}
+                                >
+                                    Deposit
+                                </button>
+                                <button
+                                    className="bg-orange-600 hover:bg-orange-700 text-white py-2 px-4 rounded-md transition flex-1 mx-2"
+                                    onClick={() => handleBurn(vault)}
+                                >
+                                    Burn
+                                </button>
+                                <button
+                                    className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md transition w-full ml-2"
+                                    onClick={() => handleWithdraw(vault.vaultAccount)}
+                                >
+                                    Withdraw
+                                </button>
+                            </div>
                         </div>
-                        <div className="flex justify-between mt-4">
-                            <button
-                                className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md transition w-full mr-2"
-                                onClick={() => handleDeposit(vault)}
-                            >
-                                Deposit
-                            </button>
-                            <button
-                                className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md transition w-full ml-2"
-                                onClick={() => handleWithdraw(vault.vaultAccount)}
-                            >
-                                Withdraw
-                            </button>
-                        </div>
+                    ))
+                }
+                
+                {/* <div
+                    key="1"
+                    className="bg-gray-800 shadow-lg rounded-lg p-6 transition-transform transform hover:scale-105"
+                    style={{ minWidth: '320px', maxWidth: '100%' }}
+                >
+                    
+                    <div className="flex items-center mb-4">
+                        <img
+                            src="assets/img/solana.png" 
+                            alt="Chain Logo"
+                            className="w-10 h-10 rounded-full mr-4"
+                        />
+                        <h3 className="text-xl font-semibold text-white">Vault #1</h3>
                     </div>
-                ))}
+
+                    <div className="overflow-x-auto whitespace-nowrap">
+                        <p className="text-gray-400 mb-2">
+                            <strong className="text-white">Vault Account:</strong>nBzomwsoJpu8CiRL5f7iJkN5cLJryMeTwPC8nNJciqr
+                        </p>
+                        <p className="text-gray-400 mb-2">
+                            <strong className="text-white">Mint Token A Account:</strong> DG3jdET19heUQjp8fdL54FBvFd5oFWZZjCG8XgmFAHQJ
+                        </p>
+                        <p className="text-gray-400 mb-2">
+                            <strong className="text-white">Mint AToken A Account:</strong> 5UgXHoPaFKA8iDqZoQnyTDqEYnzKtwRZMSjGr6223XyG
+                        </p>
+                        <p className="text-gray-400 mb-2">
+                            <strong className="text-white">Owner:</strong>7WAS4T6sUPSDzStbGxEFgd8cfuCDLM7cmqWEfUqkhNjk
+                        </p>
+                        <p className="text-gray-400 mb-2">
+                            <strong className="text-white">User Token Balance:</strong> 900
+                        </p>
+                        <p className="text-gray-400 mb-2">
+                            <strong className="text-white">User aToken Balance:</strong> 100
+                        </p>
+                        <p className="text-gray-400 mb-2">
+                            <strong className="text-white">Vault Token Balance:</strong> 100x
+                        </p>
+                    </div>
+                    <div className="flex justify-between mt-4">
+                        <button
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md transition w-full mr-2"
+                        >
+                            Deposit
+                        </button>
+                        <button
+                            className="bg-orange-600 hover:bg-orange-700 text-white py-2 px-4 rounded-md transition flex-1 mx-2"
+                        >
+                            Burn
+                        </button>
+                        <button
+                            className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md transition w-full ml-2"
+                        >
+                            Withdraw
+                        </button>
+                    </div>
+                </div>
+
+
+                <div
+                    key="1"
+                    className="bg-gray-800 shadow-lg rounded-lg p-6 transition-transform transform hover:scale-105"
+                    style={{ minWidth: '320px', maxWidth: '100%' }}
+                >
+                    <div className="flex items-center mb-4">
+                        <img
+                            src="assets/img/solana.png" // Replace with the path to the chain logo
+                            alt="Chain Logo"
+                            className="w-10 h-10 rounded-full mr-4" // Circle logo with margin to right
+                        />
+                        <h3 className="text-xl font-semibold text-white">Vault #1</h3>
+                    </div>
+                    <div className="overflow-x-auto whitespace-nowrap">
+                        <p className="text-gray-400 mb-2">
+                            <strong className="text-white">Vault Account:</strong>nBzomwsoJpu8CiRL5f7iJkN5cLJryMeTwPC8nNJciqr
+                        </p>
+                        <p className="text-gray-400 mb-2">
+                            <strong className="text-white">Mint Token A Account:</strong> DG3jdET19heUQjp8fdL54FBvFd5oFWZZjCG8XgmFAHQJ
+                        </p>
+                        <p className="text-gray-400 mb-2">
+                            <strong className="text-white">Mint AToken A Account:</strong> 5UgXHoPaFKA8iDqZoQnyTDqEYnzKtwRZMSjGr6223XyG
+                        </p>
+                        <p className="text-gray-400 mb-2">
+                            <strong className="text-white">Owner:</strong>7WAS4T6sUPSDzStbGxEFgd8cfuCDLM7cmqWEfUqkhNjk
+                        </p>
+                        <p className="text-gray-400 mb-2">
+                            <strong className="text-white">User Token Balance:</strong> 900
+                        </p>
+                        <p className="text-gray-400 mb-2">
+                            <strong className="text-white">User aToken Balance:</strong> 100
+                        </p>
+                        <p className="text-gray-400 mb-2">
+                            <strong className="text-white">Vault Token Balance:</strong> 100x
+                        </p>
+                    </div>
+                    <div className="flex justify-between mt-4">
+                        <button
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md transition w-full mr-2"
+                        >
+                            Deposit
+                        </button>
+                        <button
+                            className="bg-orange-600 hover:bg-orange-700 text-white py-2 px-4 rounded-md transition flex-1 mx-2"
+                        >
+                            Burn
+                        </button>
+                        <button
+                            className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md transition w-full ml-2"
+                        >
+                            Withdraw
+                        </button>
+                    </div>
+                </div> */}
+
+
+
+
             </div>
         </div>
     );
