@@ -193,7 +193,7 @@ export function AppHero({
         </div>
 
         {/* Second column: RugSafe + Filters + Manage Vaults (75% width) */}
-        <div className="hero-content ml-8 flex-none md:w-3/4 gradient-bg rounded-lg" style={{ paddingTop: "60px", minHeight: '250px', flexGrow: 1 }}>
+        <div className="hero-content ml-8 flex-none md:w-3/4 gradient-bg rounded-lg" style={{ paddingTop: "40px", minHeight: '250px', flexGrow: 1 }}>
           <div className="text-center md:text-left" style={{ border: "0px solid green", flexGrow: 1 }}>
             <h1 className="text-5xl font-bold">{title}</h1>
             <p className="py-6">{subtitle}</p>
