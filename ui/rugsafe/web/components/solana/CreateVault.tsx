@@ -7,8 +7,8 @@ const LOCALHOST_URL = 'http://127.0.0.1:8899';
 
 const SPL_TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
 // const CONTRACT_PROGRAM_ID = 'AVFEXtCiwxuBHuMUsnFGoFB44ymVAbMn3QsN6f6pw5yA';
-// const CONTRACT_PROGRAM_ID = 'FobNvbQsK5BAniZC2oJhXakjcPiArpsthTGDnX9eHDVY';
-const CONTRACT_PROGRAM_ID = '7kaX5wHo7iyG99uG91aAxnFgi55ZBhSZuGaxp8x3qqDv'
+const CONTRACT_PROGRAM_ID = 'FobNvbQsK5BAniZC2oJhXakjcPiArpsthTGDnX9eHDVY';
+// const CONTRACT_PROGRAM_ID = '7kaX5wHo7iyG99uG91aAxnFgi55ZBhSZuGaxp8x3qqDv'
 const CreateVault = () => {
     // const [mintPubkey, setMintPubkey] = useState<Keypair | null>(null);
     const [mintPubkey, setMintPubkey] = useState<PublicKey | null>(null);

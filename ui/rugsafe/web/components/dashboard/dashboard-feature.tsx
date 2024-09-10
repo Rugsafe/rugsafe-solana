@@ -5,7 +5,7 @@ import CreateVault from '../solana/CreateVault'; // Import the CreateVault compo
 import NewListVaults from '../NewListVault';
 import ListVaultsFromRegistry from '../ListVaultsFromRegistry';
 import NewVaultList from '../dummylist';
-import ListVaults from '../ListVault';
+// import ListVaults from '../ListVault';
 
 
 
