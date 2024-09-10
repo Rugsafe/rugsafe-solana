@@ -1,25 +1,15 @@
 'use client';
 
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-
-import { WalletButton } from '../solana/solana-provider';
 import * as React from 'react';
 import { ReactNode, Suspense, useEffect, useRef } from 'react';
-
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { WalletButton } from '../solana/solana-provider';
 import { AccountChecker } from '../account/account-ui';
-import {
-  ClusterChecker,
-  ClusterUiSelect,
-  ExplorerLink,
-} from '../cluster/cluster-ui';
+import { ClusterChecker, ClusterUiSelect, ExplorerLink } from '../cluster/cluster-ui';
 import toast, { Toaster } from 'react-hot-toast';
-
-
-import CreateVault from '../solana/CreateVault'; // Import the CreateVault component
-
+import CreateVault from '../solana/CreateVault';
 
 export function UiLayout({
   children,
@@ -31,12 +21,11 @@ export function UiLayout({
   const pathname = usePathname();
 
   return (
-    <div className="h-full w-full flex flex-col"> {/* Set the layout container to take the full width */}
-      <div className="navbar bg-base-300 text-neutral-content flex-col md:flex-row space-y-2 md:space-y-0 w-full"> {/* Add w-full to navbar */}
+    <div className="h-full w-full flex flex-col bg-[#0a0b1e] text-white">
+      <div className="navbar bg-base-300 text-neutral-content flex-col md:flex-row space-y-2 md:space-y-0 w-full">
         <div className="flex-1">
           <Link className="btn btn-ghost normal-case text-xl" href="/">
             <img className="h-8 md:h-8" alt="Logo" src="assets/img/rugsafe.png" />
-            {/* RugSafe */}
           </Link>
           <ul className="menu menu-horizontal px-1 space-x-2">
             {links.map(({ label, path }) => (
@@ -61,7 +50,7 @@ export function UiLayout({
         <AccountChecker />
       </ClusterChecker>
 
-      <div className="flex-grow w-full"> {/* Removed mx-4 lg:mx-auto and added w-full to stretch */}
+      <div className="flex-grow w-full">
         <Suspense
           fallback={
             <div className="text-center my-32">
@@ -74,11 +63,98 @@ export function UiLayout({
         <Toaster position="bottom-right" />
       </div>
 
-      <footer className="footer footer-center p-4 bg-base-300 text-base-content w-full"> {/* Ensure footer is full width */}
+      <footer className="footer footer-center p-4 bg-base-300 text-base-content w-full">
         <aside>
           <p>Rugsafe Foundation</p>
         </aside>
       </footer>
+    </div>
+  );
+}
+
+
+
+export function AppHero({
+  children,
+  title,
+  subtitle,
+}: {
+  children?: React.ReactNode;
+  title: React.ReactNode;
+  subtitle: React.ReactNode;
+}) {
+  const data = [
+    { name: 'Jan', value: 10 },
+    { name: 'Feb', value: 34 },
+    { name: 'Mar', value: 89 },
+    { name: 'Apr', value: 199 },
+    { name: 'May', value: 149 },
+    { name: 'Jun', value: 246 },
+  ];
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+      <div className="md:col-span-4 bg-gradient-to-r from-purple-600 to-pink-500 rounded-3xl shadow-lg p-8 mb-8">
+        <h1 className="text-5xl font-bold mb-4">{title}</h1>
+        <p className="text-xl">{subtitle}</p>
+      </div>
+      <div className="md:col-span-1 bg-[#1a1b2e] rounded-3xl shadow-lg p-6">
+        <h2 className="text-3xl font-bold mb-2">$1,456</h2>
+        <p className="text-gray-300 mb-4">Total Value Locked</p>
+        <div className="h-40">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={data}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
+              <XAxis dataKey="name" stroke="#fff" fontSize={12} tickLine={false} axisLine={false} />
+              <YAxis hide />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#1a1b2e', border: 'none', borderRadius: '0.5rem' }}
+                itemStyle={{ color: '#fff' }}
+              />
+              <Line type="monotone" dataKey="value" stroke="#8884d8" strokeWidth={2} dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+      <div className="md:col-span-3 space-y-6">
+        <div className="bg-[#1a1b2e] rounded-3xl shadow-lg p-6">
+          <CreateVault />
+        </div>
+        <div className="bg-[#1a1b2e] rounded-3xl shadow-lg p-6">
+          <h2 className="text-2xl font-bold mb-4">Filters</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <input
+                type="text"
+                placeholder="Search YFI Vault"
+                className="w-full px-4 py-2 bg-[#2a2b3e] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+            <div>
+              <select className="w-full px-4 py-2 bg-[#2a2b3e] rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <option>Select Blockchain</option>
+                <option>Ethereum</option>
+                <option>Solana</option>
+                <option>Binance Smart Chain</option>
+              </select>
+            </div>
+            <div>
+              <select className="w-full px-4 py-2 bg-[#2a2b3e] rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <option>Select Type</option>
+                <option>Fancy</option>
+                <option>Standard</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="md:col-span-4 bg-gradient-to-r from-pink-500 to-purple-600 rounded-3xl shadow-lg p-6">
+      <h2 className="text-2xl font-bold mb-2">"Oh my vault... look at that APY!"</h2>
+<p className="text-lg">
+  In Rugsafe, V3 Vaults are enhanced with auto-compounding rewards and fortified security. Sit back, relax, and trust that your assets are safe while enjoying those secure returns.
+</p>
+
+      </div>
     </div>
   );
 }
@@ -136,126 +212,6 @@ export function AppModal({
     </dialog>
   );
 }
-
-export function AppHero({
-  children,
-  title,
-  subtitle,
-}: {
-  children?: ReactNode;
-  title: ReactNode;
-  subtitle: ReactNode;
-}) {
-
-  const data = [
-    { name: 'Jan', value: 10 },
-    { name: 'Feb', value: 34 },
-    { name: 'Mar', value: 89 },
-    { name: 'Apr', value: 199 },
-    { name: 'May', value: 149 },
-    { name: 'Jun', value: 246 },
-  ];
-
-  return (
-
-    <div className="hero min-h-0 py-10 flex justify-center items-center" style={{ border: "0px solid green" }}>
- 
-      {/* Blue bordered div stretching across the full width */}
-      <div style={{ border: "0px solid blue" }} className="flex flex-col md:flex-row justify-start items-center w-full text-white" >
-        
-        {/* First column: Value Display and Chart (25% width) */}
-        <div className="hero-content shadow-2xl rounded-lg p-6 bg-opacity-80 md:w-1/4 gradient-bg flex flex-col items-center"
-          style={{ backgroundSize: 'cover', backgroundPosition: 'center', minHeight: '200px', border: "0px solid blue" }}>
-        
-          {/* Display the total deposited value */}
-          <div className="text-center mb-4">
-            <h2 className="text-4xl font-bold text-white">$1,456</h2>
-            <p className="text-white">Total Deposited Value</p>
-          </div>
-
-          {/* Chart */}
-          <div className="w-full h-40 flex justify-center w-full px-4"> 
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
-                <XAxis dataKey="name" stroke="rgba(255, 255, 255, 0.7)" />
-                {/* <YAxis stroke="rgba(255, 255, 255, 0.7)" /> */}
-                <YAxis hide />
-
-                <Tooltip />
-                <Line type="monotone" dataKey="value" stroke="#8884d8" strokeWidth={2} />
-                <YAxis hide />
-
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-        </div>
-
-        {/* Second column: RugSafe + Filters + Manage Vaults (75% width) */}
-        <div className="hero-content ml-8 flex-none md:w-3/4 gradient-bg rounded-lg" style={{ paddingTop: "40px", minHeight: '250px', flexGrow: 1 }}>
-          <div className="text-center md:text-left" style={{ border: "0px solid green", flexGrow: 1 }}>
-            <h1 className="text-5xl font-bold">{title}</h1>
-            <p className="py-6">{subtitle}</p>
-
-            {/* Filters Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4" style={{ border: "0px solid orange" }}>
-              {/* Search Filter */}
-              <div className="mb-4">
-                <label className="block text-white text-sm font-bold mb-2" htmlFor="search">
-                  Search
-                </label>
-                <div className="flex items-center border rounded-lg px-3 py-2 bg-gray-800">
-                  <input
-                    className="appearance-none bg-transparent border-none w-full text-gray-300 py-1 px-2 leading-tight focus:outline-none"
-                    id="search"
-                    type="text"
-                    placeholder="Search term..."
-                  />
-                  <button className="text-gray-400 hover:text-white">
-                    <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11a4 4 0 118 0 4 4 0 01-8 0zm-4 8l4-4" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              {/* Blockchain Filter */}
-              <div className="mb-4">
-                <label className="block text-white text-sm font-bold mb-2" htmlFor="blockchain">
-                  Select Blockchain
-                </label>
-                <div className="relative">
-                  <select className="block appearance-none w-full bg-gray-800 border border-gray-600 text-gray-300 py-2 px-3 pr-8 rounded leading-tight focus:outline-none focus:bg-gray-700"
-                          id="blockchain">
-                    <option>All</option>
-                    <option>Ethereum</option>
-                    <option>Solana</option>
-                    <option>Binance Smart Chain</option>
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-300">
-                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                      <path d="M7 10l5 5 5-5H7z" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Manage Vaults Section */}
-          <CreateVault />
-        </div>
-
-                
-
-
-      </div>
-    </div>
-  );
-}
-
-
 
 export function ellipsify(str = '', len = 4) {
   if (str.length > 30) {
