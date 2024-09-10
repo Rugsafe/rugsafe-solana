@@ -16,9 +16,22 @@ const deriveStateAccountPDA = async (programId: PublicKey) => {
     return stateAccountPDA;
 };
 
+interface Vault {
+    vaultAccount: string;
+    mintTokenAAccount: string;
+    mintATokenAAccount: string;
+    owner: string;
+}
+
+interface Balance {
+    userTokenBalance: string;
+    userATokenBalance: string;
+    vaultTokenBalance: string;
+  }
+
 const ListVaultsFromRegistry = () => {
-    const [vaults, setVaults] = useState([]);
-    const [balances, setBalances] = useState({});
+    const [vaults, setVaults] = useState<Vault[]>([]);
+    const [balances, setBalances] = useState<{ [key: string]: Balance }>({});
     const wallet = useWallet();
     const connection = new Connection(LOCALHOST_URL, 'confirmed');
 
@@ -44,7 +57,8 @@ const ListVaultsFromRegistry = () => {
             }));
     
             console.log("formattedVaults", formattedVaults);
-    
+            window.alert("FORMATTING")
+            window.alert(formattedVaults)
             setVaults(formattedVaults);
             await fetchBalances(formattedVaults);
         } catch (error) {
@@ -86,8 +100,7 @@ const ListVaultsFromRegistry = () => {
     // };
 
     const fetchBalances = async (vaults: any) => {
-        const newBalances: { [key: string]: { userTokenBalance: string,  vaultTokenBalance: string} } = {};
-
+        const newBalances: { [key: string]: { userTokenBalance: string, userATokenBalance: string, vaultTokenBalance: string } } = {};
     
         for (const vault of vaults) {
             try {
@@ -234,75 +247,80 @@ const ListVaultsFromRegistry = () => {
         // Implement withdraw logic here
     };
 
+    const handleBurn = (vaultAddress: any) => {
+        console.log(`burn clicked for vault: ${vaultAddress}`);
+        // Implement burn logic here
+    };
+
     return (
         <div className="vault-registry max-w-12xl mx-auto mt-0">
             {/* <h2 className="text-3xl font-bold text-center text-white mb-10">Vaults</h2> */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" style={{ border: "0px solid red"}}>
                 
                 {
-                    // vaults.map((vault, index) => ( 
-                    //     <div
-                    //         key={index}
-                    //         className="bg-gray-800 shadow-lg rounded-lg p-6 transition-transform transform hover:scale-105"
-                    //         style={{ minWidth: '320px', maxWidth: '100%' }} // Adjust min-width if necessary and limit max-width
-                    //     >
-                    //         <div className="flex items-center mb-4">
-                    //             {/* Circular chain logo */}
-                    //             <img
-                    //                 src="assets/img/solana.png"
-                    //                 alt="Chain Logo"
-                    //                 className="w-10 h-10 rounded-full mr-4" 
-                    //             />
-                    //             <h3 className="text-xl font-semibold text-white mb-4">Vault #{index + 1}</h3>
-                    //         </div>
-                    //         <div className="overflow-x-auto whitespace-nowrap">
-                    //             <p className="text-gray-400 mb-2">
-                    //                 <strong className="text-white">Vault Account:</strong> {vault.vaultAccount}
-                    //             </p>
-                    //             <p className="text-gray-400 mb-2">
-                    //                 <strong className="text-white">Mint Token A Account:</strong> {vault.mintTokenAAccount}
-                    //             </p>
-                    //             <p className="text-gray-400 mb-2">
-                    //                 <strong className="text-white">Mint AToken A Account:</strong> {vault.mintATokenAAccount}
-                    //             </p>
-                    //             <p className="text-gray-400 mb-2">
-                    //                 <strong className="text-white">Owner:</strong> {vault.owner}
-                    //             </p>
-                    //             <p className="text-gray-400 mb-2">
-                    //                 <strong className="text-white">User Token Balance:</strong> {balances[vault.vaultAccount]?.userTokenBalance || '-'}
-                    //             </p>
-                    //             <p className="text-gray-400 mb-2">
-                    //                 <strong className="text-white">User aToken Balance:</strong> {balances[vault.vaultAccount]?.userATokenBalance || '-'}
-                    //             </p>
-                    //             <p className="text-gray-400 mb-2">
-                    //                 <strong className="text-white">Vault Token Balance:</strong> {balances[vault.vaultAccount]?.vaultTokenBalance || '-'}
-                    //             </p>
-                    //         </div>
-                    //         <div className="flex justify-between mt-4">
-                    //             <button
-                    //                 className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md transition w-full mr-2"
-                    //                 onClick={() => handleDeposit(vault)}
-                    //             >
-                    //                 Deposit
-                    //             </button>
-                    //             <button
-                    //                 className="bg-orange-600 hover:bg-orange-700 text-white py-2 px-4 rounded-md transition flex-1 mx-2"
-                    //                 onClick={() => handleBurn(vault)}
-                    //             >
-                    //                 Burn
-                    //             </button>
-                    //             <button
-                    //                 className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md transition w-full ml-2"
-                    //                 onClick={() => handleWithdraw(vault.vaultAccount)}
-                    //             >
-                    //                 Withdraw
-                    //             </button>
-                    //         </div>
-                    //     </div>
-                    // ))
+                    vaults.map((vault, index) => ( 
+                        <div
+                            key={index}
+                            className="bg-gray-800 shadow-lg rounded-lg p-6 transition-transform transform hover:scale-105"
+                            style={{ minWidth: '320px', maxWidth: '100%' }} // Adjust min-width if necessary and limit max-width
+                        >
+                            <div className="flex items-center mb-4">
+                                {/* Circular chain logo */}
+                                <img
+                                    src="assets/img/solana.png"
+                                    alt="Chain Logo"
+                                    className="w-10 h-10 rounded-full mr-4" 
+                                />
+                                <h3 className="text-xl font-semibold text-white mb-4">Vault #{index + 1}</h3>
+                            </div>
+                            <div className="overflow-x-auto whitespace-nowrap">
+                                <p className="text-gray-400 mb-2">
+                                    <strong className="text-white">Vault Account:</strong> {vault.vaultAccount}
+                                </p>
+                                <p className="text-gray-400 mb-2">
+                                    <strong className="text-white">Mint Token A Account:</strong> {vault.mintTokenAAccount}
+                                </p>
+                                <p className="text-gray-400 mb-2">
+                                    <strong className="text-white">Mint AToken A Account:</strong> {vault.mintATokenAAccount}
+                                </p>
+                                <p className="text-gray-400 mb-2">
+                                    <strong className="text-white">Owner:</strong> {vault.owner}
+                                </p>
+                                <p className="text-gray-400 mb-2">
+                                    <strong className="text-white">User Token Balance:</strong> {balances[vault.vaultAccount]?.userTokenBalance || '-'}
+                                </p>
+                                <p className="text-gray-400 mb-2">
+                                    <strong className="text-white">User aToken Balance:</strong> {balances[vault.vaultAccount]?.userATokenBalance || '-'}
+                                </p>
+                                <p className="text-gray-400 mb-2">
+                                    <strong className="text-white">Vault Token Balance:</strong> {balances[vault.vaultAccount]?.vaultTokenBalance || '-'}
+                                </p>
+                            </div>
+                            <div className="flex justify-between mt-4">
+                                <button
+                                    className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md transition w-full mr-2"
+                                    onClick={() => handleDeposit(vault)}
+                                >
+                                    Deposit
+                                </button>
+                                <button
+                                    className="bg-orange-600 hover:bg-orange-700 text-white py-2 px-4 rounded-md transition flex-1 mx-2"
+                                    onClick={() => handleBurn(vault)}
+                                >
+                                    Burn
+                                </button>
+                                <button
+                                    className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md transition w-full ml-2"
+                                    onClick={() => handleWithdraw(vault.vaultAccount)}
+                                >
+                                    Withdraw
+                                </button>
+                            </div>
+                        </div>
+                    ))
                 }
                 
-                <div
+                {/* <div
                     key="1"
                     className="bg-gray-800 shadow-lg rounded-lg p-6 transition-transform transform hover:scale-105"
                     style={{ minWidth: '320px', maxWidth: '100%' }}
@@ -413,7 +431,7 @@ const ListVaultsFromRegistry = () => {
                             Withdraw
                         </button>
                     </div>
-                </div>
+                </div> */}
 
 
 

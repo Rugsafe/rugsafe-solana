@@ -50,7 +50,22 @@ const vaults = [
   },
 ];
 
-const VaultItem = ({ vault }) => (
+
+// dummy vaults usage doesnt match the data of the vaults 
+
+interface Vault {
+  id: string;
+  name: string;
+  balance: number;
+  description: string;
+  icon: string; 
+}
+
+interface VaultItemProps {
+  vault: Vault;
+}
+
+const VaultItem: React.FC<VaultItemProps> = ({ vault }) => (
   <Link href="/components/NewListVault" className="block">
     <div className="bg-gradient-to-r from-purple-900 to-blue-900 rounded-lg p-4 hover:from-purple-600 hover:to-pink-600 transition-all duration-300 cursor-pointer">
       <div className="flex items-center justify-between">
@@ -59,10 +74,10 @@ const VaultItem = ({ vault }) => (
           <div>
             <h3 className="text-xl font-bold text-white">{vault.name}</h3>
             <p className="text-sm text-gray-300">{vault.description}</p>
-            <span className="inline-block bg-blue-600 text-xs text-white px-2 py-1 rounded-full mt-1">{vault.chain}</span>
+            {/* <span className="inline-block bg-blue-600 text-xs text-white px-2 py-1 rounded-full mt-1">{vault.chain}</span> */}
           </div>
         </div>
-        <div className="flex items-center space-x-8 text-right">
+        {/* <div className="flex items-center space-x-8 text-right">
           <div>
             <p className="text-lg font-bold text-white flex items-center">
               {vault.estApy.current.toFixed(2)}%
@@ -89,7 +104,7 @@ const VaultItem = ({ vault }) => (
             <p className="text-lg font-bold text-white">{vault.deposits.toFixed(2)}M</p>
             <p className="text-sm text-gray-400">US${vault.deposits.toFixed(2)}M</p>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   </Link>
@@ -109,9 +124,9 @@ const NewVaultList = () => {
         </div>
       </div>
       <div className="space-y-2">
-        {vaults.map((vault, index) => (
+        {/* {vaults.map((vault, index) => (
           <VaultItem key={index} vault={vault} />
-        ))}
+        ))} */}
       </div>
     </div>
   );
