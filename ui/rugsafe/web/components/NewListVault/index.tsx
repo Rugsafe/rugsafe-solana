@@ -7,7 +7,7 @@ import { getAssociatedTokenAddress, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_I
 const LOCALHOST_URL = 'http://127.0.0.1:8899';
 const CONTRACT_PROGRAM_ID = 'AVFEXtCiwxuBHuMUsnFGoFB44ymVAbMn3QsN6f6pw5yA';
 
-const ListVaults = () => {
+const NewListVaults = () => {
     const [vaults, setVaults] = useState<Array<{pubkey: string, mint: string, userTokenAccount: string, userATokenAccount: string}>>([]);
     const [activeTab, setActiveTab] = useState('deposit');
     const wallet = useWallet();
@@ -120,25 +120,27 @@ const ListVaults = () => {
         <div className="min-h-screen bg-gradient-to-br from-pink-500 to-purple-600 p-6">
             <div className="w-full max-w-4xl mx-auto bg-gray-900/80 text-white backdrop-blur-sm rounded-lg overflow-hidden">
                 <div className="p-6">
-                    <div className="flex items-center justify-between mb-6">
-                        <button className="text-white flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                   <div className='flex items-center justify-between mb-6'>
+                    <button className='text-white flex items-center'>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                            </svg>
-                            Back
-                        </button>
-                        <div className="bg-yellow-500 rounded-full p-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" viewBox="0 0 20 20" fill="currentColor">
+                        </svg>
+                        Back
+                    </button>
+                    <div className='bg-yellow-500 rounded-full p-2'>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" viewBox="0 0 20 20" fill="currentColor">
                                 <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
                             </svg>
-                        </div>
+
                     </div>
-                    <h2 className="text-4xl font-bold text-center mb-2">DAI</h2>
+                    </div>
+
+                    <h2 className="text-4xl font-bold text-center mb-2">Flocka</h2>
                     <p className="text-sm text-gray-400 text-center mb-4">0x028eC7330ff87667b6dfb0D94b954c820195336c</p>
                     <div className="flex justify-center space-x-2 mb-6">
-                        <button className="bg-gray-700 text-white px-3 py-1 rounded text-xs">Dai Stablecoin</button>
-                        <button className="bg-gray-700 text-white px-3 py-1 rounded text-xs">Ethereum</button>
+                        <button className="bg-gray-700 text-white px-3 py-1 rounded text-xs">Flocka</button>
+                        <button className="bg-gray-700 text-white px-3 py-1 rounded text-xs">Solana</button>
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                         <div>
@@ -263,5 +265,5 @@ const ListVaults = () => {
     );
 };
 
-export default ListVaults;
+export default NewListVaults;
 

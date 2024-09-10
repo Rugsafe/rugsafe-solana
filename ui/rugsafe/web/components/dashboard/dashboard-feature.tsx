@@ -29,7 +29,7 @@ export default function DashboardFeature() {
       </div> */}
       {/* <CreateVault /> */}
       {/* <ListVaults /> */}
-      <ListVaults />
+      <NewListVaults />
     </div>
   );
 }
