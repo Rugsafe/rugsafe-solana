@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.4.1)  4 SEP 2024 05:19
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.4.1)  9 SEP 2024 03:10
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -235,10 +235,10 @@ L3 programming layer <2024-02-20>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 2545 strings out of 474116
- 38000 string characters out of 5743683
+ 2544 strings out of 474116
+ 37982 string characters out of 5743683
  1935187 words of memory out of 5000000
- 24907 multiletter control sequences out of 15000+600000
+ 24906 multiletter control sequences out of 15000+600000
  564563 words of font info for 60 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  57i,7n,65p,1122b,237s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -259,7 +259,7 @@ ve/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/
 /texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2024/t
 exmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/texlive/2024/te
 xmf-dist/fonts/type1/public/amsfonts/cm/cmtt8.pfb>
-Output written on paper.pdf (15 pages, 338042 bytes).
+Output written on paper.pdf (15 pages, 338027 bytes).
 PDF statistics:
  145 PDF objects out of 1000 (max. 8388607)
  87 compressed objects within 1 object stream
