@@ -1,3 +1,4 @@
+"use client"
 import React, { useState } from 'react';
 import { AdvancedRealTimeChart } from "react-ts-tradingview-widgets";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
