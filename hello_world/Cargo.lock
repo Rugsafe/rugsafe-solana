@@ -3027,6 +3027,7 @@ dependencies = [
  "solana-sdk",
  "spl-associated-token-account 5.0.1",
  "spl-token",
+ "tokio",
 ]
 
 [[package]]

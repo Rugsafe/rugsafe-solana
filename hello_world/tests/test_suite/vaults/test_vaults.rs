@@ -1,10 +1,11 @@
 // use borsh::de::BorshDeserialize;
 // use borsh::{BorshDeserialize, BorshSerialize};
 use hex;
-use rugsafe::instruction::VaultInstruction;
+use rugsafe::instructions::vaults::VaultInstruction;
 use rugsafe::process_instruction;
-use rugsafe::processor::Processor;
-use rugsafe::state::{Vault, VaultRegistry};
+// use rugsafe::processor::Processor;
+use rugsafe::instructions::processor::Processor;
+use rugsafe::state::vaults::{Vault, VaultRegistry};
 use solana_program::hash::Hash;
 use solana_program::program_pack::Pack;
 use solana_program::rent::Rent;
@@ -511,7 +512,7 @@ async fn test_deposit() -> Result<(), BanksClientError> {
     // Step 6: Construct and send the deposit instruction
     println!("Constructing deposit instruction...");
     let deposit_amount: u64 = 101;
-    let mut deposit_instruction_data = vec![1]; // Instruction ID for "Deposit"
+    let mut deposit_instruction_data = vec![0, 1]; // Instruction ID for "Deposit"
     deposit_instruction_data.extend_from_slice(&deposit_amount.to_le_bytes());
 
     let deposit_instruction = Instruction {
@@ -599,7 +600,7 @@ fn create_vault_instruction(
     Instruction {
         program_id: *program_id,
         accounts,
-        data: vec![0], // Add any additional data if needed
+        data: vec![0, 0], // Add any additional data if needed
     }
 }
 
@@ -939,7 +940,7 @@ async fn test_faucet() -> Result<(), Box<dyn std::error::Error>> {
 
     // Prepare the faucet instruction
     let amount: u64 = 1000;
-    let mut data = vec![4]; // Instruction ID
+    let mut data = vec![0, 4]; // Instruction ID
     data.extend_from_slice(&amount.to_le_bytes()); // Append the amount as an 8-byte little-endian value
 
     let faucet_ix = Instruction {

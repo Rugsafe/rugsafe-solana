@@ -1,4 +1,4 @@
-use crate::instruction::VaultInstruction;
+use crate::instructions::vaults::VaultInstruction;
 use solana_program::sysvar::Sysvar;
 use solana_program::{
     account_info::{next_account_info, AccountInfo},
@@ -23,7 +23,7 @@ use spl_token::state::Account as TokenAccount;
 use spl_token::state::Mint;
 
 // storage
-use crate::state::{Vault, VaultRegistry};
+use crate::state::vaults::{Vault, VaultRegistry};
 use borsh::{BorshDeserialize, BorshSerialize};
 use std::io::Cursor;
 

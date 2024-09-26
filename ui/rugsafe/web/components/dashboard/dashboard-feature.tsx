@@ -2,8 +2,12 @@
 
 import { AppHero } from '../ui/ui-layout';
 import CreateVault from '../solana/CreateVault'; // Import the CreateVault component
-import ListVaults from '../ListVaults';
+import NewListVaults from '../NewListVault';
 import ListVaultsFromRegistry from '../ListVaultsFromRegistry';
+import NewVaultList from '../dummylist';
+import ListVaults from '../ListVault';
+
+
 
 
 const links: { label: string; href: string }[] = [
