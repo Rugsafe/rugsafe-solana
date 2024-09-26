@@ -1,6 +1,7 @@
 // pub mod instruction;
 pub mod instructions;
-pub mod processor;
+// pub mod processor;
+// pub mod instructions::
 pub mod state;
 
 // deterministically designate program ID
@@ -17,5 +18,6 @@ pub fn process_instruction(
     accounts: &[AccountInfo],
     instruction_data: &[u8],
 ) -> ProgramResult {
-    processor::Processor::process(program_id, accounts, instruction_data)
+    // processor::Processor::process(program_id, accounts, instruction_data)
+    instructions::processor::Processor::process(program_id, accounts, instruction_data)
 }

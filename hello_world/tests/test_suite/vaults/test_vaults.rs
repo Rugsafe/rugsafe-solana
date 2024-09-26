@@ -3,7 +3,8 @@
 use hex;
 use rugsafe::instructions::vaults::VaultInstruction;
 use rugsafe::process_instruction;
-use rugsafe::processor::Processor;
+// use rugsafe::processor::Processor;
+use rugsafe::instructions::processor::Processor;
 use rugsafe::state::vaults::{Vault, VaultRegistry};
 use solana_program::hash::Hash;
 use solana_program::program_pack::Pack;
