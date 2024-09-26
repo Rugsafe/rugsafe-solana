@@ -1,6 +1,7 @@
+use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::pubkey::Pubkey;
 
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug, BorshSerialize, BorshDeserialize)]
 pub enum Side {
     None,
     Long,
@@ -13,8 +14,7 @@ impl Default for Side {
     }
 }
 
-// #[account]
-#[derive(Default, Debug)]
+#[derive(Default, Debug, BorshSerialize, BorshDeserialize)]
 pub struct Position {
     pub owner: Pubkey,
     pub pool: Pubkey,
@@ -33,4 +33,8 @@ pub struct Position {
     pub locked_amount: u64,
     pub collateral_amount: u64,
     pub bump: u8,
+}
+
+impl Position {
+    pub const LEN: usize = 32 * 4 + 8 * 8 + 16 + 1 + 1; // todo calc final size
 }
