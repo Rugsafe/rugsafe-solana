@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React, { useState } from 'react';
 import { AdvancedRealTimeChart } from "react-ts-tradingview-widgets";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
@@ -75,25 +75,70 @@ const TradingViewPerpsWithOrders: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-900 text-white">
-      <div className="flex-1 min-h-0">
-        <AdvancedRealTimeChart
-          theme="dark"
-          autosize
-          symbol="BINANCE:BTCUSDT.P"
-          interval="D"
-          timezone="Etc/UTC"
-          style="1"
-          locale="en"
-          toolbar_bg="#f1f3f6"
-          enable_publishing={false}
-          allow_symbol_change={true}
-          container_id="tradingview_chart"
-        />
+    <div className="flex h-screen bg-gray-900 text-white">
+      {/* Left Side: TradingView Chart and Open Positions */}
+      <div className="flex-1 flex flex-col">
+        <div className="flex-1">
+          <AdvancedRealTimeChart
+            theme="dark"
+            autosize
+            symbol="BINANCE:BTCUSDT.P"
+            interval="D"
+            timezone="Etc/UTC"
+            style="1"
+            locale="en"
+            toolbar_bg="#f1f3f6"
+            enable_publishing={false}
+            allow_symbol_change={true}
+            container_id="tradingview_chart"
+          />
+        </div>
+
+        {/* Open Positions Table - Placed below the chart */}
+        <div className="p-4 bg-gray-800 h-1/3 overflow-auto">
+          <h2 className="text-xl font-bold mb-4">Open Positions</h2>
+          <table className="w-full text-sm text-left">
+            <thead className="text-xs uppercase bg-gray-700">
+              <tr>
+                <th className="px-6 py-3">Symbol</th>
+                <th className="px-6 py-3">Side</th>
+                <th className="px-6 py-3">Size</th>
+                <th className="px-6 py-3">Leverage</th>
+                <th className="px-6 py-3">Entry Price</th>
+                <th className="px-6 py-3">Mark Price</th>
+                <th className="px-6 py-3">PNL</th>
+                <th className="px-6 py-3">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.map((order) => (
+                <tr key={order.id} className="border-b bg-gray-800 border-gray-700">
+                  <td className="px-6 py-4">{order.symbol}</td>
+                  <td className="px-6 py-4">{order.side}</td>
+                  <td className="px-6 py-4">{order.size}</td>
+                  <td className="px-6 py-4">{order.leverage}x</td>
+                  <td className="px-6 py-4">${order.entryPrice}</td>
+                  <td className="px-6 py-4">${order.markPrice}</td>
+                  <td className="px-6 py-4">${order.pnl}</td>
+                  <td className="px-6 py-4">
+                    <button 
+                      onClick={() => handleClosePosition(order.id)}
+                      className="font-medium text-blue-500 hover:underline"
+                    >
+                      Close
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
-      <div className="h-1/2 p-4 overflow-auto">
+
+      {/* Right Side: Sidebar for Opening Positions */}
+      <div className="w-1/3 p-4 bg-gray-800 h-screen overflow-y-auto">
         <h2 className="text-xl font-bold mb-4">Open New Position</h2>
-        <form onSubmit={handleSubmitOrder} className="mb-6 flex space-x-4">
+        <form onSubmit={handleSubmitOrder} className="mb-6 flex flex-col space-y-4">
           <select
             name="symbol"
             value={newOrder.symbol}
@@ -134,57 +179,6 @@ const TradingViewPerpsWithOrders: React.FC = () => {
             Open Position
           </button>
         </form>
-
-        <h2 className="text-xl font-bold mb-4">Open Positions</h2>
-        <table className="w-full text-sm text-left">
-          <thead className="text-xs uppercase bg-gray-700">
-            <tr>
-              <th className="px-6 py-3">Symbol</th>
-              <th className="px-6 py-3">Side</th>
-              <th className="px-6 py-3">Size</th>
-              <th className="px-6 py-3">Leverage</th>
-              <th className="px-6 py-3">Entry Price</th>
-              <th className="px-6 py-3">Mark Price</th>
-              <th className="px-6 py-3">PNL</th>
-              <th className="px-6 py-3">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.map((order) => (
-              <tr key={order.id} className="border-b bg-gray-800 border-gray-700">
-                <td className="px-6 py-4">{order.symbol}</td>
-                <td className="px-6 py-4">{order.side}</td>
-                <td className="px-6 py-4">{order.size}</td>
-                <td className="px-6 py-4">{order.leverage}x</td>
-                <td className="px-6 py-4">${order.entryPrice}</td>
-                <td className="px-6 py-4">${order.markPrice}</td>
-                <td className="px-6 py-4">${order.pnl}</td>
-                <td className="px-6 py-4">
-                  <button 
-                    onClick={() => handleClosePosition(order.id)}
-                    className="font-medium text-blue-500 hover:underline"
-                  >
-                    Close
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        
-        <h2 className="text-xl font-bold my-4">PNL Chart</h2>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={mockPnlData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="time" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="pnl" stroke="#8884d8" />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
       </div>
     </div>
   );

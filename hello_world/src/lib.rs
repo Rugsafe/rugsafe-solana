@@ -1,6 +1,10 @@
-pub mod instruction;
+// pub mod instruction;
+pub mod instructions;
 pub mod processor;
 pub mod state;
+
+// deterministically designate program ID
+// declare_id!("FobNvbQsK5BAniZC2oJhXakjcPiArpsthTGDnX9eHDVY");
 
 use solana_program::{
     account_info::AccountInfo, entrypoint, entrypoint::ProgramResult, pubkey::Pubkey,
