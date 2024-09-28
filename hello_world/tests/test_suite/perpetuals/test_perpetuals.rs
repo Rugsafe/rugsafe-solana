@@ -15,19 +15,16 @@ use spl_token::state::Account as TokenAccount;
 use borsh::{BorshDeserialize, BorshSerialize};
 use rugsafe::instructions::processor::Processor;
 
-use rugsafe::state::perpetuals::{Position, Side};
+use rugsafe::state::perpetuals::{Position, Side, UserPositions};
+// use solana_logger;
+
 #[tokio::test]
 async fn test_open_position() {
-    // solana_logger::setup_with_default("solana_runtime::message_processor=debug"); // Enable detailed logging
+    // solana_logger::setup();
 
     // Step 1: Initialize the program ID and set up the ProgramTest environment
     let program_id = Pubkey::new_unique();
-    let mut program_test = ProgramTest::new(
-        "rugsafe", // Replace with your program name if different
-        program_id,
-        processor!(Processor::process),
-        // processor!(process_instruction),
-    );
+    let mut program_test = ProgramTest::new("rugsafe", program_id, processor!(Processor::process));
 
     // Add the SPL Token program to the test environment
     program_test.add_program(
@@ -39,7 +36,7 @@ async fn test_open_position() {
     // Start the test context
     let (mut banks_client, payer, recent_blockhash) = program_test.start().await;
 
-    // Step 2: Create the collateral token mint
+    // **Step 2: Create the collateral token mint**
     let collateral_mint = Keypair::new();
     let mint_rent = banks_client
         .get_rent()
@@ -73,7 +70,7 @@ async fn test_open_position() {
 
     banks_client.process_transaction(transaction).await.unwrap();
 
-    // Step 3: Create user's collateral token account and mint tokens to it
+    // **Step 3: Create user's collateral token account and mint tokens to it**
     let user_collateral_account = Keypair::new();
     let rent = banks_client
         .get_rent()
@@ -121,7 +118,7 @@ async fn test_open_position() {
 
     banks_client.process_transaction(transaction).await.unwrap();
 
-    // Step 4: Create the custody account (where collateral is stored)
+    // **Step 4: Create the custody account (where collateral is stored)**
     let custody_account = Keypair::new();
 
     let create_custody_account_ix = system_instruction::create_account(
@@ -149,11 +146,31 @@ async fn test_open_position() {
 
     banks_client.process_transaction(transaction).await.unwrap();
 
-    // Step 5: Derive the Position PDA
-    let (position_pda, bump_seed) =
-        Pubkey::find_program_address(&[b"position", payer.pubkey().as_ref()], &program_id);
+    // **Step 5: Create the user positions account**
+    let user_positions_account = Keypair::new();
 
-    // Step 6: Construct the OpenPosition instruction
+    let user_positions_space = UserPositions::LEN;
+    let rent = banks_client.get_rent().await.unwrap();
+    let required_lamports = rent.minimum_balance(user_positions_space);
+
+    let create_user_positions_account_ix = system_instruction::create_account(
+        &payer.pubkey(),
+        &user_positions_account.pubkey(),
+        required_lamports,
+        user_positions_space as u64,
+        &program_id,
+    );
+
+    let transaction = Transaction::new_signed_with_payer(
+        &[create_user_positions_account_ix],
+        Some(&payer.pubkey()),
+        &[&payer, &user_positions_account],
+        recent_blockhash,
+    );
+
+    banks_client.process_transaction(transaction).await.unwrap();
+
+    // **Step 6: Construct the OpenPosition instruction**
     let side = Side::Long;
     let amount: u64 = 500_000_000; // Amount of collateral to deposit (500 tokens)
 
@@ -177,17 +194,15 @@ async fn test_open_position() {
         program_id,
         accounts: vec![
             AccountMeta::new(payer.pubkey(), true), // Payer (signer)
-            AccountMeta::new(position_pda, false),  // Position PDA (writable)
+            AccountMeta::new(user_positions_account.pubkey(), false), // UserPositions account (writable)
             AccountMeta::new(user_collateral_account.pubkey(), false), // User's collateral token account (writable)
             AccountMeta::new(custody_account.pubkey(), false),         // Custody account (writable)
-            AccountMeta::new_readonly(spl_token::id(), false), // SPL Token Program (executable)
-            AccountMeta::new_readonly(solana_program::system_program::id(), false), // System Program (executable)
-            AccountMeta::new_readonly(sysvar::rent::ID, false),                     // Rent Sysvar
+            AccountMeta::new_readonly(spl_token::id(), false),         // SPL Token Program
         ],
         data: instruction_data,
     };
 
-    // Step 7: Send the transaction
+    // **Step 7: Send the transaction**
     let transaction = Transaction::new_signed_with_payer(
         &[open_position_ix],
         Some(&payer.pubkey()),
@@ -197,23 +212,30 @@ async fn test_open_position() {
 
     banks_client.process_transaction(transaction).await.unwrap();
 
-    // Step 8: Verify the results
-    // Fetch the position account
-    let position_account = banks_client
-        .get_account(position_pda)
+    // **Step 8: Verify the results**
+    // Fetch the user positions account
+    let user_positions_account_data = banks_client
+        .get_account(user_positions_account.pubkey())
         .await
         .unwrap()
         .unwrap();
 
-    // Deserialize the position data
-    let position = Position::try_from_slice(&position_account.data).unwrap();
+    // Deserialize the user positions data
+    // let user_positions = UserPositions::try_from_slice(&user_positions_account_data.data).unwrap();
+    let mut data_slice: &[u8] = &user_positions_account_data.data;
+    let user_positions = UserPositions::deserialize(&mut data_slice).unwrap();
+
+    // Assert that a position was added
+    assert_eq!(user_positions.positions.len(), 1);
+
+    let position = &user_positions.positions[0];
 
     // Assert position fields
     assert_eq!(position.owner, payer.pubkey());
     assert_eq!(position.side, Side::Long);
     assert_eq!(position.size_usd, amount);
 
-    // Check token balances
+    // **Check token balances**
     // User's collateral account balance should decrease by 'amount'
     let user_collateral_account_data = banks_client
         .get_account(user_collateral_account.pubkey())
