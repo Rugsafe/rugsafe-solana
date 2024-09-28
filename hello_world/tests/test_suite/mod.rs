@@ -1,3 +1,4 @@
+pub mod perpetuals;
 pub mod vaults;
 
-pub use vaults::*;
+pub use {perpetuals::*, vaults::*};

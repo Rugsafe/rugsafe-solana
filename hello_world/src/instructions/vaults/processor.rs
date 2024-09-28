@@ -1,3 +1,4 @@
+// use crate::instructions::VaultInstruction;
 use crate::instructions::vaults::VaultInstruction;
 use solana_program::sysvar::Sysvar;
 use solana_program::{
@@ -37,7 +38,6 @@ impl Processor {
     @param accounts - The accounts involved in the transaction.
     @param instruction_data - The instruction data to be processed.
     */
-
     pub fn process(
         program_id: &Pubkey,
         accounts: &[AccountInfo],

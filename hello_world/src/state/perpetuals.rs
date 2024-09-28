@@ -1,6 +1,8 @@
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::pubkey::Pubkey;
 
+pub const MAX_POSITIONS: usize = 10; // Max number of positions per user
+
 #[derive(Copy, Clone, PartialEq, Debug, BorshSerialize, BorshDeserialize)]
 pub enum Side {
     None,
@@ -14,7 +16,7 @@ impl Default for Side {
     }
 }
 
-#[derive(Default, Debug, BorshSerialize, BorshDeserialize)]
+#[derive(Default, Debug, Clone, BorshSerialize, BorshDeserialize)]
 pub struct Position {
     pub owner: Pubkey,
     pub pool: Pubkey,
@@ -32,9 +34,19 @@ pub struct Position {
     pub cumulative_interest_snapshot: u128,
     pub locked_amount: u64,
     pub collateral_amount: u64,
-    pub bump: u8,
 }
 
 impl Position {
-    pub const LEN: usize = 32 * 4 + 8 * 8 + 16 + 1 + 1; // todo calc final size
+    pub const LEN: usize = 32 * 4 + 8 * 11 + 16 + 1; // Adjusted size calculation
+}
+
+#[derive(Default, Debug, BorshSerialize, BorshDeserialize)]
+pub struct UserPositions {
+    pub owner: Pubkey,
+    pub positions: Vec<Position>, // Max length MAX_POSITIONS
+}
+
+impl UserPositions {
+    pub const MAX_POSITIONS: usize = MAX_POSITIONS; // Max number of positions per user
+    pub const LEN: usize = 32 + 4 + Position::LEN * Self::MAX_POSITIONS; // 32 bytes for owner, 4 bytes for vector length, rest for positions
 }
