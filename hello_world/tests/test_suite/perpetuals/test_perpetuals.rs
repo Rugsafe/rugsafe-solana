@@ -161,7 +161,18 @@ async fn test_open_position() {
     instruction_data.extend_from_slice(&amount.to_le_bytes()); // Amount as u64 in little-endian
     println!("Instruction data: {:?}", instruction_data);
 
-    // Create the instruction
+    // **Derive the position PDA based on the next position index, assuming it's 0 for now**
+    let (position_pda, _position_bump) = Pubkey::find_program_address(
+        &[
+            b"position",
+            payer.pubkey().as_ref(),
+            &0u64.to_le_bytes(), // Assuming next position index is 0 initially
+        ],
+        &program_id,
+    );
+    println!("Position PDA: {:?}", position_pda);
+
+    // **Step 7: Send the OpenPosition transaction**
     let open_position_ix = Instruction {
         program_id,
         accounts: vec![
@@ -174,15 +185,12 @@ async fn test_open_position() {
             AccountMeta::new_readonly(solana_program::system_program::id(), false), // System program
             AccountMeta::new_readonly(solana_program::sysvar::rent::id(), false),   // Rent sysvar
             AccountMeta::new_readonly(spl_associated_token_account::id(), false), // Associated token program
-            AccountMeta::new_readonly(program_id, false), // Program account (newly added)
+            AccountMeta::new_readonly(program_id, false),                         // Program account
+            AccountMeta::new(position_pda, false), // Add the position PDA here (writable)
         ],
         data: instruction_data,
     };
 
-    // Log the instruction details
-    println!("OpenPosition instruction: {:?}", open_position_ix);
-
-    // **Step 7: Send the transaction**
     let transaction = Transaction::new_signed_with_payer(
         &[open_position_ix],
         Some(&payer.pubkey()),
@@ -193,7 +201,7 @@ async fn test_open_position() {
     println!("Processing open position transaction...");
     banks_client.process_transaction(transaction).await.unwrap();
 
-    // **Step 8: Verify the results**
+    // **Step 8: Fetch and verify user position details**
     println!("Fetching UserPositions account data...");
     let user_positions_account_data = banks_client
         .get_account(user_positions_pda)
@@ -205,13 +213,36 @@ async fn test_open_position() {
     let mut data_slice: &[u8] = &user_positions_account_data.data;
     let user_positions = UserPositions::deserialize(&mut data_slice).unwrap();
 
-    // Log and assert that a position was added
-    println!("User positions: {:?}", user_positions.positions);
-    assert_eq!(user_positions.positions.len(), 1);
+    // Log and assert that the next_position_idx has been incremented
+    println!(
+        "User positions next index: {:?}",
+        user_positions.next_position_idx
+    );
+    assert_eq!(user_positions.next_position_idx, 1); // Assert that the next_position_idx was incremented
 
-    let position = &user_positions.positions[0];
+    // **Fetch position data for verification**
+    let (position_pda, _) = Pubkey::find_program_address(
+        &[
+            b"position",
+            payer.pubkey().as_ref(),
+            &(user_positions.next_position_idx - 1).to_le_bytes(), // Use the last added position
+        ],
+        &program_id,
+    );
 
-    // Assert position fields
+    let position_account_data = banks_client
+        .get_account(position_pda)
+        .await
+        .unwrap()
+        .unwrap(); // Fetch the individual position account data
+
+    let mut position_data_slice: &[u8] = &position_account_data.data;
+    let position = Position::deserialize(&mut position_data_slice).unwrap();
+
+    // Log and assert that a position was added correctly
+    println!("Position: {:?}", position);
+
+    // Assert the fields of the position
     assert_eq!(position.owner, payer.pubkey());
     assert_eq!(position.side, Side::Long);
     assert_eq!(position.size_usd, amount);

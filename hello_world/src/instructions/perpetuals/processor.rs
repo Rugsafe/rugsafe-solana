@@ -64,6 +64,7 @@ impl Processor {
         let rent_account = next_account_info(account_info_iter)?; // Rent sysvar
         let associated_token_program = next_account_info(account_info_iter)?; // Associated token account program
         let program_account = next_account_info(account_info_iter)?; // Program's AccountInfo
+        let position_account = next_account_info(account_info_iter)?; // **Position account (PDA) should be last**
 
         msg!("OpenPosition Account: Program ID: {:?}", program_id);
         msg!(
@@ -104,6 +105,12 @@ impl Processor {
             "OpenPosition Account: Program Accout: {:?}",
             program_account.key
         );
+
+        msg!(
+            "OpenPosition Account: Position PDA: {:?}",
+            position_account.key
+        );
+
         // Ensure the payer is a signer
         if !payer_account.is_signer {
             return Err(ProgramError::MissingRequiredSignature);
@@ -159,7 +166,6 @@ impl Processor {
         if custody_account.data_is_empty() {
             // Create the associated token account for custody
             invoke(
-                // &spl_associated_token_account::create_associated_token_account(
                 &spl_associated_token_account::instruction::create_associated_token_account(
                     payer_account.key,
                     program_id, // Owner is the program
@@ -177,16 +183,15 @@ impl Processor {
                 ],
             )?;
         }
-
         // Deserialize the UserPositions account data
-        let mut user_positions_data = user_positions_account.try_borrow_mut_data()?;
+        let mut user_positions_data = user_positions_account.try_borrow_mut_data()?; // Access data via AccountInfo
         let mut data_slice: &[u8] = &user_positions_data;
 
         let mut user_positions = if data_slice.iter().all(|&x| x == 0) {
             // Account data is uninitialized, initialize UserPositions
             UserPositions {
                 owner: *payer_account.key,
-                positions: Vec::new(),
+                next_position_idx: 0, // Initialize index to 0
             }
         } else {
             // Account data is initialized, deserialize
@@ -199,39 +204,43 @@ impl Processor {
             user_positions
         };
 
-        // Check if positions vector is not full
-        if user_positions.positions.len() >= UserPositions::MAX_POSITIONS {
-            return Err(ProgramError::AccountDataTooSmall);
-        }
+        // Derive the PDA for the new position based on the user and the position index
+        let (position_pda, position_bump) = Pubkey::find_program_address(
+            &[
+                b"position",
+                payer_account.key.as_ref(),
+                &user_positions.next_position_idx.to_le_bytes(),
+            ],
+            program_id,
+        );
 
-        // Derive the associated token account for the custody account (associated with the collateral mint)
-        let custody_ata = get_associated_token_address(&program_id, collateral_mint_account.key);
+        // Check if the new position PDA needs to be created
+        if position_account.data_is_empty() {
+            // This checks the account info, not Pubkey
+            let rent = &Rent::from_account_info(rent_account)?;
+            let required_lamports = rent.minimum_balance(Position::LEN);
 
-        // Check that the provided custody account matches the derived associated token account
-        if custody_account.key != &custody_ata {
-            return Err(ProgramError::InvalidArgument);
-        }
+            let seeds = &[
+                b"position",
+                payer_account.key.as_ref(),
+                &user_positions.next_position_idx.to_le_bytes(),
+                &[position_bump],
+            ];
 
-        // Check that the provided custody account matches the derived associated token account
-        if custody_account.key != &custody_ata {
-            // return Err(ProgramError::InvalidArgument);
-            invoke(
-                // &spl_associated_token_account::create_associated_token_account(
-                &spl_associated_token_account::instruction::create_associated_token_account(
+            invoke_signed(
+                &solana_program::system_instruction::create_account(
                     payer_account.key,
-                    program_id, // Owner is the program
-                    collateral_mint_account.key,
-                    spl_account.key,
+                    position_account.key, // Use AccountInfo's key here
+                    required_lamports,
+                    Position::LEN as u64,
+                    program_id,
                 ),
                 &[
                     payer_account.clone(),
-                    custody_account.clone(),
-                    collateral_mint_account.clone(),
+                    position_account.clone(),
                     system_program.clone(),
-                    spl_account.clone(),
-                    associated_token_program.clone(),
-                    rent_account.clone(),
                 ],
+                &[seeds],
             )?;
         }
 
@@ -242,18 +251,18 @@ impl Processor {
             size_usd: amount,
             open_time: Clock::get()?.unix_timestamp,
             update_time: Clock::get()?.unix_timestamp,
-            // Initialize other fields as needed
             ..Position::default()
         };
 
-        // Add the new position to the positions vector
-        user_positions.positions.push(position);
+        // Serialize the new position and store it in the position PDA
+        let mut position_data = position_account.try_borrow_mut_data()?; // Use AccountInfo for data access
+        position.serialize(&mut *position_data)?;
 
-        // Serialize back to the account data
+        // Update the UserPositions account's next_position_idx
+        user_positions.next_position_idx += 1;
         user_positions.serialize(&mut *user_positions_data)?;
 
         msg!("Position added successfully");
-
         // Transfer collateral from user's account to custody account (associated token account)
         let transfer_ix = spl_token::instruction::transfer(
             spl_account.key,

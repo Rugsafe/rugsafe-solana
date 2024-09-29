@@ -42,11 +42,10 @@ impl Position {
 
 #[derive(Default, Debug, BorshSerialize, BorshDeserialize)]
 pub struct UserPositions {
-    pub owner: Pubkey,
-    pub positions: Vec<Position>, // Max length MAX_POSITIONS
+    pub owner: Pubkey,          // Owner's public key, no change
+    pub next_position_idx: u64, // Pointer to the next position index
 }
 
 impl UserPositions {
-    pub const MAX_POSITIONS: usize = MAX_POSITIONS; // Max number of positions per user
-    pub const LEN: usize = 32 + 4 + Position::LEN * Self::MAX_POSITIONS; // 32 bytes for owner, 4 bytes for vector length, rest for positions
+    pub const LEN: usize = 32 + 8; // 32 bytes for owner, 8 bytes for position index
 }
