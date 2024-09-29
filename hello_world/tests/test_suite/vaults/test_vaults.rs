@@ -596,6 +596,7 @@ fn create_vault_instruction(
         AccountMeta::new(*user_token_a, false),
         AccountMeta::new(*program_id, false),
     ];
+    println!("Create Vault program_id: {:?}", program_id);
 
     Instruction {
         program_id: *program_id,

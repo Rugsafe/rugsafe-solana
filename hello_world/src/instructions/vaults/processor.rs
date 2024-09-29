@@ -537,9 +537,7 @@ impl Processor {
                     payer_account.clone(),         // Wallet address
                     mint_atoken_a_account.clone(), // Token mint address
                     system_program.clone(),        // System program
-                    // NOTE: spl or associated
-                    spl_account.clone(), // SPL Token program
-                    // associated_token_program.clone(), // associated_token_program.clone(),
+                    spl_account.clone(),           // SPL Token program
                     rent_account.clone(),
                 ],
             )?;
