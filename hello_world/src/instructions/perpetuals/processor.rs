@@ -117,7 +117,6 @@ impl Processor {
 
         // Check that the provided user_positions_account matches the derived PDA
         if user_positions_account.key != &user_positions_pda {
-            msg!("User positions account key does not match the expected PDA");
             return Err(ProgramError::InvalidArgument);
         }
 
@@ -159,7 +158,6 @@ impl Processor {
 
         if custody_account.data_is_empty() {
             // Create the associated token account for custody
-            msg!("Custody Account is empty");
             invoke(
                 // &spl_associated_token_account::create_associated_token_account(
                 &spl_associated_token_account::instruction::create_associated_token_account(
@@ -196,7 +194,6 @@ impl Processor {
 
             // Check if the owner matches
             if user_positions.owner != *payer_account.key {
-                msg!("User positions account owner does not match payer");
                 return Err(ProgramError::InvalidAccountData);
             }
             user_positions
@@ -204,7 +201,6 @@ impl Processor {
 
         // Check if positions vector is not full
         if user_positions.positions.len() >= UserPositions::MAX_POSITIONS {
-            msg!("Maximum number of positions reached");
             return Err(ProgramError::AccountDataTooSmall);
         }
 
@@ -213,10 +209,7 @@ impl Processor {
 
         // Check that the provided custody account matches the derived associated token account
         if custody_account.key != &custody_ata {
-            msg!("Custody account key does not match the expected associated token account");
             return Err(ProgramError::InvalidArgument);
-        } else {
-            msg!("Custody Account matches expected Associated Token Account");
         }
 
         // Check that the provided custody account matches the derived associated token account
@@ -240,8 +233,6 @@ impl Processor {
                     rent_account.clone(),
                 ],
             )?;
-        } else {
-            msg!("Custody Account matches expected Associated Token Account");
         }
 
         // Create a new Position
@@ -272,8 +263,6 @@ impl Processor {
             &[],
             amount,
         )?;
-
-        msg!("Transferring collateral from user to custody account");
 
         invoke(
             &transfer_ix,
