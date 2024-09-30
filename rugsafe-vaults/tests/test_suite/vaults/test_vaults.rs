@@ -43,7 +43,11 @@ fn program_error_to_banks_client_error(e: ProgramError) -> BanksClientError {
 async fn test_process_instruction() -> Result<(), TransportError> {
     // Start the test environment
     let program_id = Pubkey::new_unique();
-    let program_test = ProgramTest::new("hello_world", program_id, processor!(process_instruction));
+    let program_test = ProgramTest::new(
+        "rugsafe_vaults",
+        program_id,
+        processor!(process_instruction),
+    );
 
     // Add accounts to the test environment
     let (mut banks_client, payer, recent_blockhash) = program_test.start().await;
@@ -86,7 +90,11 @@ async fn test_create_vault() -> Result<(), TransportError> {
     // let state_key = state_keypair.pubkey();
     let (state_key, _bump_seed) = Pubkey::find_program_address(&[b"vault_registry"], &program_id);
 
-    let mut program_test = ProgramTest::new("rugsafe", program_id, processor!(process_instruction));
+    let mut program_test = ProgramTest::new(
+        "rugsafe_vaults",
+        program_id,
+        processor!(process_instruction),
+    );
 
     // Add SPL Token program
     program_test.add_program(
@@ -228,7 +236,11 @@ async fn test_create_two_vaults() -> Result<(), TransportError> {
     let spl_key = spl_token::id();
     let associated_token_program = spl_associated_token_account::id();
 
-    let mut program_test = ProgramTest::new("rugsafe", program_id, processor!(process_instruction));
+    let mut program_test = ProgramTest::new(
+        "rugsafe_vaults",
+        program_id,
+        processor!(process_instruction),
+    );
 
     // Derive the state account PDA
     let (state_account_pda, _bump_seed) =
@@ -392,7 +404,11 @@ async fn test_deposit() -> Result<(), BanksClientError> {
     let spl_key = spl_token::id();
     let associated_token_program = spl_associated_token_account::id();
 
-    let mut program_test = ProgramTest::new("rugsafe", program_id, processor!(process_instruction));
+    let mut program_test = ProgramTest::new(
+        "rugsafe_vaults",
+        program_id,
+        processor!(process_instruction),
+    );
 
     program_test.add_program(
         "spl_token",
@@ -722,7 +738,11 @@ async fn test_fetch_vault_from_registry() -> Result<(), TransportError> {
 
     let (state_key, _bump_seed) = Pubkey::find_program_address(&[b"vault_registry"], &program_id);
 
-    let mut program_test = ProgramTest::new("rugsafe", program_id, processor!(process_instruction));
+    let mut program_test = ProgramTest::new(
+        "rugsafe_vaults",
+        program_id,
+        processor!(process_instruction),
+    );
 
     // Add SPL Token program
     program_test.add_program(
@@ -815,7 +835,11 @@ async fn test_fetch_vault_with_data_from_registry() -> Result<(), TransportError
 
     let (state_key, _bump_seed) = Pubkey::find_program_address(&[b"vault_registry"], &program_id);
 
-    let mut program_test = ProgramTest::new("rugsafe", program_id, processor!(process_instruction));
+    let mut program_test = ProgramTest::new(
+        "rugsafe_vaults",
+        program_id,
+        processor!(process_instruction),
+    );
 
     // Add SPL Token program
     program_test.add_program(
@@ -914,7 +938,8 @@ async fn test_faucet() -> Result<(), Box<dyn std::error::Error>> {
     println!("Starting test_faucet");
 
     let program_id = Pubkey::new_unique();
-    let mut program_test = ProgramTest::new("rugsafe", program_id, processor!(Processor::process));
+    let mut program_test =
+        ProgramTest::new("rugsafe_vaults", program_id, processor!(Processor::process));
 
     // Add SPL Token program
     program_test.add_program(

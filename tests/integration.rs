@@ -1,7 +1,7 @@
 use rugsafe_perps::instructions::processor::Processor as PerpsProcessor;
 use rugsafe_vaults::instructions::processor::Processor as VaultProcessor;
 use solana_program::instruction::{AccountMeta, Instruction};
-use solana_program::program_error::ProgramError;
+// use solana_program::program_error::ProgramError;
 use solana_program::program_pack::Pack;
 use solana_program::{system_instruction, sysvar};
 use solana_program_test::*;
@@ -16,6 +16,7 @@ use spl_token::state::Account as TokenAccount;
 
 #[tokio::test]
 async fn test_integration_perps_vaults() -> Result<(), TransportError> {
+    // Initialize the test environment
     // Initialize the test environment
     let vaults_program_id = Pubkey::new_unique();
     let perps_program_id = Pubkey::new_unique();
@@ -42,57 +43,88 @@ async fn test_integration_perps_vaults() -> Result<(), TransportError> {
     let payer = &context.payer;
     let recent_blockhash = banks_client.get_latest_blockhash().await?;
 
-    // Step 1: Create token mint for vault
-    let mint_keypair = Keypair::new();
+    // Step 1: Create Token A mint for the vault
+    let mint_tokena_keypair = Keypair::new();
     let mint_rent = banks_client
         .get_rent()
         .await?
         .minimum_balance(TokenAccount::LEN);
-    let create_mint_ix = system_instruction::create_account(
+    let create_mint_tokena_ix = system_instruction::create_account(
         &payer.pubkey(),
-        &mint_keypair.pubkey(),
+        &mint_tokena_keypair.pubkey(),
         mint_rent,
         spl_token::state::Mint::LEN as u64,
         &spl_token::id(),
     );
-    let initialize_mint_ix = spl_token::instruction::initialize_mint(
+    let initialize_mint_tokena_ix = spl_token::instruction::initialize_mint(
         &spl_token::id(),
-        &mint_keypair.pubkey(),
+        &mint_tokena_keypair.pubkey(),
         &payer.pubkey(),
         None,
-        6, // 6 decimals
+        6,
     )
     .unwrap();
 
+    // Step 2: Create AToken A mint for the vault
+    let mint_atokena_keypair = Keypair::new();
+    let create_mint_atokena_ix = system_instruction::create_account(
+        &payer.pubkey(),
+        &mint_atokena_keypair.pubkey(),
+        mint_rent,
+        spl_token::state::Mint::LEN as u64,
+        &spl_token::id(),
+    );
+    let initialize_mint_atokena_ix = spl_token::instruction::initialize_mint(
+        &spl_token::id(),
+        &mint_atokena_keypair.pubkey(),
+        &payer.pubkey(),
+        None,
+        6,
+    )
+    .unwrap();
+
+    // Process mint transactions
     let transaction = Transaction::new_signed_with_payer(
-        &[create_mint_ix, initialize_mint_ix],
+        &[
+            create_mint_tokena_ix,
+            initialize_mint_tokena_ix,
+            create_mint_atokena_ix,
+            initialize_mint_atokena_ix,
+        ],
         Some(&payer.pubkey()),
-        &[&payer, &mint_keypair],
+        &[&payer, &mint_tokena_keypair, &mint_atokena_keypair],
         recent_blockhash,
     );
     banks_client.process_transaction(transaction).await?;
 
-    // Step 2: Create vault and associated token accounts
-    let (vault_pda, _vault_bump) = Pubkey::find_program_address(&[b"vault"], &vaults_program_id);
-    let user_token_account = get_associated_token_address(&payer.pubkey(), &mint_keypair.pubkey());
+    // Step 3: Create the state_key using PDA for vault_registry
+    let (state_key, _bump_seed) =
+        Pubkey::find_program_address(&[b"vault_registry"], &vaults_program_id);
+
+    // Step 4: Create vault and associated token accounts
+    let vault_key: Pubkey =
+        get_associated_token_address(&vaults_program_id, &mint_tokena_keypair.pubkey());
+    let user_token_account =
+        get_associated_token_address(&payer.pubkey(), &mint_tokena_keypair.pubkey());
 
     let create_vault_instruction = create_vault_instruction(
         &vaults_program_id,
-        &vault_pda,
-        &mint_keypair.pubkey(),
+        &vault_key,
+        &mint_tokena_keypair.pubkey(),  // Token A mint
+        &mint_atokena_keypair.pubkey(), // AToken A mint
         &payer.pubkey(),
-        &payer.pubkey(),
-        &spl_token::id(),
+        &state_key,                          // State key
+        &spl_associated_token_account::id(), // Associated token program
         &user_token_account,
     );
 
-    // let mut transaction = Transaction::new_signed_with_payer(
-    //     &[create_vault_instruction],
-    //     Some(&payer.pubkey()),
-    //     &[&payer],
-    //     recent_blockhash,
-    // );
-    // banks_client.process_transaction(transaction).await?;
+    let mut transaction = Transaction::new_signed_with_payer(
+        &[create_vault_instruction],
+        Some(&payer.pubkey()),
+        &[&payer, &mint_atokena_keypair], // Sign with both mint keypairs
+        recent_blockhash,
+    );
+    banks_client.process_transaction(transaction).await?;
 
     // // Step 3: Deposit tokens into the vault and mint anticoins
     // let deposit_amount: u64 = 1_000_000; // 1 token with 6 decimals
@@ -154,23 +186,28 @@ async fn test_integration_perps_vaults() -> Result<(), TransportError> {
 // Helper function to create a vault instruction
 fn create_vault_instruction(
     program_id: &Pubkey,
-    vault_pda: &Pubkey,
-    mint: &Pubkey,
-    owner: &Pubkey,
+    vault_key: &Pubkey,
+    mint_key_token_a: &Pubkey,   // Mint A for the incoming tokens
+    mint_key_a_token_a: &Pubkey, // Mint B for the aTokens
     payer: &Pubkey,
-    token_program: &Pubkey,
-    user_token_account: &Pubkey,
+    state: &Pubkey,
+    associated_token: &Pubkey,
+    user_token_a: &Pubkey,
 ) -> Instruction {
     let accounts = vec![
-        AccountMeta::new(*vault_pda, false),
-        AccountMeta::new(*mint, false),
-        AccountMeta::new(*owner, true),
         AccountMeta::new(*payer, true),
-        AccountMeta::new(*user_token_account, false),
-        AccountMeta::new_readonly(*token_program, false),
+        AccountMeta::new(*mint_key_token_a, false),
+        AccountMeta::new(*mint_key_a_token_a, true),
+        AccountMeta::new(*vault_key, false),
+        AccountMeta::new_readonly(sysvar::rent::id(), false),
+        AccountMeta::new_readonly(spl_token::id(), false),
         AccountMeta::new_readonly(solana_program::system_program::id(), false),
-        AccountMeta::new_readonly(solana_program::sysvar::rent::id(), false),
+        AccountMeta::new(*state, false),
+        AccountMeta::new(*associated_token, false),
+        AccountMeta::new(*user_token_a, false),
+        AccountMeta::new(*program_id, false),
     ];
+
     Instruction {
         program_id: *program_id,
         accounts,

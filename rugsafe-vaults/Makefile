@@ -5,7 +5,7 @@ dev:
 t:
 	cargo test-bpf
 t1:
-	cargo test-bpf --package rugsafe --test main -- test_open_position --nocapture
+	cargo test-bpf --package rugsafe-vaults --test main -- test_create_vault --nocapture
 deploy:
 	solana program deploy ./target/deploy/rugsafe.so --url localhost --max-len 5000000
 

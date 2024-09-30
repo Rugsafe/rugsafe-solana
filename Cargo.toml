@@ -19,3 +19,12 @@ spl-token = "6.0.0"
 tokio = { version = "1.0.0", features = ["macros"] }
 spl-associated-token-account = { version = "5.0.1", features = ["no-entrypoint"], default-features = false }
 
+[dev-dependencies]
+rugsafe-perps = { path = "./rugsafe-perps" } 
+rugsafe-vaults = { path = "./rugsafe-vaults" }
+solana-program-test = "=2.0.9"
+solana-sdk = "=2.0.9"
+spl-token = { version = "6.0.0", features = ["no-entrypoint"], default-features = false }
+tokio = { version = "1.0.0", features = ["macros"]}
+
+

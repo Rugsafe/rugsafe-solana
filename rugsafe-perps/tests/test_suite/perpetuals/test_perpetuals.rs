@@ -13,9 +13,9 @@ use solana_sdk::{
 use spl_token::state::Account as TokenAccount;
 
 use borsh::{BorshDeserialize, BorshSerialize};
-use rugsafe::instructions::processor::Processor;
+use rugsafe_perps::instructions::processor::Processor;
 
-use rugsafe::state::perpetuals::{Position, Side, UserPositions};
+use rugsafe_perps::state::perpetuals::{Position, Side, UserPositions};
 use spl_associated_token_account::get_associated_token_address;
 
 #[tokio::test]
@@ -24,12 +24,13 @@ async fn test_open_position() {
     // solana_logger::setup();
 
     // Step 1: Initialize the program ID and set up the ProgramTest environment
-    println!("Initializing ProgramTest environment...");
+    // println!("Initializing ProgramTest environment...");
     let program_id = Pubkey::new_unique();
-    let mut program_test = ProgramTest::new("rugsafe", program_id, processor!(Processor::process));
+    let mut program_test =
+        ProgramTest::new("rugsafe_perps", program_id, processor!(Processor::process));
 
     // Add the SPL Token program to the test environment
-    println!("Adding SPL Token program...");
+    // println!("Adding SPL Token program...");
     program_test.add_program(
         "spl_token",
         spl_token::id(),
@@ -37,11 +38,11 @@ async fn test_open_position() {
     );
 
     // Start the test context
-    println!("Starting test context...");
+    // println!("Starting test context...");
     let (mut banks_client, payer, recent_blockhash) = program_test.start().await;
 
     // **Step 2: Create the collateral token mint**
-    println!("Creating collateral token mint...");
+    // println!("Creating collateral token mint...");
     let collateral_mint = Keypair::new();
     let mint_rent = banks_client
         .get_rent()
@@ -73,11 +74,11 @@ async fn test_open_position() {
         recent_blockhash,
     );
 
-    println!("Processing mint transaction...");
+    // println!("Processing mint transaction...");
     banks_client.process_transaction(transaction).await.unwrap();
 
     // **Step 3: Create user's collateral token account and mint tokens to it**
-    println!("Creating user's collateral token account and minting tokens...");
+    // println!("Creating user's collateral token account and minting tokens...");
     let user_collateral_account = Keypair::new();
     let rent = banks_client
         .get_rent()
@@ -123,25 +124,25 @@ async fn test_open_position() {
         recent_blockhash,
     );
 
-    println!("Processing user token minting transaction...");
+    // println!("Processing user token minting transaction...");
     banks_client.process_transaction(transaction).await.unwrap();
 
     // **Step 4: Derive the custody associated token account**
-    println!("Deriving custody associated token account...");
+    // println!("Deriving custody associated token account...");
     let custody_account = spl_associated_token_account::get_associated_token_address(
         &program_id,               // Custody is owned by the program
         &collateral_mint.pubkey(), // Associated with collateral mint
     );
-    println!("Custody account: {:?}", custody_account);
+    // println!("Custody account: {:?}", custody_account);
 
     // **Step 5: Derive the user positions PDA**
-    println!("Deriving user positions PDA...");
+    // println!("Deriving user positions PDA...");
     let (user_positions_pda, _user_positions_bump) =
         Pubkey::find_program_address(&[b"user_positions", payer.pubkey().as_ref()], &program_id);
-    println!("User positions PDA: {:?}", user_positions_pda);
+    // println!("User positions PDA: {:?}", user_positions_pda);
 
     // **Step 6: Construct the OpenPosition instruction**
-    println!("Constructing OpenPosition instruction...");
+    // println!("Constructing OpenPosition instruction...");
     let side = Side::Long;
     let amount: u64 = 500_000_000; // Amount of collateral to deposit (500 tokens)
 
@@ -170,7 +171,7 @@ async fn test_open_position() {
         ],
         &program_id,
     );
-    println!("Position PDA: {:?}", position_pda);
+    // println!("Position PDA: {:?}", position_pda);
 
     // **Step 7: Send the OpenPosition transaction**
     let open_position_ix = Instruction {
@@ -198,11 +199,11 @@ async fn test_open_position() {
         recent_blockhash,
     );
 
-    println!("Processing open position transaction...");
+    // println!("Processing open position transaction...");
     banks_client.process_transaction(transaction).await.unwrap();
 
     // **Step 8: Fetch and verify user position details**
-    println!("Fetching UserPositions account data...");
+    // println!("Fetching UserPositions account data...");
     let user_positions_account_data = banks_client
         .get_account(user_positions_pda)
         .await
@@ -210,14 +211,18 @@ async fn test_open_position() {
         .unwrap();
 
     // Deserialize the user positions data
+    // println!(
+    //     "user_positions_account_data: {:?}",
+    //     user_positions_account_data
+    // );
     let mut data_slice: &[u8] = &user_positions_account_data.data;
     let user_positions = UserPositions::deserialize(&mut data_slice).unwrap();
 
     // Log and assert that the next_position_idx has been incremented
-    println!(
-        "User positions next index: {:?}",
-        user_positions.next_position_idx
-    );
+    // println!(
+    //     "User positions next index: {:?}",
+    //     user_positions.next_position_idx
+    // );
     assert_eq!(user_positions.next_position_idx, 1); // Assert that the next_position_idx was incremented
 
     // **Fetch position data for verification**
@@ -240,7 +245,7 @@ async fn test_open_position() {
     let position = Position::deserialize(&mut position_data_slice).unwrap();
 
     // Log and assert that a position was added correctly
-    println!("Position: {:?}", position);
+    // println!("Position: {:?}", position);
 
     // Assert the fields of the position
     assert_eq!(position.owner, payer.pubkey());
@@ -248,7 +253,7 @@ async fn test_open_position() {
     assert_eq!(position.size_usd, amount);
 
     // **Check token balances**
-    println!("Checking token balances...");
+    // println!("Checking token balances...");
     let user_collateral_account_data = banks_client
         .get_account(user_collateral_account.pubkey())
         .await
@@ -271,5 +276,5 @@ async fn test_open_position() {
 
     assert_eq!(custody_token_account.amount, 500_000_000);
 
-    println!("Test passed: Position opened successfully.");
+    // println!("Test passed: Position opened successfully.");
 }
