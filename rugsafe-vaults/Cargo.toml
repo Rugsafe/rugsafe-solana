@@ -1,5 +1,5 @@
 [package]
-name = "rugsafe"
+name = "rugsafe-vaults"
 version = "0.1.0"
 edition = "2021"
 rust-version = "1.75.0"
@@ -20,5 +20,5 @@ spl-token = { version = "6.0.0", features = ["no-entrypoint"], default-features 
 tokio = { version = "1.0.0", features = ["macros"]}
 
 [lib]
-name = "rugsafe"
+name = "rugsafe_vaults"
 crate-type = ["cdylib", "lib"]

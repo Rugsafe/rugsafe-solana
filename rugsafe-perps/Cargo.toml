@@ -20,5 +20,5 @@ spl-token = { version = "6.0.0", features = ["no-entrypoint"], default-features 
 tokio = { version = "1.0.0", features = ["macros"]}
 
 [lib]
-name = "rugsafe"
+name = "rugsafe_perps"
 crate-type = ["cdylib", "lib"]

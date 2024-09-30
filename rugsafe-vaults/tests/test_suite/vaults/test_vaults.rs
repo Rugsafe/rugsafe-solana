@@ -1,11 +1,11 @@
 // use borsh::de::BorshDeserialize;
 // use borsh::{BorshDeserialize, BorshSerialize};
 use hex;
-use rugsafe::instructions::vaults::VaultInstruction;
-use rugsafe::process_instruction;
+use rugsafe_vaults::instructions::vaults::VaultInstruction;
+use rugsafe_vaults::process_instruction;
 // use rugsafe::processor::Processor;
-use rugsafe::instructions::processor::Processor;
-use rugsafe::state::vaults::{Vault, VaultRegistry};
+use rugsafe_vaults::instructions::processor::Processor;
+use rugsafe_vaults::state::vaults::{Vault, VaultRegistry};
 use solana_program::hash::Hash;
 use solana_program::program_pack::Pack;
 use solana_program::rent::Rent;
