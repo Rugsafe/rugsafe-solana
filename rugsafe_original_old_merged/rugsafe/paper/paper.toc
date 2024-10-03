@@ -3,24 +3,24 @@
 \contentsline {subsection}{\numberline {2.1}Mechanism of a Rug Pull}{2}{}%
 \contentsline {subsection}{\numberline {2.2}Impact and Prevention}{3}{}%
 \contentsline {subsection}{\numberline {2.3}Vault Creation and Anticoin Issuance}{3}{}%
-\contentsline {subsection}{\numberline {2.4}Withdrawal Penalty Mechanism}{4}{}%
-\contentsline {subsection}{\numberline {2.5}Supply Regulation Mechanism}{4}{}%
-\contentsline {subsection}{\numberline {2.6}Anticoin Role and Market Interaction}{6}{}%
-\contentsline {subsection}{\numberline {2.7}User Interaction and Ecosystem Signaling}{6}{}%
-\contentsline {subsection}{\numberline {2.8}Opportunities for New Ecosystems}{7}{}%
-\contentsline {subsection}{\numberline {2.9}User Commitment and Signal to the Ecosystem}{8}{}%
-\contentsline {subsection}{\numberline {2.10}Rugsafe Vaults as Oracles}{9}{}%
-\contentsline {subsection}{\numberline {2.11}Whale Penalty Mechanism}{9}{}%
-\contentsline {subsubsection}{\numberline {2.11.1}Impact on regular users vs. whales}{9}{}%
-\contentsline {subsubsection}{\numberline {2.11.2}Equitable system design}{10}{}%
-\contentsline {subsubsection}{\numberline {2.11.3}Cumulative penalty mechanism}{10}{}%
-\contentsline {subsubsection}{\numberline {2.11.4}Combining both mechanisms}{11}{}%
-\contentsline {subsubsection}{\numberline {2.11.5}One-time withdrawal}{12}{}%
-\contentsline {subsubsection}{\numberline {2.11.6}Sybil withdrawal}{12}{}%
-\contentsline {subsection}{\numberline {2.12}Rugsafe Token Emissions and Parameterized Rewards Mechanism}{13}{}%
-\contentsline {subsection}{\numberline {2.13}Rugproof Mechanism}{13}{}%
-\contentsline {subsubsection}{\numberline {2.13.1}Token Issuance and Bonding Mechanism}{13}{}%
-\contentsline {subsubsection}{\numberline {2.13.2}Claim and Challenge Process}{14}{}%
-\contentsline {subsubsection}{\numberline {2.13.3}Outcome of the Challenge Period}{14}{}%
-\contentsline {subsubsection}{\numberline {2.13.4}Incentives and Protection}{15}{}%
-\contentsline {section}{\numberline {3}Closing Remarks}{15}{}%
+\contentsline {subsection}{\numberline {2.4}Anticoin Role and Market Interaction}{4}{}%
+\contentsline {subsubsection}{\numberline {2.4.1}Inverse Logarithmic Pegging as Soft Theoretical Bounds}{5}{}%
+\contentsline {subsection}{\numberline {2.5}Supply Regulation Mechanism}{5}{}%
+\contentsline {subsection}{\numberline {2.6}User Interaction and Ecosystem Signaling}{7}{}%
+\contentsline {subsection}{\numberline {2.7}Opportunities for New Ecosystems}{8}{}%
+\contentsline {subsection}{\numberline {2.8}User Commitment and Signal to the Ecosystem}{9}{}%
+\contentsline {subsection}{\numberline {2.9}Rugsafe Vaults as Oracles}{10}{}%
+\contentsline {subsection}{\numberline {2.10}Whale Penalty Mechanism}{10}{}%
+\contentsline {subsubsection}{\numberline {2.10.1}Impact on regular users vs. whales}{10}{}%
+\contentsline {subsubsection}{\numberline {2.10.2}Equitable system design}{11}{}%
+\contentsline {subsubsection}{\numberline {2.10.3}Cumulative penalty mechanism}{11}{}%
+\contentsline {subsubsection}{\numberline {2.10.4}Combining both mechanisms}{12}{}%
+\contentsline {subsubsection}{\numberline {2.10.5}One-time withdrawal}{13}{}%
+\contentsline {subsubsection}{\numberline {2.10.6}Sybil withdrawal}{13}{}%
+\contentsline {subsection}{\numberline {2.11}Rugsafe Token Emissions and Parameterized Rewards Mechanism}{14}{}%
+\contentsline {subsection}{\numberline {2.12}Rugproof Mechanism}{14}{}%
+\contentsline {subsubsection}{\numberline {2.12.1}Token Issuance and Bonding Mechanism}{14}{}%
+\contentsline {subsubsection}{\numberline {2.12.2}Claim and Challenge Process}{15}{}%
+\contentsline {subsubsection}{\numberline {2.12.3}Outcome of the Challenge Period}{15}{}%
+\contentsline {subsubsection}{\numberline {2.12.4}Incentives and Protection}{16}{}%
+\contentsline {section}{\numberline {3}Closing Remarks}{16}{}%

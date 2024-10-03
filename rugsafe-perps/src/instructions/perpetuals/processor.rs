@@ -66,50 +66,50 @@ impl Processor {
         let program_account = next_account_info(account_info_iter)?; // Program's AccountInfo
         let position_account = next_account_info(account_info_iter)?; // **Position account (PDA) should be last**
 
-        msg!("OpenPosition Account: Program ID: {:?}", program_id);
-        msg!(
-            "OpenPosition Account: User Positions: {:?}",
-            user_positions_account.key
-        );
-        msg!(
-            "OpenPosition Account: User Collateral: {:?}",
-            user_collateral_account.key
-        );
-        msg!(
-            "OpenPosition Account: Collateral Mint: {:?}",
-            collateral_mint_account.key
-        );
-        msg!(
-            "OpenPosition Account: Custody ATA: {:?}",
-            custody_account.key
-        );
-        msg!(
-            "OpenPosition Account: Passed Custody Account: {:?}",
-            custody_account.key
-        );
-        msg!(
-            "OpenPosition Account: Collateral Mint Account: {:?}",
-            collateral_mint_account.key
-        );
-        msg!("OpenPosition Account: SPL Token: {:?}", spl_account.key);
-        msg!(
-            "OpenPosition Account: System Program: {:?}",
-            system_program.key
-        );
-        msg!("OpenPosition Account: Rent: {:?}", rent_account.key);
-        msg!(
-            "OpenPosition Account: Associated Token Program: {:?}",
-            associated_token_program.key
-        );
-        msg!(
-            "OpenPosition Account: Program Accout: {:?}",
-            program_account.key
-        );
+        // msg!("OpenPosition Account: Program ID: {:?}", program_id);
+        // msg!(
+        //     "OpenPosition Account: User Positions: {:?}",
+        //     user_positions_account.key
+        // );
+        // msg!(
+        //     "OpenPosition Account: User Collateral: {:?}",
+        //     user_collateral_account.key
+        // );
+        // msg!(
+        //     "OpenPosition Account: Collateral Mint: {:?}",
+        //     collateral_mint_account.key
+        // );
+        // msg!(
+        //     "OpenPosition Account: Custody ATA: {:?}",
+        //     custody_account.key
+        // );
+        // msg!(
+        //     "OpenPosition Account: Passed Custody Account: {:?}",
+        //     custody_account.key
+        // );
+        // msg!(
+        //     "OpenPosition Account: Collateral Mint Account: {:?}",
+        //     collateral_mint_account.key
+        // );
+        // msg!("OpenPosition Account: SPL Token: {:?}", spl_account.key);
+        // msg!(
+        //     "OpenPosition Account: System Program: {:?}",
+        //     system_program.key
+        // );
+        // msg!("OpenPosition Account: Rent: {:?}", rent_account.key);
+        // msg!(
+        //     "OpenPosition Account: Associated Token Program: {:?}",
+        //     associated_token_program.key
+        // );
+        // msg!(
+        //     "OpenPosition Account: Program Accout: {:?}",
+        //     program_account.key
+        // );
 
-        msg!(
-            "OpenPosition Account: Position PDA: {:?}",
-            position_account.key
-        );
+        // msg!(
+        //     "OpenPosition Account: Position PDA: {:?}",
+        //     position_account.key
+        // );
 
         // Ensure the payer is a signer
         if !payer_account.is_signer {
@@ -165,6 +165,7 @@ impl Processor {
 
         if custody_account.data_is_empty() {
             // Create the associated token account for custody
+            msg!("custody_account 1: {:?}", custody_account);
             invoke(
                 &spl_associated_token_account::instruction::create_associated_token_account(
                     payer_account.key,
@@ -187,6 +188,8 @@ impl Processor {
         let mut user_positions_data = user_positions_account.try_borrow_mut_data()?; // Access data via AccountInfo
         let mut data_slice: &[u8] = &user_positions_data;
 
+        msg!("user_positions_data: {:?}", user_positions_data);
+
         let mut user_positions = if data_slice.iter().all(|&x| x == 0) {
             // Account data is uninitialized, initialize UserPositions
             UserPositions {
@@ -204,6 +207,8 @@ impl Processor {
             user_positions
         };
 
+        msg!("user_positions: {:?}", user_positions);
+
         // Derive the PDA for the new position based on the user and the position index
         let (position_pda, position_bump) = Pubkey::find_program_address(
             &[
@@ -216,6 +221,7 @@ impl Processor {
 
         // Check if the new position PDA needs to be created
         if position_account.data_is_empty() {
+            msg!("position_account 1: {:?}", position_account);
             // This checks the account info, not Pubkey
             let rent = &Rent::from_account_info(rent_account)?;
             let required_lamports = rent.minimum_balance(Position::LEN);

@@ -12,19 +12,21 @@ members = [
 [dependencies]
 rugsafe-perps = { path = "./rugsafe-perps" } 
 rugsafe-vaults = { path = "./rugsafe-vaults" }
-solana-program = "=2.0.9"
-solana-program-test = "=2.0.9"
-solana-sdk = "=2.0.9"
+solana-program = "=2.0.11"
+solana-program-test = "=2.0.11"
+solana-sdk = "=2.0.11"
 spl-token = "6.0.0"
 tokio = { version = "1.0.0", features = ["macros"] }
 spl-associated-token-account = { version = "5.0.1", features = ["no-entrypoint"], default-features = false }
+borsh = "1.5.1"
+borsh-derive = "1.5.1"
+getrandom = { version = "0.2.15", features = ["custom"] }
 
 [dev-dependencies]
 rugsafe-perps = { path = "./rugsafe-perps" } 
 rugsafe-vaults = { path = "./rugsafe-vaults" }
-solana-program-test = "=2.0.9"
-solana-sdk = "=2.0.9"
+solana-program-test = "=2.0.11"
+solana-sdk = "=2.0.11"
 spl-token = { version = "6.0.0", features = ["no-entrypoint"], default-features = false }
 tokio = { version = "1.0.0", features = ["macros"]}
-
-
+getrandom = { version = "0.2.15", features = ["custom"] }

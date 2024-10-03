@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.4.1)  4 SEP 2024 05:19
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.4.1)  3 OCT 2024 06:32
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -187,61 +187,63 @@ e
 \openout3 = `paper.toc'.
 
  [2] [3]
-<images/5.png, id=22, 722.7pt x 433.62pt>
+<images/anticoins.png, id=22, 867.24pt x 433.62pt>
+File: images/anticoins.png Graphic file (type png)
+<use images/anticoins.png>
+Package pdftex.def Info: images/anticoins.png  used on input line 117.
+(pdftex.def)             Requested size: 345.0pt x 172.49876pt.
+ [4 <./images/anticoins.png>]
+<images/5.png, id=28, 722.7pt x 433.62pt>
 File: images/5.png Graphic file (type png)
 <use images/5.png>
-Package pdftex.def Info: images/5.png  used on input line 153.
+Package pdftex.def Info: images/5.png  used on input line 170.
 (pdftex.def)             Requested size: 345.0pt x 206.9972pt.
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-[4] [5 <./images/5.png>] [6]
-Overfull \hbox (17.63953pt too wide) in paragraph at lines 248--249
+ [5] [6 <./images/5.png>] [7]
+Overfull \hbox (17.63953pt too wide) in paragraph at lines 249--250
 \OT1/cmr/m/n/10 tem|such as their use as col-lat-eral, in trad-ing pairs, or in
  yield farm-ing|contributes
  []
 
-[7] [8] [9]
-<images/6.png, id=50, 462.528pt x 346.896pt>
+[8] [9] [10]
+<images/6.png, id=55, 462.528pt x 346.896pt>
 File: images/6.png Graphic file (type png)
 <use images/6.png>
-Package pdftex.def Info: images/6.png  used on input line 403.
+Package pdftex.def Info: images/6.png  used on input line 404.
 (pdftex.def)             Requested size: 345.0pt x 258.76335pt.
-<images/9.png, id=51, 722.7pt x 433.62pt>
+<images/9.png, id=56, 722.7pt x 433.62pt>
 File: images/9.png Graphic file (type png)
 <use images/9.png>
-Package pdftex.def Info: images/9.png  used on input line 415.
+Package pdftex.def Info: images/9.png  used on input line 416.
 (pdftex.def)             Requested size: 345.0pt x 206.9972pt.
 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-[10 <./images/6.png>] [11 <./images/9.png>]
-Overfull \hbox (4.54868pt too wide) in paragraph at lines 503--503
+[11 <./images/6.png>] [12 <./images/9.png>]
+Overfull \hbox (4.54868pt too wide) in paragraph at lines 504--504
 []\OT1/cmr/bx/n/12 Rugsafe To-ken Emis-sions and Pa-ram-e-ter-ized Re-wards
  []
 
-[12] [13] [14]
-Overfull \hbox (13.27843pt too wide) in paragraph at lines 596--597
+[13] [14] [15]
+Overfull \hbox (13.27843pt too wide) in paragraph at lines 597--598
 []\OT1/cmr/m/n/10 By im-ple-ment-ing this mech-a-nism, the Rugsafe chain of-fer
 s a ro-bust, community-
  []
 
-[15] (./paper.aux)
+[16] (./paper.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-02-20>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 2545 strings out of 474116
- 38000 string characters out of 5743683
+ 2553 strings out of 474116
+ 38208 string characters out of 5743683
  1935187 words of memory out of 5000000
- 24907 multiletter control sequences out of 15000+600000
+ 24915 multiletter control sequences out of 15000+600000
  564563 words of font info for 60 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 57i,7n,65p,1122b,237s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 57i,7n,65p,1228b,237s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 ></usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
 </usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></
@@ -259,10 +261,10 @@ ve/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/
 /texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2024/t
 exmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/texlive/2024/te
 xmf-dist/fonts/type1/public/amsfonts/cm/cmtt8.pfb>
-Output written on paper.pdf (15 pages, 338042 bytes).
+Output written on paper.pdf (16 pages, 394139 bytes).
 PDF statistics:
- 145 PDF objects out of 1000 (max. 8388607)
- 87 compressed objects within 1 object stream
+ 150 PDF objects out of 1000 (max. 8388607)
+ 89 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
- 16 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 21 words of extra memory for PDF output out of 10000 (max. 10000000)
 
