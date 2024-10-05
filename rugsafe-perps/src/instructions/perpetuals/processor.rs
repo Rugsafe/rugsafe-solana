@@ -13,7 +13,11 @@ use solana_program::{
     rent::Rent,
     sysvar::Sysvar,
 };
+// use solana_sdk::program_pack::Pack;
+use solana_program::program_pack::Pack;
+
 use spl_associated_token_account::get_associated_token_address;
+use spl_token::state::Mint;
 
 pub struct Processor;
 
@@ -66,50 +70,50 @@ impl Processor {
         let program_account = next_account_info(account_info_iter)?; // Program's AccountInfo
         let position_account = next_account_info(account_info_iter)?; // **Position account (PDA) should be last**
 
-        // msg!("OpenPosition Account: Program ID: {:?}", program_id);
-        // msg!(
-        //     "OpenPosition Account: User Positions: {:?}",
-        //     user_positions_account.key
-        // );
-        // msg!(
-        //     "OpenPosition Account: User Collateral: {:?}",
-        //     user_collateral_account.key
-        // );
-        // msg!(
-        //     "OpenPosition Account: Collateral Mint: {:?}",
-        //     collateral_mint_account.key
-        // );
-        // msg!(
-        //     "OpenPosition Account: Custody ATA: {:?}",
-        //     custody_account.key
-        // );
-        // msg!(
-        //     "OpenPosition Account: Passed Custody Account: {:?}",
-        //     custody_account.key
-        // );
-        // msg!(
-        //     "OpenPosition Account: Collateral Mint Account: {:?}",
-        //     collateral_mint_account.key
-        // );
-        // msg!("OpenPosition Account: SPL Token: {:?}", spl_account.key);
-        // msg!(
-        //     "OpenPosition Account: System Program: {:?}",
-        //     system_program.key
-        // );
-        // msg!("OpenPosition Account: Rent: {:?}", rent_account.key);
-        // msg!(
-        //     "OpenPosition Account: Associated Token Program: {:?}",
-        //     associated_token_program.key
-        // );
-        // msg!(
-        //     "OpenPosition Account: Program Accout: {:?}",
-        //     program_account.key
-        // );
+        msg!("OpenPosition Account: Payer: {:?}", payer_account.key);
+        msg!(
+            "OpenPosition Account: User Positions: {:?}",
+            user_positions_account.key
+        );
+        msg!(
+            "OpenPosition Account: User Collateral: {:?}",
+            user_collateral_account.key
+        );
+        msg!(
+            "OpenPosition Account: Collateral Mint: {:?}",
+            collateral_mint_account.key
+        );
+        msg!(
+            "OpenPosition Account: Custody ATA: {:?}",
+            custody_account.key
+        );
+        msg!(
+            "OpenPosition Account: Passed Custody Account: {:?}",
+            custody_account.key
+        );
+        msg!(
+            "OpenPosition Account: Collateral Mint Account: {:?}",
+            collateral_mint_account.key
+        );
+        msg!("OpenPosition Account: SPL Token: {:?}", spl_account.key);
+        msg!(
+            "OpenPosition Account: System Program: {:?}",
+            system_program.key
+        );
+        msg!("OpenPosition Account: Rent: {:?}", rent_account.key);
+        msg!(
+            "OpenPosition Account: Associated Token Program: {:?}",
+            associated_token_program.key
+        );
+        msg!(
+            "OpenPosition Account: Program Accout: {:?}",
+            program_account.key
+        );
 
-        // msg!(
-        //     "OpenPosition Account: Position PDA: {:?}",
-        //     position_account.key
-        // );
+        msg!(
+            "OpenPosition Account: Position PDA: {:?}",
+            position_account.key
+        );
 
         // Ensure the payer is a signer
         if !payer_account.is_signer {
@@ -130,13 +134,13 @@ impl Processor {
         // If the user_positions_account data is empty, create it
         if user_positions_account.data_is_empty() {
             let rent = &Rent::from_account_info(rent_account)?;
-            msg!("rent: {:?}", rent);
+            // msg!("rent: {:?}", rent);
             let required_lamports = rent.minimum_balance(UserPositions::LEN as usize);
-            msg!("required_lamports: {:?}", required_lamports);
-            msg!(
-                "Required lamports for rent exemption: {}",
-                required_lamports
-            );
+            // msg!("required_lamports: {:?}", required_lamports);
+            // msg!(
+            //     "Required lamports for rent exemption: {}",
+            //     required_lamports
+            // );
 
             let seeds = &[
                 b"user_positions",
@@ -144,7 +148,7 @@ impl Processor {
                 &[user_positions_bump],
             ];
 
-            msg!("PDA seeds: {:?}", seeds);
+            // msg!("PDA seeds: {:?}", seeds);
 
             invoke_signed(
                 &solana_program::system_instruction::create_account(
@@ -159,36 +163,77 @@ impl Processor {
                     user_positions_account.clone(),
                     system_program.clone(),
                 ],
-                &[seeds],
+                // &[seeds],
+                // &[&[b"user_positions".as_ref(), &[bump_seed]]],
+                &[&[
+                    b"user_positions",
+                    payer_account.key.as_ref(),
+                    &[user_positions_bump],
+                ]],
             )?;
         }
 
-        if custody_account.data_is_empty() {
-            // Create the associated token account for custody
-            msg!("custody_account 1: {:?}", custody_account);
-            invoke(
-                &spl_associated_token_account::instruction::create_associated_token_account(
+        // Derive the program-owned PDA for custody
+        // Derive the custody PDA
+        let (custody_pda, custody_bump) =
+            Pubkey::find_program_address(&[b"custody", payer_account.key.as_ref()], program_id);
+
+        // Verify that the provided custody_account matches the derived PDA
+        if custody_account.key != &custody_pda {
+            msg!("Invalid custody account: {:?}", custody_pda);
+            return Err(ProgramError::InvalidArgument);
+        }
+
+        if custody_account.lamports() == 0 {
+            // msg!("Creating custody account...");
+
+            // Calculate the required lamports for rent exemption
+            let rent = &Rent::from_account_info(rent_account)?;
+            let required_lamports = rent.minimum_balance(spl_token::state::Account::LEN);
+
+            // Create the custody account using invoke_signed with create_account
+            invoke_signed(
+                &solana_program::system_instruction::create_account(
                     payer_account.key,
-                    program_id, // Owner is the program
-                    collateral_mint_account.key,
-                    spl_account.key,
+                    custody_account.key,
+                    required_lamports,
+                    spl_token::state::Account::LEN as u64,
+                    &spl_token::id(), // Owner is the SPL Token program
                 ),
                 &[
-                    payer_account.clone(),           // Funding account
-                    custody_account.clone(),         // Associated token account
-                    program_account.clone(),         // Wallet address (program as the owner)
-                    collateral_mint_account.clone(), // Token mint account
-                    system_program.clone(),          // System program
-                    spl_account.clone(),             // SPL Token program
-                    rent_account.clone(),            // Rent account
+                    payer_account.clone(),
+                    custody_account.clone(),
+                    system_program.clone(),
+                ],
+                &[&[b"custody", payer_account.key.as_ref(), &[custody_bump]]],
+            )?;
+
+            // msg!("Initializing custody account...");
+
+            // Initialize the token account
+            invoke(
+                &spl_token::instruction::initialize_account(
+                    &spl_token::id(),
+                    custody_account.key,
+                    collateral_mint_account.key,
+                    &custody_pda, // Authority is the program's PDA
+                )?,
+                &[
+                    custody_account.clone(),
+                    collateral_mint_account.clone(),
+                    spl_account.clone(),
+                    rent_account.clone(),
                 ],
             )?;
         }
+
+        ///////////////////////////////////
+        ///
         // Deserialize the UserPositions account data
         let mut user_positions_data = user_positions_account.try_borrow_mut_data()?; // Access data via AccountInfo
         let mut data_slice: &[u8] = &user_positions_data;
 
-        msg!("user_positions_data: {:?}", user_positions_data);
+        // msg!("user_positions_data: {:?}", user_positions_data);
 
         let mut user_positions = if data_slice.iter().all(|&x| x == 0) {
             // Account data is uninitialized, initialize UserPositions
@@ -207,7 +252,7 @@ impl Processor {
             user_positions
         };
 
-        msg!("user_positions: {:?}", user_positions);
+        // msg!("user_positions: {:?}", user_positions);
 
         // Derive the PDA for the new position based on the user and the position index
         let (position_pda, position_bump) = Pubkey::find_program_address(
@@ -221,7 +266,7 @@ impl Processor {
 
         // Check if the new position PDA needs to be created
         if position_account.data_is_empty() {
-            msg!("position_account 1: {:?}", position_account);
+            // msg!("position_account 1: {:?}", position_account);
             // This checks the account info, not Pubkey
             let rent = &Rent::from_account_info(rent_account)?;
             let required_lamports = rent.minimum_balance(Position::LEN);
@@ -233,6 +278,8 @@ impl Processor {
                 &[position_bump],
             ];
 
+            msg!("Creating position account...");
+
             invoke_signed(
                 &solana_program::system_instruction::create_account(
                     payer_account.key,
@@ -240,16 +287,26 @@ impl Processor {
                     required_lamports,
                     Position::LEN as u64,
                     program_id,
+                    // payer_account.key,
                 ),
                 &[
                     payer_account.clone(),
                     position_account.clone(),
                     system_program.clone(),
                 ],
-                &[seeds],
+                // &[seeds],
+                &[&[
+                    b"position",
+                    payer_account.key.as_ref(),
+                    &user_positions.next_position_idx.to_le_bytes(),
+                    &[position_bump],
+                ]],
             )?;
         }
 
+        ////////////////////////////////////////////
+        /// ///////////////////////////////////////
+        /// /////////////////////////////////////
         // Create a new Position
         let position = Position {
             owner: *payer_account.key,
@@ -268,7 +325,7 @@ impl Processor {
         user_positions.next_position_idx += 1;
         user_positions.serialize(&mut *user_positions_data)?;
 
-        msg!("Position added successfully");
+        // msg!("Position added successfully");
         // Transfer collateral from user's account to custody account (associated token account)
         let transfer_ix = spl_token::instruction::transfer(
             spl_account.key,
@@ -289,7 +346,7 @@ impl Processor {
             ],
         )?;
 
-        msg!("Collateral transferred successfully");
+        // msg!("Collateral transferred successfully");
 
         Ok(())
     }

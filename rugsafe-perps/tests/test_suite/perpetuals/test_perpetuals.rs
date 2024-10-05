@@ -26,16 +26,16 @@ async fn test_open_position() {
     // Step 1: Initialize the program ID and set up the ProgramTest environment
     // println!("Initializing ProgramTest environment...");
     let program_id = Pubkey::new_unique();
-    let mut program_test =
+    let program_test =
         ProgramTest::new("rugsafe_perps", program_id, processor!(Processor::process));
 
     // Add the SPL Token program to the test environment
     // println!("Adding SPL Token program...");
-    program_test.add_program(
-        "spl_token",
-        spl_token::id(),
-        processor!(spl_token::processor::Processor::process),
-    );
+    // program_test.add_program(
+    //     "spl_token",
+    //     spl_token::id(),
+    //     processor!(spl_token::processor::Processor::process),
+    // );
 
     // Start the test context
     // println!("Starting test context...");
@@ -129,10 +129,14 @@ async fn test_open_position() {
 
     // **Step 4: Derive the custody associated token account**
     // println!("Deriving custody associated token account...");
-    let custody_account = spl_associated_token_account::get_associated_token_address(
-        &program_id,               // Custody is owned by the program
-        &collateral_mint.pubkey(), // Associated with collateral mint
-    );
+    // let custody_account = spl_associated_token_account::get_associated_token_address(
+    //     &program_id,               // Custody is owned by the program
+    //     &collateral_mint.pubkey(), // Associated with collateral mint
+    // );
+    let (custody_pda, _) =
+        Pubkey::find_program_address(&[b"custody", payer.pubkey().as_ref()], &program_id);
+    // Use the custody PDA as the custody account
+    let custody_account = custody_pda;
     // println!("Custody account: {:?}", custody_account);
 
     // **Step 5: Derive the user positions PDA**
@@ -170,6 +174,7 @@ async fn test_open_position() {
             &0u64.to_le_bytes(), // Assuming next position index is 0 initially
         ],
         &program_id,
+        // &payer.pubkey(),
     );
     // println!("Position PDA: {:?}", position_pda);
 
