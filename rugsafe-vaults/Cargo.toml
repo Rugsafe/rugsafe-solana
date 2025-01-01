@@ -1,0 +1,26 @@
+[package]
+name = "rugsafe-vaults"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75.0"
+
+[dependencies]
+solana-program = "=2.0.11"
+spl-token = { version = "6.0.0", features = ["no-entrypoint"], default-features = false }
+borsh = "1.5.1"
+borsh-derive = "1.5.1"
+hex = "0.4.3"
+spl-associated-token-account = { version = "5.0.1", features = ["no-entrypoint"], default-features = false }
+getrandom = "0.2.15"
+
+
+[dev-dependencies]
+solana-program-test = "=2.0.11"
+solana-sdk = "=2.0.11"
+spl-token = { version = "6.0.0", features = ["no-entrypoint"], default-features = false }
+tokio = { version = "1.0.0", features = ["macros"]}
+getrandom = "0.2.15"
+
+[lib]
+name = "rugsafe_vaults"
+crate-type = ["cdylib", "lib"]
