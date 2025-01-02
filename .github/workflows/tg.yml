@@ -1,0 +1,20 @@
+name: Push to Telegram
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Telegram Message
+        run: |
+          curl -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
+          -H "Content-Type: application/json" \
+          -d '{
+                "chat_id": "${{ secrets.TELEGRAM_CHAT_ID }}",
+                "message_thread_id": ${{ secrets.TELEGRAM_TOPIC_ID }},
+                "text": "New commit pushed to *${{ github.repository }}* on branch: ${{ github.ref_name }}\n- **Message**: ${{ github.event.head_commit.message }}\n- **Author**: Rugsafe Core Team\n- [View Commit](${{ github.event.head_commit.url }})",
+                "parse_mode": "Markdown"
+              }'

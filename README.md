@@ -1,109 +1,114 @@
-https://solana.com/developers/guides/getstarted/setup-local-development
+# RugSafe Protocol - Solana Programs
 
-avm use latest  
-solana --version
-anchor --version
-solana-test-validator
-solana config set --url localhost
-solana config get
-solana-keygen new
+![RugSafe Logo](https://rugsafe.io/_next/static/media/logo5.7217ba98.png)
 
-seed
-modify window finger chat session proud myth hub ability obvious explain twelve
+RugSafe is a cutting-edge multichain protocol designed to address and mitigate rug-pull risks in decentralized finance (DeFi). By transforming rugged tokens into opportunities, the protocol leverages cryptographic security measures, economic incentives, and innovative mechanisms to protect users while creating new financial instruments. RugSafe redefines recovery and resilience in DeFi, enabling users to secure their assets, recover losses, and engage in advanced financial operations.
 
+| Status Type          | Status                                                                 |
+|----------------------|-------------------------------------------------------------------------|
+| **Development Build**| [![Development Build](https://github.com/rugsafe/solana-program/actions/workflows/development.yml/badge.svg)](https://github.com/rugsafe/solana-program/actions/workflows/development.yml) |
+| **Issues**           | [![Issues](https://img.shields.io/github/issues/rugsafe/solana-program.svg)](https://github.com/rugsafe/solana-program/issues) |
+| **Last Commit**      | [![Last commit](https://img.shields.io/github/last-commit/rugsafe/solana-program.svg)](https://github.com/rugsafe/solana-program/commits/main) |
+| **License**          | [![License](https://img.shields.io/badge/license-APACHE-blue.svg)](https://github.com/rugsafe/solana-program/blob/main/LICENSE) |
+
+## Protocol Overview
+
+RugSafe integrates recovery mechanisms and financial instruments to empower DeFi users:
+
+1. **Vault Mechanism**: Securely deposit rugged tokens to receive anti-coins, which inversely correlate to the token’s value.
+2. **Perpetual Contracts**: Advanced trading instruments with collateralized leverage and robust liquidation processes.
+3. **Decentralized Exchange (DEX)**: Facilitates trading of rugged tokens, anti-coins, and other ecosystem assets.
+4. **Rug Detection**: Real-time mechanisms to identify and mitigate potential rug pulls.
+5. **Anti-Coin Dynamics**: Implements an inverse logarithmic pegging model to stabilize and hedge rugged token value declines.
+
+## Key Features
+
+### Vaults
+- **Token Recovery**: Deposit rugged tokens to mint anti-coins.
+- **Anti-Coins**: Inversely pegged to rugged tokens, offering protection and stability.
+- **Secure Registry**: Vaults are tracked across blockchains in a unified registry.
+
+### Perpetuals
+- **Leverage Trading**: Open long or short positions with collateralized assets.
+- **Liquidation Mechanisms**: Secure systems to manage under-collateralized positions.
+- **Advanced Collateral Management**: Add or adjust collateral dynamically.
+
+### Decentralized Exchange (DEX)
+- **Trading Infrastructure**: Swap rugged tokens, anti-coins, and stable assets.
+- **Market Stability**: Enforces inverse logarithmic pegging between rugged tokens and anti-coins.
+- **Liquidity Incentives**: Rewards liquidity providers for maintaining balanced markets.
+
+### Rug Detection Mechanisms
+- **Liquidity Monitoring**: Detects sudden liquidity changes signaling potential rug pulls.
+- **Proactive Interventions**: Executes protective actions such as front-running or sandwiching to secure assets.
+- **Mitigation Systems**: Allows users to define automated intents for managing risky positions.
+
+## This Repository
+
+This repository focuses on the Solana implementation of the RugSafe protocol, specifically the **Vaults** and **Perpetuals** programs:
+
+1. **Vaults Program**: Secure rugged token deposits and issue anti-coins.
+2. **Perpetuals Program**: Enable leveraged trading and advanced position management.
+
+For details on these modules, see below.
+
+### Vaults Program
+- **Deposit**: Secure rugged tokens in vaults.
+- **Withdraw**: Retrieve deposited assets.
+- **Anti-Coin Issuance**: Mint anti-coins to hedge rugged token losses.
+
+### Perpetuals Program
+- **Open Positions**: Initiate leveraged trades (long or short).
+- **Manage Collateral**: Dynamically adjust collateral.
+- **Liquidation Rules**: Enforce safeguards for under-collateralized positions.
+
+
+
+## Quick Start
+
+### Setting Up the Environment
+
+To get started, ensure you have the following tools installed:
+- **Rust**: [Install Rust](https://www.rust-lang.org/tools/install)
+- **Solana CLI**: [Install Solana CLI](https://docs.solana.com/cli/install-solana-cli-tools)
+
+### Build and Test
+
+This repository uses a **workspace** to manage the `rugsafe-perps` and `rugsafe-vaults` programs. The `Makefile` provides convenient targets to streamline development.
+
+#### Folder Structure
+```bash
+.
+├── Makefile
+├── Cargo.toml
+├── rugsafe-perps
+├── rugsafe-vaults
+├── tests
+└── README.md
 ```
-0xjovis-MBP:solana-dev 0xjovi$ solana-keygen new
-Generating a new keypair
 
-For added security, enter a BIP39 passphrase
+#### Development Commands
 
-NOTE! This passphrase improves security of the recovery seed phrase NOT the
-keypair file itself, which is stored as insecure plain text
-
-BIP39 Passphrase (empty for none): 
-
-Wrote new keypair to /Users/0xjovi/.config/solana/id.json
-===============================================================================
-pubkey: DZ92eKdkjqkToFwcGCHDRwbJwiWYKe57jZgMV3gSuhFT
-===============================================================================
-Save this seed phrase and your BIP39 passphrase to recover your new keypair:
-modify window finger chat session proud myth hub ability obvious explain twelve
-===============================================================================
+Build the programs:
+```bash
+$ make dev
 ```
 
-solana config set -k ~/.config/solana/id.json
-solana airdrop 2
-solana balance
-
-
-https://solana.com/developers/guides/getstarted/local-rust-hello-world
-cargo init hello_world --lib
-cargo add solana-program
-
-cargo build-bpf
-
-to resolve this Error Simply Run 2 Commands
-1- cargo add solana-program@=1.17.0
-Then Run
-2- cargo update -p solana-program
-
-After Simply Run : anchor build . and you Good To Go
-
-cargo add solana-program@=1.17.25
-cargo update -p solana-program
-anchor build
-
-cargo build-sbf --tools-version v1.39
-cargo +stable build-sbf
-
- sh -c "$(curl -sSfL https://release.solana.com/v1.18.18/install)"
-solana config set -k ~/.config/solana/id.json
-solana config set -k /Users/0xjovi/.config/solana/id.json
-
-solana program deploy ./target/deploy/hello_world.so
-
-
-solana-keygen new -o /Users/0xjovi/.config/solana/id.json
-
-solana airdrop 2 -k  /Users/0xjovi/.config/solana/id.json --url localhost
-
-solana balance --url localhost
-
-solana program deploy ./target/deploy/hello_world.so --url localhost
-
-CoNXM11qc8LmGhTLKb7i75HhSP4rgc3eNcyNHgYn377o
-
-solana-ledger-tool program run -l test-ledger -e debugger target/deploy/helloworld.so
-
-solana config set --url localhost
-
-solana transfer recipient_address 1.23 --from ~/.config/solana/id.json
-solana transfer 9hpcmyrpfSzn2T4XmioWzQ8xvAfFhSjxuTv8ioDKKT1P 0.11 --from ~/.config/solana/id.json
-
-
-# goal
-
-//create vault
-// deposit tokena -> receive rtokena
-// withdraw token a -> deposits rtokena + burns rtokena?
-// burn rtokena -> receives btokena
-
-// RToken
-// underlying tokena
-// has a Safe?
-// whenever Rtoken is withdrawn against
-//(attempting to claim the underlying token again,
-//it distributes a percentage of the underlying token (or rtoken) to vaults? liquidity providers?)
-
-// Vault
-// takes tokena as a deposit
-// mints rtokena in exchange for tokena
-// burns rtokena and mints btokena
-
-// Pool
-// tokena is always sol
-
-# logs
+Run integration tests:
+```bash
+$ make t
 ```
-solana logs  --verbose
-```
+
+## Contributing
+
+We welcome contributions to RugSafe! Join our community and help shape the future of DeFi:
+- **Discord**: [Join our community](https://discord.gg/ecMQ2D6nsu)
+- **Telegram**: [Join the chat](https://t.me/rugsafe)
+
+## License
+
+RugSafe is released under the [GPL License](LICENSE).
+
+---
+
+**Note**: This repository is under active development and may undergo significant changes. For a detailed understanding of RugSafe, refer to our [white paper](https://rugsafe.io/assets/paper/rugsafe.pdf).

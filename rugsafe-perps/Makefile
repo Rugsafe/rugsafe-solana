@@ -1,3 +1,4 @@
+NETWORK=localhost
 all: t dev deploy
 	echo "finished"
 dev:
@@ -7,7 +8,7 @@ t:
 t1:
 	cargo test-bpf --package rugsafe-perps --test main -- test_open_position --nocapture
 deploy:
-	solana program deploy ../target/deploy/rugsafe_perps.so --url localhost --max-len 5000000
+	solana program deploy ../target/deploy/rugsafe_perps.so --url ${NETWORK} --max-len 5000000
 
 create-vault:
 	solana program -k user.json invoke --program-id <PROGRAM_ID> --data "00" --accounts '[{"pubkey":"$(solana address -k mint.json)","is_signer":true,"is_writable":true},{"pubkey":"$(solana address -k user.json)","is_signer":true,"is_writable":true},{"pubkey":"SysvarRent111111111111111111111111111111111"}]'
